@@ -2,11 +2,11 @@ package com.example.model;
 
 import java.util.List;
 
-public class Adminstrador extends Usuario implements IGestorSolicitudes {
+public class Administrador extends Usuario implements IGestorSolicitudes {
 
 	private CalendarioAcademico calendarioAcademico;
 
-	public void adminstrarUsuarios() {
+	public void administrarUsuarios() {
 
 	}
 
@@ -14,11 +14,11 @@ public class Adminstrador extends Usuario implements IGestorSolicitudes {
 		return null;
 	}
 
-	public void admintrarConfiguracionDelSistema() {
+	public void administrarConfiguracionDelSistema() {
 
 	}
 
-	public void establecerPeriodoCademico(Date fechaInicio, Date fechFinal) {
+	public void establecerPeriodoAcademico(Date fechaInicio, Date fechaFinal) {
 
 	}
 

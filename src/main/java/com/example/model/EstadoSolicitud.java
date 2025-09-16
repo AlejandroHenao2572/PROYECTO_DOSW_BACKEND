@@ -6,7 +6,7 @@ public enum EstadoSolicitud {
 
 	EN_REVISION,
 
-	APROVADA,
+	APROBADA,
 
 	DENEGADA;
 

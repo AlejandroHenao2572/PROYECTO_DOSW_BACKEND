@@ -8,7 +8,7 @@ public class ProcesadorSolicitudes {
 		return false;
 	}
 
-	public void assignarPrioridad(Solicitud solicitud) {
+	public void asignarPrioridad(Solicitud solicitud) {
 
 	}
 

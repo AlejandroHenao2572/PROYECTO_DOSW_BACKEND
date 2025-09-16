@@ -4,11 +4,11 @@ public class Reporte {
 
 	private Solicitud[] solicitud;
 
-	public void reporteSolicutudesPendientes() {
+	public void reporteSolicitudesPendientes() {
 
 	}
 
-	public void reporteSolicitudesAprovadas() {
+	public void reporteSolicitudesAprobadas() {
 
 	}
 

@@ -1,21 +1,36 @@
 package com.example.model;
 
+import java.time.LocalTime;
+
 public enum FranjaHoraria {
+    FRANJA_1(LocalTime.of(7, 0), LocalTime.of(8, 30)),
+    FRANJA_2(LocalTime.of(8, 30), LocalTime.of(10, 0)),
+    FRANJA_3(LocalTime.of(10, 0), LocalTime.of(11, 30)),
+    FRANJA_4(LocalTime.of(11, 30), LocalTime.of(13, 0)),
+    FRANJA_5(LocalTime.of(13, 0), LocalTime.of(14, 30)),
+    FRANJA_6(LocalTime.of(14, 30), LocalTime.of(16, 0)),
+    FRANJA_7(LocalTime.of(16, 0), LocalTime.of(17, 30)),
+    FRANJA_8(LocalTime.of(17, 30), LocalTime.of(19, 0));
 
-	/*7:00-8:30,
+    private final LocalTime inicio;
+    private final LocalTime fin;
 
-	8:30-10:00,
+    FranjaHoraria(LocalTime inicio, LocalTime fin) {
+        this.inicio = inicio;
+        this.fin = fin;
+    }
 
-	10:00-11:30,
+    public LocalTime getInicio() {
+        return inicio;
+    }
 
-	11:30-1:00,
+    public LocalTime getFin() {
+        return fin;
+    }
 
-	1:00-2:30,
-
-	2:30-4:00,
-
-	4:00-5:30,
-
-	5:30-7:00;*/
-
+    public String getRangoFormateado() {
+        return String.format("%02d:%02d - %02d:%02d",
+                inicio.getHour(), inicio.getMinute(),
+                fin.getHour(), fin.getMinute());
+    }
 }
