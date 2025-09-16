@@ -1,10 +1,10 @@
-package com.example.model;
+package com.sirha.proyecto_sirha_dosw.model;
 
 public class Grupo {
 
 	private String id;
 
-	private Int capacidad;
+	private Integer capacidad;
 
 	private int cantidadInscritos;
 
