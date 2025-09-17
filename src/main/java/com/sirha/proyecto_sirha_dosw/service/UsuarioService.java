@@ -1,7 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
-import com.sirha.proyecto_sirha_dosw.model.RolUsuario;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
