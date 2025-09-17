@@ -83,6 +83,8 @@ docs #Documentacion del proyecto
 - **Swagger/OpenAPI**: REST API documentation
 - **React & Next.js**: Frontend development with TypeScript
 
+---
+
 ## Artefactos de analisis y diseño:
 ### Diagrama de contexto  
 <img width="2273" height="1820" alt="DiagramadeContexto (1)" src="https://github.com/user-attachments/assets/fd7ea4a2-b28f-48f4-b61e-c9c2be929d0a" />
@@ -102,6 +104,7 @@ docs #Documentacion del proyecto
 ### Diagrama base de datos  
 <img width="1312" height="662" alt="image" src="https://github.com/user-attachments/assets/d7438a5b-dfec-45ed-b73e-9827abedf262" />
 
+---
 
 ## Dependencias:  
 
@@ -134,6 +137,8 @@ docs #Documentacion del proyecto
         </dependency>
     </dependencies>
 ```
+
+---
 
 ## Plugins:
 
