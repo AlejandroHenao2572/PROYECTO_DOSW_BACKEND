@@ -93,7 +93,7 @@ docs #Documentacion del proyecto
 ### Diagrama de componentes general
 <img width="793" height="577" alt="image" src="https://github.com/user-attachments/assets/83e9783a-36a1-4161-a2f3-e1e13f92e2d0" />
 
-## Diagrama de componentes especifico
+### Diagrama de componentes especifico
 <img width="826" height="935" alt="image" src="https://github.com/user-attachments/assets/36f0dc30-1ebc-44fd-9f5a-e249298e27ee" />
 
 ### Diagrama de clases  
@@ -101,9 +101,11 @@ docs #Documentacion del proyecto
 
 ### Diagrama base de datos  
 <img width="1312" height="662" alt="image" src="https://github.com/user-attachments/assets/d7438a5b-dfec-45ed-b73e-9827abedf262" />
----
-## Dependencias:
-```
+
+
+## Dependencias:  
+
+```xml
  <dependencies>
         <!-- Spring Boot Web -->
         <dependency>
@@ -132,9 +134,10 @@ docs #Documentacion del proyecto
         </dependency>
     </dependencies>
 ```
----
+
 ## Plugins:
-```
+
+```xml
  <plugins>
             <!-- Spring Boot -->
             <plugin>
