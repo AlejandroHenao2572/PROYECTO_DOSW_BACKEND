@@ -1,14 +1,22 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
+import java.util.Date;
 import java.util.List;
 
 public class Decano extends Usuario implements IGestorSolicitudes {
+
+	@Override
+	public boolean autenticarUsuario() {
+		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
+		return true;
+	}
+
 
 	public List<Solicitud> consultarSolicitudes() {
 		return null;
 	}
 
-	public boolean responderSolicitud(String idSolicitud, estadoRespuesta respuesta, String razon) {
+	public boolean responderSolicitud(String idSolicitud, EstadoSolicitud respuesta, String razon) {
 		return false;
 	}
 
@@ -25,3 +33,5 @@ public class Decano extends Usuario implements IGestorSolicitudes {
 		return false;
 	}
 }
+
+
