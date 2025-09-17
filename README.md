@@ -6,12 +6,12 @@
 ---
 
 ## Miembros del Equipo:
--Anderson Fabian Garcia Nieto 
--David Alejandro Patacon Henao 
--Felipe Eduardo Calviche Gallego 
--Jared Sebastian Farfan Guevara 
--Kevin Arturo Cuitiva Pardo 
--Maria Paula Rodriguez Muñoz
+- Anderson Fabian Garcia Nieto  
+- David Alejandro Patacon Henao   
+- Felipe Eduardo Calviche Gallego  
+- Jared Sebastian Farfan Guevara   
+- Kevin Arturo Cuitiva Pardo  
+- Maria Paula Rodriguez Muñoz  
 
 ---
 
