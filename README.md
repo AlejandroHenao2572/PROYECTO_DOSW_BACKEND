@@ -2,9 +2,6 @@
 
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-green)
 ![Java](https://img.shields.io/badge/Java-17-orange)
-![Maven Central Version](https://img.shields.io/maven-central/v/:groupId/:artifactId)
-![MyGet Downloads](https://img.shields.io/myget/:feed/dt/:packageName)
-![License](https://img.shields.io/badge/license-MIT-blue)
 
 ---
 
