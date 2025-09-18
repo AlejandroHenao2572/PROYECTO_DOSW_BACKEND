@@ -1,20 +1,48 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "curso")
 public class Curso {
+     @Id
+    private String id;
 
-	private String id;
-	private String nombre;
-	private int creditos;
+    private String nombre;
+    private int creditos;
+    private String facultad;
 
-	public Curso(String id, String nombre, int creditos) {
-		this.id = id;
-		this.nombre = nombre;
-		this.creditos = creditos;
-	}
-	public List<Grupo> obtenerGruposDisponibles() {
-		return null;
-	}
+    public Curso(String nombre, int creditos, String facultad) {
+        this.nombre = nombre;
+        this.creditos = creditos;
+        this.facultad = facultad;
+
+    }
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getNombre() {
+        return nombre;
+    }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+    public int getCreditos() {
+        return creditos;
+    }
+    public void setCreditos(int creditos) {
+        this.creditos = creditos;
+    }
+    public String getFacultad() {
+        return facultad;
+    }
+    public void setFacultad(String facultad) {
+        this.facultad = facultad;
+    }
 
 }
