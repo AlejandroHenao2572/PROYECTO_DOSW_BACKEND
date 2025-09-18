@@ -7,12 +7,14 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="proyecto" />
+        <module name="proyecto-sirha-dosw" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="proyecto" options="-parameters" />
+      <module name="proyecto-sirha-dosw" options="-parameters" />
     </option>
   </component>
 </project>

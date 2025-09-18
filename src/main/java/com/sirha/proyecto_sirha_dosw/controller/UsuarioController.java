@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,6 +39,27 @@ public class UsuarioController {
         } else {
             return ResponseEntity.status(401).body("❌ Credenciales incorrectas");
         }
+    }
+
+    @GetMapping("/usuarios")
+    public ResponseEntity<List<Usuario>> listarUsuarios() {
+        List<Usuario> usuarios = usuarioService.listarUsuarios();
+        return ResponseEntity.ok(usuarios);
+    }  
+    
+    
+    @GetMapping("/usuario/{id}")
+    public ResponseEntity<Usuario> obtenerPorId(@PathVariable String id) {
+        Optional<Usuario> usuario = usuarioService.obtenerPorId(id);
+        return usuario.map(ResponseEntity::ok)
+                        .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/usuario/email/{email}")
+    public ResponseEntity<Usuario> obtenerPorEmail(@PathVariable String email) {
+        Optional<Usuario> usuario = usuarioService.obtenerPorEmail(email);
+        return usuario.map(ResponseEntity::ok)
+                        .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

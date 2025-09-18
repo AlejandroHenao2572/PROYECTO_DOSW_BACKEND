@@ -33,6 +33,8 @@ public abstract class Usuario {
     private String nombre;
 
     @Indexed(unique = true)
+    @Email
+    @NotBlank
     private String email;
 
     private String password;
