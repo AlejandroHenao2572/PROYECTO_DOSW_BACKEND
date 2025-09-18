@@ -1,13 +1,30 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-public abstract class Usuario implements IAutenticacionUsuario {
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(collection = "usuarios")
+public class Usuario {
+
+    @Id
     private String id;
+
     private String nombre;
     private String email;
     private String password;
-    private RolUsuario rol;
+    private String rol;
 
+    public Usuario() {
+    }
+
+    public Usuario(String nombre, String email, String password, String rol) {
+        this.nombre = nombre;
+        this.email = email;
+        this.password = password;
+        this.rol = rol;
+    }
+
+    // Getters y setters
     public String getId() {
         return id;
     }
@@ -19,7 +36,7 @@ public abstract class Usuario implements IAutenticacionUsuario {
     public String getNombre() {
         return nombre;
     }
-
+    
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
@@ -40,16 +57,14 @@ public abstract class Usuario implements IAutenticacionUsuario {
         this.password = password;
     }
 
-    public RolUsuario getRol() {
+    public String getRol() {
         return rol;
     }
-
-    public void setRol(RolUsuario rol) {
+    public void setRol(String rol) {
         this.rol = rol;
     }
 
-    @Override
-    public abstract boolean autenticarUsuario();
+
 }
 
 
