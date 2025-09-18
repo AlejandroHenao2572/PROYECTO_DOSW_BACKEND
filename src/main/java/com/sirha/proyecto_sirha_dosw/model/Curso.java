@@ -8,6 +8,11 @@ public class Curso {
 	private String nombre;
 	private int creditos;
 
+	public Curso(String id, String nombre, int creditos) {
+		this.id = id;
+		this.nombre = nombre;
+		this.creditos = creditos;
+	}
 	public List<Grupo> obtenerGruposDisponibles() {
 		return null;
 	}

@@ -1,37 +1,41 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
+import java.util.Date;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 public class Horario {
 
-    private LocalDate dia;
-    private LocalTime horaInicio;
-    private LocalTime horaFin;
+    private Date dia;
+
+    @Field("hora_inicio")
+    private Date horaInicio;
+
+    @Field("hora_fin")
+    private Date horaFin;
 
     // Getters y Setters
-    public LocalDate getDia() {
+    public Date getDia() {
         return dia;
     }
 
-    public void setDia(LocalDate dia) {
+    public void setDia(Date dia) {
         this.dia = dia;
     }
 
-    public LocalTime getHoraInicio() {
+    public Date getHoraInicio() {
         return horaInicio;
     }
 
-    public void setHoraInicio(LocalTime horaInicio) {
+    public void setHoraInicio(Date horaInicio) {
         this.horaInicio = horaInicio;
     }
 
-    public LocalTime getHoraFin() {
+    public Date getHoraFin() {
         return horaFin;
     }
 
-    public void setHoraFin(LocalTime horaFin) {
+    public void setHoraFin(Date horaFin) {
         this.horaFin = horaFin;
     }
 

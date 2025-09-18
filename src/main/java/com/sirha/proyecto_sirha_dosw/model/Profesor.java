@@ -1,37 +1,26 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
+public class Profesor {
 
-public class Profesor extends Usuario {
+    private String idUsuario;
+    private String nombre;
 
-	private String especializacion;
-	private Facultad facultad;
+    // Getters y Setters
+    public String getIdUsuario() {
+        return idUsuario;
+    }
 
-	@Override
-	public boolean autenticarUsuario() {
-		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
-		return true;
-	}
+    public void setIdUsuario(String idUsuario) {
+        this.idUsuario = idUsuario;
+    }
 
-	public List<Grupo> obtenerGruposAsignados() {
-		return null;
-	}
+    public String getNombre() {
+        return nombre;
+    }
 
-	public String getEspecializacion() {
-		return especializacion;
-	}
-
-	public void setEspecializacion(String especializacion) {
-		this.especializacion = especializacion;
-	}
-
-	public Facultad getFacultad() {
-		return facultad;
-	}
-
-	public void setFacultad(Facultad facultad) {
-		this.facultad = facultad;
-	}
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 }
 
 

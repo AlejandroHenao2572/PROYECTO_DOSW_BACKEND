@@ -1,10 +1,13 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "usuarios")
-public class Usuario {
+@TypeAlias("Usuario")
+public abstract class Usuario {
 
     @Id
     private String id;
@@ -12,12 +15,14 @@ public class Usuario {
     private String nombre;
     private String email;
     private String password;
-    private String rol;
+
+    @DBRef  // referencia a la colección Rol
+    private Rol rol;
 
     public Usuario() {
     }
 
-    public Usuario(String nombre, String email, String password, String rol) {
+    public Usuario(String nombre, String email, String password, Rol rol) {
         this.nombre = nombre;
         this.email = email;
         this.password = password;
@@ -36,7 +41,7 @@ public class Usuario {
     public String getNombre() {
         return nombre;
     }
-    
+
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
@@ -57,11 +62,16 @@ public class Usuario {
         this.password = password;
     }
 
-    public String getRol() {
+    public Rol getRol() {
         return rol;
     }
-    public void setRol(String rol) {
+    public void setRol(Rol rol) {
         this.rol = rol;
+    }
+
+    public boolean autenticarUsuario() {
+    
+        throw new UnsupportedOperationException("Unimplemented method 'autenticarUsuario'");
     }
 
 
