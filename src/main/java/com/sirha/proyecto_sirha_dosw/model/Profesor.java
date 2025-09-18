@@ -4,34 +4,19 @@ import java.util.List;
 
 public class Profesor extends Usuario {
 
-	private String especializacion;
-	private Facultad facultad;
+    private String especializacion;
 
-	@Override
-	public boolean autenticarUsuario() {
-		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
-		return true;
-	}
+    private Facultad facultad;
 
-	public List<Grupo> obtenerGruposAsignados() {
-		return null;
-	}
+    public Profesor(String nombre ,String email, String password) {
+        this.setNombre(nombre);
+        this.setEmail(email);
+        this.setPassword(password);
+        this.setRol(RolUsuario.PROFESOR);
+    }
 
-	public String getEspecializacion() {
-		return especializacion;
-	}
+    public List<Grupo> obtenerGruposAsignados() {
+        return null;
+    }
 
-	public void setEspecializacion(String especializacion) {
-		this.especializacion = especializacion;
-	}
-
-	public Facultad getFacultad() {
-		return facultad;
-	}
-
-	public void setFacultad(Facultad facultad) {
-		this.facultad = facultad;
-	}
 }
-
-

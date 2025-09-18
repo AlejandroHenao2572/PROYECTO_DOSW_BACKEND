@@ -1,15 +1,10 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
-import com.sirha.proyecto_sirha_dosw.model.Administrador;
-import com.sirha.proyecto_sirha_dosw.model.Decano;
-import com.sirha.proyecto_sirha_dosw.model.Estudiante;
-import com.sirha.proyecto_sirha_dosw.model.Profesor;
-import com.sirha.proyecto_sirha_dosw.model.Usuario;
 import com.sirha.proyecto_sirha_dosw.service.UsuarioService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.sirha.proyecto_sirha_dosw.model.Usuario;
 
 import java.util.Map;
 
@@ -43,4 +38,5 @@ public class UsuarioController {
             return ResponseEntity.status(401).body("❌ Credenciales incorrectas");
         }
     }
+
 }

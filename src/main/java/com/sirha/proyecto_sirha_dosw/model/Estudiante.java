@@ -4,13 +4,15 @@ import java.util.List;
 
 public class Estudiante extends Usuario {
 
-	private int semestre;
+	private int semestre = 1;
+
 	private SemaforoAcademico semaforoAcademico;
 
-	@Override
-	public boolean autenticarUsuario() {
-		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
-		return true;
+	public Estudiante(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.ESTUDIANTE);
 	}
 
 	public Horario consultarHorario() {
@@ -29,20 +31,5 @@ public class Estudiante extends Usuario {
 		return null;
 	}
 
-	public int getSemestre() {
-		return semestre;
-	}
-
-	public void setSemestre(int semestre) {
-		this.semestre = semestre;
-	}
-
-	public SemaforoAcademico getSemaforoAcademico() {
-		return semaforoAcademico;
-	}
-
-	public void setSemaforoAcademico(SemaforoAcademico semaforoAcademico) {
-		this.semaforoAcademico = semaforoAcademico;
-	}
 }
 

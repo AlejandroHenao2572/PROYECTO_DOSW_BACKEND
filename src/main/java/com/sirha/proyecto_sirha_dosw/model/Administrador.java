@@ -1,23 +1,23 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.Date;
 import java.util.List;
 
 public class Administrador extends Usuario implements IGestorSolicitudes {
 
 	private CalendarioAcademico calendarioAcademico;
 
-	@Override
-	public boolean autenticarUsuario() {
-		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
-		return true;
+	public Administrador(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.ADMINISTRADOR);
 	}
 
 	public void administrarUsuarios() {
 
 	}
 
-	public List<Reporte> generarReportesDelSistema() {
+	public List<Reporte> generarReportesDelSystema() {
 		return null;
 	}
 
@@ -33,6 +33,7 @@ public class Administrador extends Usuario implements IGestorSolicitudes {
 	public boolean gestionarSolicitud(Solicitud solicitud) {
 		return false;
 	}
+
 }
 
 

@@ -1,47 +1,33 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
-import com.sirha.proyecto_sirha_dosw.model.Usuario;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
+import com.sirha.proyecto_sirha_dosw.model.Usuario;
 
-import java.util.*;
+import java.util.Optional;
 
 @Service
 public class UsuarioService {
 
-    private final Map<String, Usuario> usuarios = new HashMap<>();
+    private final UsuarioRepository usuarioRepository;
 
-    // registrar un nuevo usuario
+    @Autowired
+    public UsuarioService(UsuarioRepository usuarioRepository) {
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    // Registrar usuario (guarda la contraseña tal cual)
     public Usuario registrar(Usuario usuario) {
-        if (usuarios.containsKey(usuario.getEmail())) {
-            throw new IllegalArgumentException("El usuario con este correo ya existe.");
-        }
-        usuarios.put(usuario.getEmail(), usuario);
-        return usuario;
+        return usuarioRepository.save(usuario);
     }
 
-    // autenticar un usuario (login)
-    public boolean autenticar(String email, String password) {
-        Usuario usuario = usuarios.get(email);
-        if (usuario != null && usuario.getPassword().equals(password)) {
-            return true;
-        }
-        return false;
+    // Autenticar usuario (comparación directa de contraseñas)
+    public boolean autenticar(String email, String rawPassword) {
+        Optional<Usuario> usuario = usuarioRepository.findByEmail(email);
+        return usuario.isPresent() && usuario.get().getPassword().equals(rawPassword);
     }
 
-    // obtener un usuario por correo
-    public Usuario buscarPorEmail(String email) {
-        return usuarios.get(email);
-    }
-
-    // listar todos los usuarios registrados
-    public List<Usuario> listarUsuarios() {
-        return new ArrayList<>(usuarios.values());
-    }
-
-    // eliminar un usuario
-    public boolean eliminar(String email) {
-        return usuarios.remove(email) != null;
-    }
 }
 
 

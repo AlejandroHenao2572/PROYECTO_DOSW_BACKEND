@@ -8,5 +8,4 @@ public class Horario {
 	public void anadirClase(FranjaHoraria hora, Dia dia) {
 
 	}
-
 }
