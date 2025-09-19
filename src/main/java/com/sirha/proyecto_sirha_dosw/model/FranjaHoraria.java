@@ -3,6 +3,7 @@ package com.sirha.proyecto_sirha_dosw.model;
 import java.time.LocalTime;
 
 public enum FranjaHoraria {
+
     FRANJA_1(LocalTime.of(7, 0), LocalTime.of(8, 30)),
     FRANJA_2(LocalTime.of(8, 30), LocalTime.of(10, 0)),
     FRANJA_3(LocalTime.of(10, 0), LocalTime.of(11, 30)),
@@ -33,4 +34,5 @@ public enum FranjaHoraria {
                 inicio.getHour(), inicio.getMinute(),
                 fin.getHour(), fin.getMinute());
     }
+
 }

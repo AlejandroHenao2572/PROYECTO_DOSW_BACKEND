@@ -4,6 +4,13 @@ import java.util.List;
 
 public class Decano extends Usuario implements IGestorSolicitudes {
 
+	public Decano(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.DECANO);
+	}
+
 	public List<Solicitud> consultarSolicitudes() {
 		return null;
 	}
@@ -24,4 +31,7 @@ public class Decano extends Usuario implements IGestorSolicitudes {
 	public boolean gestionarSolicitud(Solicitud solicitud) {
 		return false;
 	}
+
 }
+
+

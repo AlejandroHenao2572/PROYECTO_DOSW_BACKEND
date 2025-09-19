@@ -6,6 +6,13 @@ public class Administrador extends Usuario implements IGestorSolicitudes {
 
 	private CalendarioAcademico calendarioAcademico;
 
+	public Administrador(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.ADMINISTRADOR);
+	}
+
 	public void administrarUsuarios() {
 
 	}
@@ -26,4 +33,7 @@ public class Administrador extends Usuario implements IGestorSolicitudes {
 	public boolean gestionarSolicitud(Solicitud solicitud) {
 		return false;
 	}
+
 }
+
+

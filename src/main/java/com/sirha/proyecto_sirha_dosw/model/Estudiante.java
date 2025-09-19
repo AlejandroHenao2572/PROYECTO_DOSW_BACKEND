@@ -4,9 +4,16 @@ import java.util.List;
 
 public class Estudiante extends Usuario {
 
-	private int semestre;
+	private int semestre = 1;
 
 	private SemaforoAcademico semaforoAcademico;
+
+	public Estudiante(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.ESTUDIANTE);
+	}
 
 	public Horario consultarHorario() {
 		return null;
@@ -25,3 +32,4 @@ public class Estudiante extends Usuario {
 	}
 
 }
+
