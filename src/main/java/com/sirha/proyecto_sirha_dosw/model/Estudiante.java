@@ -20,6 +20,7 @@ public class Estudiante extends Usuario {
 
     public String getCarrera() { return carrera; }
     public int getSemestre() { return semestre; }
+    
 
 }
 
