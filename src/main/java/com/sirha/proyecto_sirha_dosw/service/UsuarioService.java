@@ -122,7 +122,7 @@ public class UsuarioService {
      * @return un {@link Optional} que contiene el {@link Usuario} si existe, o vacío si no
      */
 
-    public Optional<Usuario> obtenerPorNombre(String nombre) {
+    public List<Usuario> obtenerPorNombre(String nombre) {
         return usuarioRepository.findByNombre(nombre);
     }
 
@@ -133,7 +133,7 @@ public class UsuarioService {
      * @return un {@link Optional} que contiene el {@link Usuario} si existe, o vacío si no
      */
 
-    public Optional<Usuario> obtenerPorApellido(String apellido) {
+    public List<Usuario> obtenerPorApellido(String apellido) {
         return usuarioRepository.findByApellido(apellido);
     }
 
@@ -145,7 +145,7 @@ public class UsuarioService {
      * @return un {@link Optional} que contiene el {@link Usuario} si existe, o vacío si no
      */
 
-    public Optional<Usuario> obtenerPorNombreYApellido(String nombre, String apellido) {
+    public List<Usuario> obtenerPorNombreYApellido(String nombre, String apellido) {
         return usuarioRepository.findByNombreAndApellido(nombre, apellido);
     }
 

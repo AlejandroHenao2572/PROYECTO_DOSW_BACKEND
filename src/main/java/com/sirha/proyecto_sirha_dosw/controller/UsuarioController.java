@@ -153,50 +153,51 @@ public class UsuarioController {
     }
 
     /**
-     * Busca un usuario por su nombre.
+     * Busca usuarios por su nombre.
      *
      * @param nombre nombre del usuario
-     * @return {@link Usuario} si existe, 404 si no
+     * @return lista de {@link Usuario} si existen, lista vacía si no
      */
-
-    //  Buscar por nombre
     @GetMapping("/usuario/nombre/{nombre}")
-    public ResponseEntity<Usuario> obtenerPorNombre(@PathVariable String nombre) {
-        return usuarioService.obtenerPorNombre(nombre)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<Usuario>> obtenerPorNombre(@PathVariable String nombre) {
+        List<Usuario> usuarios = usuarioService.obtenerPorNombre(nombre);
+        if (usuarios.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(usuarios);
     }
 
     /**
-     * Busca un usuario por su apellido.
+     * Busca usuarios por su apellido.
      *
      * @param apellido apellido del usuario
-     * @return {@link Usuario} si existe, 404 si no
+     * @return lista de {@link Usuario} si existen, lista vacía si no
      */
-
-    //  Buscar por apellido
     @GetMapping("/usuario/apellido/{apellido}")
-    public ResponseEntity<Usuario> obtenerPorApellido(@PathVariable String apellido) {
-        return usuarioService.obtenerPorApellido(apellido)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<Usuario>> obtenerPorApellido(@PathVariable String apellido) {
+        List<Usuario> usuarios = usuarioService.obtenerPorApellido(apellido);
+        if (usuarios.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(usuarios);
     }
 
     /**
-     * Busca un usuario por su nombre y apellido.
+     * Busca usuarios por su nombre y apellido.
      *
      * @param nombre nombre del usuario
      * @param apellido apellido del usuario
-     * @return {@link Usuario} si existe, 404 si no
+     * @return lista de {@link Usuario} si existen, lista vacía si no
      */
-
-    //  Buscar por nombre y apellido
     @GetMapping("/usuario/{nombre}/{apellido}")
-    public ResponseEntity<Usuario> obtenerPorNombreYApellido(@PathVariable String nombre,
-                                                             @PathVariable String apellido) {
-        return usuarioService.obtenerPorNombreYApellido(nombre, apellido)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<Usuario>> obtenerPorNombreYApellido(@PathVariable String nombre,
+                                                                   @PathVariable String apellido) {
+        List<Usuario> usuarios = usuarioService.obtenerPorNombreYApellido(nombre, apellido);
+        if (usuarios.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(usuarios);
     }
+
 
 }
