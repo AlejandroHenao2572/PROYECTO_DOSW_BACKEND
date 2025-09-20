@@ -304,7 +304,7 @@ docs #Documentacion del proyecto
 
 ---
 
-##Aplicacion properties
+## Aplicacion properties
 
 ```
 spring.application.name=proyecto-sirha-dosw
