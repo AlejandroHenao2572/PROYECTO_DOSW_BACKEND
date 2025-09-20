@@ -1,7 +1,7 @@
 # PROYECTO_DOSW_BACKEND
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
-![Maven]((https://img.shields.io/badge/apachemaven-C71A36.svg?style=for-the-badge&logo=apachemaven&logoColor=white))
+![Maven Central Version](https://img.shields.io/maven-central/v/:groupId/:artifactId)
 ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![SonarQube](https://img.shields.io/badge/SonarQube-black?style=for-the-badge&logo=sonarqube&logoColor=4E9BCD)
@@ -109,37 +109,154 @@ docs #Documentacion del proyecto
 ### Diagrama base de datos  
 <img width="1312" height="662" alt="image" src="https://github.com/user-attachments/assets/d7438a5b-dfec-45ed-b73e-9827abedf262" />
 
+### JSON Base de datos no relacional: 
+
+```
+{
+  "Coleccion: Usuario": {
+    "id_usuario": "String",
+    "nombre": "String",
+    "correo": "String",
+    "contrasena": "String",
+    "rol": "String", 
+    "datos_rol": {  
+      "carrera": "String",
+      "semestre": "int",
+      "grupos_inscritos": [
+        {
+          "id_grupo": "String",
+          "materia": "String",
+          "nombre_materia": "String",
+          "horario": [
+            {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+            {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+          ]
+        },
+        {
+          "id_grupo": "F1",
+          "materia": "FIS202",
+          "nombre_materia": "Física II",
+          "horario": [
+            {"dia": "Martes", "hora_inicio": "10:00", "hora_fin": "12:00"},
+            {"dia": "Jueves", "hora_inicio": "10:00", "hora_fin": "12:00"}
+          ]
+        }
+      ]
+    }
+  },
+
+  "Coleccion: Materia": {
+    "id_materia": "String",
+    "nombre": "String",
+    "creditos": "int",
+    "facultad": "String"
+  },
+
+  "Coleccion: Grupo": {
+    "id_grupo": "String",
+    "id_materia": "String",
+    "profesor": {
+      "id_usuario": "String",
+      "nombre": "String"
+    },
+    "cupos_maximos": "int",
+    "cupos_asignados": "int",
+    "horario": [
+      {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+      {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+    ]
+  },
+
+  "Coleccion: Solicitud_Cambio": {
+    "id_solicitud": "String",
+    "id_estudiante": "String",
+    "origen": {
+      "id_grupo": "String",
+      "materia": "String",
+      "horario": [
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+      ]
+    },
+    "destino": {
+      "id_grupo": "String",
+      "materia": "String",
+      "horario": [
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+      ]
+    },
+    "descripcion": "String",
+    "fecha_solicitud": "Date",
+    "estado": "String",
+    "prioridad": "int",
+    "id_periodo": "String"
+  },
+
+  "Coleccion: Periodo_Habilitado": {
+    "id_periodo": "String",
+    "fecha_inicio": "Date",
+    "fecha_fin": "Date"
+  },
+
+
+  "Coleccion: Rol": {
+    "rol": "String",
+    "permisos": ["String","String","String","..."]
+  }
+}
+```
 ---
 
 ## Dependencias:  
 
 ```xml
- <dependencies>
-        <!-- Spring Boot Web -->
+<dependencies>
+  
+        <!-- Starter web para exponer APIs REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring Boot con MongoDB -->
+        <!-- MongoDB: para trabajar con base de datos NoSQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 
-        <!-- Swagger / OpenAPI con Springdoc -->
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${springdoc.version}</version>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
         </dependency>
 
-        <!-- Testing -->
+        <!-- Validación de datos -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Pruebas unitarias -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Springdoc OpenAPI para generar la documentación Swagger UI automáticamente -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
     </dependencies>
 ```
 
@@ -184,4 +301,46 @@ docs #Documentacion del proyecto
             </plugin>
         </plugins>
 ```
+
+---
+
+## Aplicacion properties
+
+```
+spring.application.name=proyecto-sirha-dosw
+
+# URI de conexion a Atlas MongoDB (con usuario y pass correctos)
+spring.data.mongodb.uri=mongodb+srv://admin:admin@sirha-db.3qb8g8p.mongodb.net/SIRHA-DB?retryWrites=true&w=majority&appName=SIRHA-DB
+
+# Nombre de la base de datos
+spring.data.mongodb.database=SIRHA-DB
+
+# Configuracion estandar de Springdoc OpenAPI
+server.port=8080
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.path=/swagger-ui/index.html
+
+```
+## Como ejecutar el proyecto:
+
+Compilar y ejecutar el proyecto:  
+
+'mvn clean install
+mvn spring-boot:run'
+
+Ver documentacion API REST en SWAGGER/OPENAI:  
+
+'http://localhost:8080/swagger-ui.html'    
+'http://localhost:8080/swagger-ui/index.html'  
+
+---
+
+## Cobertura de pruebas unitarias:
+
+
+---
+
+## Analisis estatico con SonarQube:
+
+
 
