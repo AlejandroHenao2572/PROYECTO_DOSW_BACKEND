@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 
-import java.util.List;
+import java.util.*;
 import java.util.Optional;
 
 @Service

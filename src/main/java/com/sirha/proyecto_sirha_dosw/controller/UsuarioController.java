@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -41,7 +41,7 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/usuarios")
+    @GetMapping("/")
     public ResponseEntity<List<Usuario>> listarUsuarios() {
         List<Usuario> usuarios = usuarioService.listarUsuarios();
         return ResponseEntity.ok(usuarios);
@@ -60,6 +60,19 @@ public class UsuarioController {
         Optional<Usuario> usuario = usuarioService.obtenerPorEmail(email);
         return usuario.map(ResponseEntity::ok)
                         .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+  
+  // Actualizar un usuario
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> updateUsuario(@PathVariable String id, @RequestBody Usuario usuarioDetails) {
+        return usuarioRepository.findById(id).map(usuario -> {
+            usuario.setNombre(usuarioDetails.getNombre());
+            usuario.setEmail(usuarioDetails.getEmail());
+            usuario.setPassword(usuarioDetails.getPassword());
+            usuario.setRol(usuarioDetails.getRol());
+            Usuario updated = usuarioRepository.save(usuario);
+            return ResponseEntity.ok(updated);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }
