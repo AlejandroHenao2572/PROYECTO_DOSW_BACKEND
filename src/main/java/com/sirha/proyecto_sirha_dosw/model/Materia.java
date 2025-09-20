@@ -19,6 +19,7 @@ public class Materia {
     public Materia(String codigo,String acronimo, String nombre, int creditos, EstrategiaCalculo estrategiaCalculo) {
         this.codigo = codigo;
         this.nombre = nombre;
+        this.acronimo = acronimo;
         this.creditos = creditos;
         this.estrategiaCalculo = estrategiaCalculo;
     }

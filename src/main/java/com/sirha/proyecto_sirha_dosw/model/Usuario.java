@@ -67,6 +67,7 @@ public abstract class Usuario {
 
     public Usuario(String nombre, String apellido, String email, String password, Rol rol) {
         this.nombre = nombre;
+        this.apellido = apellido;
         this.email = email;
         this.password = password;
         this.rol = rol;

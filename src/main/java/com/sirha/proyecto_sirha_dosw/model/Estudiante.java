@@ -21,13 +21,21 @@ public class Estudiante extends Usuario {
 
     public Estudiante(String nombre, String apellido,String email, String password,Rol rol, CarreraTipo carreraTipo) {
         super(nombre,apellido, email,password,rol);
-        this.semestres = new ArrayList<Semestre>();
+        //this.semestres = new ArrayList<Semestre>();
         this.carrera = CarreraFactory.crearCarrera(carreraTipo);
+    }
+    public Estudiante(String nombre, String apellido,String email, String password,Rol rol) {
+        super(nombre,apellido, email,password,rol);
+        //this.semestres = new ArrayList<Semestre>();
     }
     public void agregarSemestre(Semestre s) {
         semestres.add(s);
+        updateSemestre();
     }
 
+    public void updateSemestre(){
+        this.semestreActual = semestres.size();
+    }
     public Semestre getSemestreActual() {
         return semestres.get(semestres.size() - 1);
     }

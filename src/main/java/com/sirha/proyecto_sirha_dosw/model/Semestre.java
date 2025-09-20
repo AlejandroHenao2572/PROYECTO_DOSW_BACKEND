@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Semestre {
-    private int numero;
     private List<RegistroMateria> materias;
 
     public Semestre(int numero) {
-        this.numero = numero;
         this.materias = new ArrayList<>();
     }
 
@@ -23,5 +21,4 @@ public class Semestre {
     }
 
     public List<RegistroMateria> getMaterias() { return materias; }
-    public int getNumero() { return numero; }
 }

@@ -29,9 +29,11 @@ public class UsuarioFactory {
     public static Usuario crearUsuario(Rol rol,String nombre,String apellido, String email, String password, CarreraTipo facultad) {
         switch (rol) {
             case ESTUDIANTE:
-                return new Estudiante(nombre,apellido, email, password, rol, facultad);
+                return (facultad != null)
+                        ? new Estudiante(nombre,apellido, email, password, rol,facultad)
+                        : new Estudiante(nombre,apellido,email,password,rol);
             case PROFESOR:
-                return new Profesor(nombre,apellido, email, password, rol, facultad);
+                return  new Profesor(nombre, apellido, email, password, rol, facultad);
             case DECANO:
                 return new Decano(nombre,apellido, email, password, rol, facultad);
             case ADMINISTRADOR:

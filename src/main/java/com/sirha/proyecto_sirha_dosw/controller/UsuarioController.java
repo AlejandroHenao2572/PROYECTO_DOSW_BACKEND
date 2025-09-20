@@ -52,7 +52,11 @@ public class UsuarioController {
             String email = data.get("email");
             String password = data.get("password");
             Rol rol = Rol.valueOf(data.get("rol").toUpperCase());
-            CarreraTipo facultad = CarreraTipo.valueOf(data.get("facultad").toUpperCase());
+            CarreraTipo facultad = null;
+            try{
+                facultad = CarreraTipo.valueOf(data.get("facultad").toUpperCase());
+            }catch (Exception e){
+            }
 
             Usuario nuevo = UsuarioFactory.crearUsuario(rol, nombre, apellido, email, password, facultad);
             Usuario guardado = usuarioService.registrar(nuevo);
