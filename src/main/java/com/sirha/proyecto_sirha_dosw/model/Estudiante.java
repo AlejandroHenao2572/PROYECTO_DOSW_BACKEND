@@ -1,6 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -12,13 +13,18 @@ import java.util.stream.Collectors;
 
 public class Estudiante extends Usuario {
 
-    @NotBlank(message = "La carrera no puede estar vacío")
+    @Field("carrera")
+    @NotNull(message = "La carrera no puede ser nula")
     private Carrera carrera;
 
-    @Field("semestre")
-    @NotBlank(message = "La semestre no puede estar vacío")
-    private int semestreActual;
-    private List<Semestre> semestres;
+    @Field("semestre_actual")
+    @NotNull(message = "El semestre actual no puede ser nulo")
+    private Integer semestreActual;
+
+    @Field("semestres")
+    private List<Semestre> semestres = new ArrayList<>();
+
+    @Field("promedio_acumulado")
     private Double promedioAcumulado;
 
     // Nuevos campos para gestion de horarios y grupos

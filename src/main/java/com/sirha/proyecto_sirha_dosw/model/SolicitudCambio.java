@@ -6,8 +6,10 @@ import java.time.LocalDateTime;
 
 @Document(collection = "solicitudes")
 public class SolicitudCambio {
+
     @Id
     private String id;
+
     private String idEstudiante;
     private String materiaConProblema;
     private String sugerenciaCambio;
