@@ -7,13 +7,14 @@ public class Profesor extends Usuario {
 
     @Field("departamento")
     @NotBlank(message = "La departamento no puede estar vacío")
-    private String departamento;
+    private CarreraTipo departamento;
 
-    public Profesor(String nombre ,String apellido,String email, String password,Rol rol) {
+    public Profesor(String nombre ,String apellido,String email, String password,Rol rol,CarreraTipo departamento ) {
         super(nombre,apellido,email,password,rol);
+        this.departamento = departamento;
     }
 
-    public String getDepartamento() { return departamento; }
+    public CarreraTipo getDepartamento() { return departamento; }
 
 
 }

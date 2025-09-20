@@ -4,23 +4,50 @@ import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class Estudiante extends Usuario {
 
-    @Field("carrera")
     @NotBlank(message = "La carrera no puede estar vacío")
-    private String carrera;
+    private Carrera carrera;
 
     @Field("semestre")
     @NotBlank(message = "La semestre no puede estar vacío")
-    private int semestre;
+    private int semestreActual;
+    private List<Semestre> semestres;
+    private Double promedioAcumulado;
 
-    public Estudiante(String nombre, String apellido,String email, String password,Rol rol) {
+    public Estudiante(String nombre, String apellido,String email, String password,Rol rol, CarreraTipo carreraTipo) {
         super(nombre,apellido, email,password,rol);
+        this.semestres = new ArrayList<Semestre>();
+        this.carrera = CarreraFactory.crearCarrera(carreraTipo);
+    }
+    public void agregarSemestre(Semestre s) {
+        semestres.add(s);
     }
 
-    public String getCarrera() { return carrera; }
-    public int getSemestre() { return semestre; }
-    
+    public Semestre getSemestreActual() {
+        return semestres.get(semestres.size() - 1);
+    }
+
+    public List<Semestre> getHistorial() {
+        return semestres.subList(0, semestres.size() - 1);
+    }
+
+    public List<Materia> getMateriasPendientes() {
+        List<Materia> vistas = semestres.stream()
+                .flatMap(s -> s.getMaterias().stream())
+                .filter(r -> r.getEstado() == SemaforoAcademico.BLANCO)
+                .map(RegistroMateria::getMateria)
+                .collect(Collectors.toList());
+
+        return carrera.getObligatorias().stream()
+                .filter(m -> !vistas.contains(m))
+                .collect(Collectors.toList());
+    }
+
 
 }
 

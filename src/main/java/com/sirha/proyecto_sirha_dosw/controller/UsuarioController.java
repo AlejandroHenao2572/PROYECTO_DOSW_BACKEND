@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.model.CarreraTipo;
 import com.sirha.proyecto_sirha_dosw.model.Rol;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 import com.sirha.proyecto_sirha_dosw.model.UsuarioFactory;
@@ -51,8 +52,9 @@ public class UsuarioController {
             String email = data.get("email");
             String password = data.get("password");
             Rol rol = Rol.valueOf(data.get("rol").toUpperCase());
+            CarreraTipo facultad = CarreraTipo.valueOf(data.get("facultad").toUpperCase());
 
-            Usuario nuevo = UsuarioFactory.crearUsuario(rol, nombre, apellido, email, password);
+            Usuario nuevo = UsuarioFactory.crearUsuario(rol, nombre, apellido, email, password, facultad);
             Usuario guardado = usuarioService.registrar(nuevo);
 
             return ResponseEntity.ok(guardado);
