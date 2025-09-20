@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document(collection = "Solicitud")
 public class Solicitud {
-
+   
     @Id
     private String idSolicitud;
 

@@ -5,9 +5,16 @@ import java.util.List;
 
 public class Administrador extends Usuario implements IGestorSolicitudes {
 
-	private CalendarioAcademico calendarioAcademico;
+	private CalendarioAcademico periodoAcademico;
 
-	@Override
+	public Administrador(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.ADMINISTRADOR);
+  }
+  
+  @Override
 	public boolean autenticarUsuario() {
 		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
 		return true;
@@ -33,6 +40,7 @@ public class Administrador extends Usuario implements IGestorSolicitudes {
 	public boolean gestionarSolicitud(Solicitud solicitud) {
 		return false;
 	}
+
 }
 
 

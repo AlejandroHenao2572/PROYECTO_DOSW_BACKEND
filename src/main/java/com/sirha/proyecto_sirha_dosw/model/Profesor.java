@@ -17,6 +17,13 @@ public class Profesor extends Usuario {
     private List<Curso> cursosAsignados;
 
     public Profesor() {}
+  
+    public Profesor(String nombre ,String email, String password) {
+        this.setNombre(nombre);
+        this.setEmail(email);
+        this.setPassword(password);
+        this.setRol(RolUsuario.PROFESOR);
+    }
 
     public Profesor(String nombre, String email, String password, Rol rol,
                     String departamento, String especialidad, List<Curso> cursosAsignados) {

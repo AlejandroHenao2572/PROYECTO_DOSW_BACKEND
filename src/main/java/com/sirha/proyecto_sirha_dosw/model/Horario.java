@@ -38,5 +38,4 @@ public class Horario {
     public void setHoraFin(Date horaFin) {
         this.horaFin = horaFin;
     }
-
 }

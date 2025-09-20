@@ -7,11 +7,18 @@ public class Estudiante extends Usuario {
 	private int semestre;
 	private SemaforoAcademico semaforoAcademico;
 
-	@Override
+	public Estudiante(String nombre ,String email, String password) {
+		this.setNombre(nombre);
+		this.setEmail(email);
+		this.setPassword(password);
+		this.setRol(RolUsuario.ESTUDIANTE);
+	}
+  
+  @Override
 	public boolean autenticarUsuario() {
 		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
 		return true;
-	}
+  }
 
 	public Horario consultarHorario() {
 		return null;

@@ -8,7 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Curso {
      @Id
     private String id;
-
     private String nombre;
     private int creditos;
     private String facultad;

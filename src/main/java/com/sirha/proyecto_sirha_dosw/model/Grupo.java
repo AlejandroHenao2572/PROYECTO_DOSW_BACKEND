@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 @Document(collection = "Grupo")
 public class Grupo {
-
+  
     @Id
     private String idGrupo;   // id_grupo
 
