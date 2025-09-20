@@ -109,6 +109,103 @@ docs #Documentacion del proyecto
 ### Diagrama base de datos  
 <img width="1312" height="662" alt="image" src="https://github.com/user-attachments/assets/d7438a5b-dfec-45ed-b73e-9827abedf262" />
 
+### JSON Base de datos no relacional: 
+
+```
+{
+  "Coleccion: Usuario": {
+    "id_usuario": "String",
+    "nombre": "String",
+    "correo": "String",
+    "contrasena": "String",
+    "rol": "String", 
+    "datos_rol": {  
+      "carrera": "String",
+      "semestre": "int",
+      "grupos_inscritos": [
+        {
+          "id_grupo": "String",
+          "materia": "String",
+          "nombre_materia": "String",
+          "horario": [
+            {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+            {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+          ]
+        },
+        {
+          "id_grupo": "F1",
+          "materia": "FIS202",
+          "nombre_materia": "Física II",
+          "horario": [
+            {"dia": "Martes", "hora_inicio": "10:00", "hora_fin": "12:00"},
+            {"dia": "Jueves", "hora_inicio": "10:00", "hora_fin": "12:00"}
+          ]
+        }
+      ]
+    }
+  },
+
+  "Coleccion: Materia": {
+    "id_materia": "String",
+    "nombre": "String",
+    "creditos": "int",
+    "facultad": "String"
+  },
+
+  "Coleccion: Grupo": {
+    "id_grupo": "String",
+    "id_materia": "String",
+    "profesor": {
+      "id_usuario": "String",
+      "nombre": "String"
+    },
+    "cupos_maximos": "int",
+    "cupos_asignados": "int",
+    "horario": [
+      {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+      {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+    ]
+  },
+
+  "Coleccion: Solicitud_Cambio": {
+    "id_solicitud": "String",
+    "id_estudiante": "String",
+    "origen": {
+      "id_grupo": "String",
+      "materia": "String",
+      "horario": [
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+      ]
+    },
+    "destino": {
+      "id_grupo": "String",
+      "materia": "String",
+      "horario": [
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+      ]
+    },
+    "descripcion": "String",
+    "fecha_solicitud": "Date",
+    "estado": "String",
+    "prioridad": "int",
+    "id_periodo": "String"
+  },
+
+  "Coleccion: Periodo_Habilitado": {
+    "id_periodo": "String",
+    "fecha_inicio": "Date",
+    "fecha_fin": "Date"
+  },
+
+
+  "Coleccion: Rol": {
+    "rol": "String",
+    "permisos": ["String","String","String","..."]
+  }
+}
+```
 ---
 
 ## Dependencias:  
