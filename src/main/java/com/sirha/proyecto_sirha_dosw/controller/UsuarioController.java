@@ -1,17 +1,28 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.model.Rol;
+import com.sirha.proyecto_sirha_dosw.model.Usuario;
+import com.sirha.proyecto_sirha_dosw.model.UsuarioFactory;
 import com.sirha.proyecto_sirha_dosw.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.sirha.proyecto_sirha_dosw.model.Usuario;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
+/**
+ * Controlador REST para gestionar operaciones relacionadas con los usuarios.
+ *
+ * <p>Expone endpoints para registrar, autenticar y consultar usuarios
+ * por distintos criterios (ID, correo, rol, nombre y apellido).</p>
+ *
+ * <p>Los endpoints están disponibles bajo la ruta base {@code /api/auth}.</p>
+ */
 
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping("/api/auth")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -21,12 +32,46 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
+    /**
+     * Endpoint para registrar un nuevo usuario.
+     *
+     * <p>Recibe los datos como JSON en el cuerpo de la petición, construye
+     * un objeto {@link Usuario} según su rol usando la {@link UsuarioFactory},
+     * y lo guarda en la base de datos.</p>
+     *
+     * @param data mapa con los campos: nombre, apellido, email, password y rol
+     * @return {@link ResponseEntity} con el usuario registrado o error 409 si el correo ya existe
+     */
+
     @PostMapping("/register")
-    public ResponseEntity<Usuario> register(@RequestBody Usuario usuario) {
-        Usuario nuevo = usuarioService.registrar(usuario); // ✅ usamos la instancia, no estático
-        return ResponseEntity.ok(nuevo);
+    public ResponseEntity<?> register(@RequestBody Map<String, String> data) {
+        try {
+            String nombre = data.get("nombre");
+            String apellido = data.get("apellido");
+            String email = data.get("email");
+            String password = data.get("password");
+            Rol rol = Rol.valueOf(data.get("rol").toUpperCase());
+
+            Usuario nuevo = UsuarioFactory.crearUsuario(rol, nombre, apellido, email, password);
+            Usuario guardado = usuarioService.registrar(nuevo);
+
+            return ResponseEntity.ok(guardado);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(409).body(e.getMessage());
+        }
     }
 
+    /**
+     * Endpoint para autenticar un usuario (login).
+     *
+     * @param data mapa con los campos: email y password
+     * @return 200 OK si las credenciales son correctas,
+     *         401 Unauthorized si no coinciden
+     */
+
+
+    //  Login
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody Map<String, String> data) {
         String email = data.get("email");
@@ -35,44 +80,123 @@ public class UsuarioController {
         boolean valido = usuarioService.autenticar(email, password);
 
         if (valido) {
-            return ResponseEntity.ok("✅ Login exitoso");
+            return ResponseEntity.ok("Login exitoso");
         } else {
-            return ResponseEntity.status(401).body("❌ Credenciales incorrectas");
+            return ResponseEntity.status(401).body("Credenciales incorrectas");
         }
     }
 
-    @GetMapping("/")
+    /**
+     * Obtiene todos los usuarios registrados.
+     *
+     * @return lista de {@link Usuario}
+     */
+
+    //  Listar todos
+    @GetMapping("/usuarios")
     public ResponseEntity<List<Usuario>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioService.listarUsuarios();
-        return ResponseEntity.ok(usuarios);
-    }  
-    
-    
-    @GetMapping("/usuario/{id}")
-    public ResponseEntity<Usuario> obtenerPorId(@PathVariable String id) {
-        Optional<Usuario> usuario = usuarioService.obtenerPorId(id);
-        return usuario.map(ResponseEntity::ok)
-                        .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(usuarioService.listarUsuarios());
     }
 
+    /**
+     * Busca un usuario por su identificador único.
+     *
+     * @param id identificador del usuario
+     * @return {@link Usuario} si existe, 404 si no
+     */
+
+    //  Buscar por ID
+    @GetMapping("/usuario/{id}")
+    public ResponseEntity<Usuario> obtenerPorId(@PathVariable String id) {
+        return usuarioService.obtenerPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Busca un usuario por su correo electrónico.
+     *
+     * @param email correo electrónico
+     * @return {@link Usuario} si existe, 404 si no
+     */
+
+    //  Buscar por email
     @GetMapping("/usuario/email/{email}")
     public ResponseEntity<Usuario> obtenerPorEmail(@PathVariable String email) {
-        Optional<Usuario> usuario = usuarioService.obtenerPorEmail(email);
-        return usuario.map(ResponseEntity::ok)
-                        .orElseGet(() -> ResponseEntity.notFound().build());
+        return usuarioService.obtenerPorEmail(email)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
-  
-  // Actualizar un usuario
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> updateUsuario(@PathVariable String id, @RequestBody Usuario usuarioDetails) {
-        return usuarioRepository.findById(id).map(usuario -> {
-            usuario.setNombre(usuarioDetails.getNombre());
-            usuario.setEmail(usuarioDetails.getEmail());
-            usuario.setPassword(usuarioDetails.getPassword());
-            usuario.setRol(usuarioDetails.getRol());
-            Usuario updated = usuarioRepository.save(usuario);
-            return ResponseEntity.ok(updated);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+
+    /**
+     * Busca todos los usuarios que tengan el rol indicado.
+     *
+     * @param rol nombre del rol (ESTUDIANTE, PROFESOR, DECANO, ADMINISTRADOR)
+     * @return lista de usuarios, 204 si no hay ninguno, 400 si el rol es inválido
+     */
+
+    //  Buscar por Rol
+    @GetMapping("/usuarios/rol/{rol}")
+    public ResponseEntity<List<Usuario>> obtenerPorRol(@PathVariable String rol) {
+        try {
+            Rol rolEnum = Rol.valueOf(rol.toUpperCase()); // 🔥 convierte String a Enum
+            List<Usuario> usuarios = usuarioService.obtenerPorRol(rolEnum);
+
+            if (usuarios.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(usuarios);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null); // 🔥 si el rol no existe
+        }
+    }
+
+    /**
+     * Busca un usuario por su nombre.
+     *
+     * @param nombre nombre del usuario
+     * @return {@link Usuario} si existe, 404 si no
+     */
+
+    //  Buscar por nombre
+    @GetMapping("/usuario/nombre/{nombre}")
+    public ResponseEntity<Usuario> obtenerPorNombre(@PathVariable String nombre) {
+        return usuarioService.obtenerPorNombre(nombre)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Busca un usuario por su apellido.
+     *
+     * @param apellido apellido del usuario
+     * @return {@link Usuario} si existe, 404 si no
+     */
+
+    //  Buscar por apellido
+    @GetMapping("/usuario/apellido/{apellido}")
+    public ResponseEntity<Usuario> obtenerPorApellido(@PathVariable String apellido) {
+        return usuarioService.obtenerPorApellido(apellido)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Busca un usuario por su nombre y apellido.
+     *
+     * @param nombre nombre del usuario
+     * @param apellido apellido del usuario
+     * @return {@link Usuario} si existe, 404 si no
+     */
+
+    //  Buscar por nombre y apellido
+    @GetMapping("/usuario/{nombre}/{apellido}")
+    public ResponseEntity<Usuario> obtenerPorNombreYApellido(@PathVariable String nombre,
+                                                             @PathVariable String apellido) {
+        return usuarioService.obtenerPorNombreYApellido(nombre, apellido)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }

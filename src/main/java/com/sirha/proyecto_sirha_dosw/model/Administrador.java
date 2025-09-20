@@ -1,46 +1,12 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.Date;
-import java.util.List;
+public class Administrador extends Usuario {
 
-public class Administrador extends Usuario implements IGestorSolicitudes {
+    public Administrador(String nombre ,String apellido,String email, String password,Rol rol) {
+        super(nombre,apellido,email,password,rol);
+    }
 
-	private CalendarioAcademico periodoAcademico;
 
-	public Administrador(String nombre ,String email, String password) {
-		this.setNombre(nombre);
-		this.setEmail(email);
-		this.setPassword(password);
-		this.setRol(RolUsuario.ADMINISTRADOR);
-  }
-  
-  @Override
-	public boolean autenticarUsuario() {
-		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
-		return true;
-	}
-
-	public void administrarUsuarios() {
-
-	}
-
-	public List<Reporte> generarReportesDelSistema() {
-		return null;
-	}
-
-	public void administrarConfiguracionDelSistema() {
-
-	}
-
-	public void establecerPeriodoAcademico(Date fechaInicio, Date fechaFinal) {
-
-	}
-
-	@Override
-	public boolean gestionarSolicitud(Solicitud solicitud) {
-		return false;
-	}
 
 }
-
 

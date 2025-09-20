@@ -1,64 +1,19 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import org.springframework.data.annotation.TypeAlias;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-@Document(collection = "usuarios")
-@TypeAlias("Profesor")
 public class Profesor extends Usuario {
 
+    @Field("departamento")
+    @NotBlank(message = "La departamento no puede estar vacío")
     private String departamento;
-    private String especialidad;
 
-    @DBRef
-    private List<Curso> cursosAsignados;
-
-    public Profesor() {}
-  
-    public Profesor(String nombre ,String email, String password) {
-        this.setNombre(nombre);
-        this.setEmail(email);
-        this.setPassword(password);
-        this.setRol(RolUsuario.PROFESOR);
+    public Profesor(String nombre ,String apellido,String email, String password,Rol rol) {
+        super(nombre,apellido,email,password,rol);
     }
 
-    public Profesor(String nombre, String email, String password, Rol rol,
-                    String departamento, String especialidad, List<Curso> cursosAsignados) {
-        super(nombre, email, password, rol);
-        this.departamento = departamento;
-        this.especialidad = especialidad;
-        this.cursosAsignados = cursosAsignados;
-    }
+    public String getDepartamento() { return departamento; }
 
-    // Getters y setters
-    public String getDepartamento() {
-        return departamento;
-    }
 
-    public void setDepartamento(String departamento) {
-        this.departamento = departamento;
-    }
-
-    public String getEspecialidad() {
-        return especialidad;
-    }
-
-    public void setEspecialidad(String especialidad) {
-        this.especialidad = especialidad;
-    }
-
-    public List<Curso> getCursosAsignados() {
-        return cursosAsignados;
-    }
-
-    public void setCursosAsignados(List<Curso> cursosAsignados) {
-        this.cursosAsignados = cursosAsignados;
-    }
 }
-
-
-
-

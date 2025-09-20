@@ -1,41 +1,27 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.Date;
 
-import org.springframework.data.mongodb.core.mapping.Field;
+import java.util.List;
 
 public class Horario {
+    private String semestre; // "2024-2"
+    private List<String> materiasInscritas; // ["Materia 1 - Grupo A", "Materia 2 - Grupo B"]
 
-    private Date dia;
-
-    @Field("hora_inicio")
-    private Date horaInicio;
-
-    @Field("hora_fin")
-    private Date horaFin;
-
-    // Getters y Setters
-    public Date getDia() {
-        return dia;
+    // Getters
+    public String getSemestre() {
+        return semestre;
     }
 
-    public void setDia(Date dia) {
-        this.dia = dia;
+    public List<String> getMateriasInscritas() {
+        return materiasInscritas;
     }
 
-    public Date getHoraInicio() {
-        return horaInicio;
+    // Setters
+    public void setSemestre(String semestre) {
+        this.semestre = semestre;
     }
 
-    public void setHoraInicio(Date horaInicio) {
-        this.horaInicio = horaInicio;
-    }
-
-    public Date getHoraFin() {
-        return horaFin;
-    }
-
-    public void setHoraFin(Date horaFin) {
-        this.horaFin = horaFin;
+    public void setMateriasInscritas(List<String> materiasInscritas) {
+        this.materiasInscritas = materiasInscritas;
     }
 }

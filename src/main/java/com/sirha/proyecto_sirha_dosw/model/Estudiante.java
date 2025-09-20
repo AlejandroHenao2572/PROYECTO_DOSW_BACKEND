@@ -1,55 +1,25 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 public class Estudiante extends Usuario {
 
-	private int semestre;
-	private SemaforoAcademico semaforoAcademico;
+    @Field("carrera")
+    @NotBlank(message = "La carrera no puede estar vacío")
+    private String carrera;
 
-	public Estudiante(String nombre ,String email, String password) {
-		this.setNombre(nombre);
-		this.setEmail(email);
-		this.setPassword(password);
-		this.setRol(RolUsuario.ESTUDIANTE);
-	}
-  
-  @Override
-	public boolean autenticarUsuario() {
-		System.out.println("Autenticando " + this.getClass().getSimpleName() + " con email: " + getEmail());
-		return true;
-  }
+    @Field("semestre")
+    @NotBlank(message = "La semestre no puede estar vacío")
+    private int semestre;
 
-	public Horario consultarHorario() {
-		return null;
-	}
+    public Estudiante(String nombre, String apellido,String email, String password,Rol rol) {
+        super(nombre,apellido, email,password,rol);
+    }
 
-	public SemaforoAcademico consultarSemaforoAcademico() {
-		return null;
-	}
+    public String getCarrera() { return carrera; }
+    public int getSemestre() { return semestre; }
 
-	public Solicitud crearSolicitudDeCambio(Curso cursoOrigen, Grupo grupoOrigen, Curso cursoDestino, Grupo grupoDestino) {
-		return null;
-	}
-
-	public List<Solicitud> consultarHistorialDeSolicitudes() {
-		return null;
-	}
-
-	public int getSemestre() {
-		return semestre;
-	}
-
-	public void setSemestre(int semestre) {
-		this.semestre = semestre;
-	}
-
-	public SemaforoAcademico getSemaforoAcademico() {
-		return semaforoAcademico;
-	}
-
-	public void setSemaforoAcademico(SemaforoAcademico semaforoAcademico) {
-		this.semaforoAcademico = semaforoAcademico;
-	}
 }
 

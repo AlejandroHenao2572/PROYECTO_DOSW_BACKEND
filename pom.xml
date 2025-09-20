@@ -67,6 +67,14 @@
             <version>5.13.4</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Springdoc OpenAPI para generar la documentación Swagger UI automáticamente -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
     </dependencies>
 
 
