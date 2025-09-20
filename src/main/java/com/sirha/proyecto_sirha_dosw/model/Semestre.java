@@ -86,14 +86,6 @@ public class Semestre {
         return promedio;
     }
 
-    public double calcularPromedioSimple() {
-        return materias.stream()
-                .filter(rm -> rm.getEstado() != SemaforoAcademico.BLANCO &&
-                        rm.getEstado() != SemaforoAcademico.AZUL)
-                .mapToDouble(RegistroMateria::getNotaFinal)
-                .average()
-                .orElse(0.0);
-    }
 
     public int getTotalCreditos() {
         return materias.stream()
@@ -154,10 +146,6 @@ public class Semestre {
         return numero;
     }
 
-    public void setNumero(int numero) {
-        this.numero = numero;
-    }
-
     public List<RegistroMateria> getMaterias() {
         return new ArrayList<>(materias); // Devolver copia para evitar modificaciones externas
     }
@@ -168,16 +156,7 @@ public class Semestre {
     }
 
     public Double getPromedio() {
-        return calcularPromedio(); // Calcular on-demand
+        return calcularPromedio();
     }
 
-    @Override
-    public String toString() {
-        return "Semestre{" +
-                "numero=" + numero +
-                ", totalMaterias=" + materias.size() +
-                ", promedio=" + String.format("%.2f", calcularPromedio()) +
-                ", creditos=" + getTotalCreditos() +
-                '}';
-    }
 }
