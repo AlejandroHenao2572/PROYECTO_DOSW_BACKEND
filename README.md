@@ -333,12 +333,26 @@ Ver documentacion API REST en SWAGGER/OPENAI:
 'http://localhost:8080/swagger-ui.html'    
 'http://localhost:8080/swagger-ui/index.html'  
 
+Pruebas unitaras:  
+'./mvnw test jacoco:report'
+
+Anilisis con Sonar:  
+[^nota] Se debe de cambiar el token al ejecutar en otra maquina:
+
+'mvn clean verify sonar:sonar "-Dsonar.projectKey=proyecto-sirha-dosw" "-Dsonar.projectName=proyecto-sirha-dosw" "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=sqp_07717f1d20be7eb614a7dbfaabfe693787cfa4dd"'
+
 ---
 
-## Cobertura de pruebas unitarias:
-
+## Cobertura de pruebas unitarias:  
+<img width="1126" height="201" alt="image" src="https://github.com/user-attachments/assets/4b78da6b-15e9-48e5-9c7e-357d76347611" />
 
 ---
+
+## Analsis estatico con Sonar:  
+<img width="1078" height="590" alt="image" src="https://github.com/user-attachments/assets/7b5dafe4-72cd-43b4-8679-70841d72fd50" />
+
+
+
 
 ## Analisis estatico con SonarQube:
 
