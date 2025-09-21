@@ -1,12 +1,28 @@
 # PROYECTO_DOSW_BACKEND
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
-![Maven]((https://img.shields.io/badge/apachemaven-C71A36.svg?style=for-the-badge&logo=apachemaven&logoColor=white))
+![Maven Central Version](https://img.shields.io/maven-central/v/:groupId/:artifactId)
 ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![SonarQube](https://img.shields.io/badge/SonarQube-black?style=for-the-badge&logo=sonarqube&logoColor=4E9BCD)
 ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
+
+---
+
+## 📑 Tabla de Contenidos  
+
+1. [Miembros del Equipo](#miembros-del-equipo)  
+2. [Estructura del Proyecto](#estructura-del-proyecto-spring-boot-mvc)  
+3. [Estrategia de Gitflow](#estrategia-de-gitflow)  
+4. [Tecnologías Usadas](#tecnologías-usadas)  
+5. [Artefactos de Análisis y Diseño](#artefactos-de-análisis-y-diseño)  
+6. [Dependencias](#dependencias)  
+7. [Plugins](#plugins)  
+8. [Configuración de la Aplicación](#aplicacion-properties)  
+9. [Cómo Ejecutar el Proyecto](#cómo-ejecutar-el-proyecto)  
+10. [Cobertura de Pruebas](#cobertura-de-pruebas-unitarias)  
+11. [Análisis Estático con SonarQube](#análisis-estático-con-sonarqube)  
 
 ---
 
@@ -104,42 +120,159 @@ docs #Documentacion del proyecto
 <img width="826" height="935" alt="image" src="https://github.com/user-attachments/assets/36f0dc30-1ebc-44fd-9f5a-e249298e27ee" />
 
 ### Diagrama de clases  
-<img width="1407" height="843" alt="image" src="https://github.com/user-attachments/assets/5b1cc964-99bf-4222-8dea-2797facfcdfe" />
+[enlace para verl el diagrama de clases](https://pruebacorreoescuelaingeduco-my.sharepoint.com/:b:/g/personal/david_patacon-h_mail_escuelaing_edu_co/EeULhd29uHRNu3Iks7h6qLIBTHoFVzCLM1y8Zacqdxy4AQ?e=5KvTdC)
 
 ### Diagrama base de datos  
 <img width="1312" height="662" alt="image" src="https://github.com/user-attachments/assets/d7438a5b-dfec-45ed-b73e-9827abedf262" />
 
+### JSON Base de datos no relacional: 
+
+```
+{
+  "Coleccion: Usuario": {
+    "id_usuario": "String",
+    "nombre": "String",
+    "correo": "String",
+    "contrasena": "String",
+    "rol": "String", 
+    "datos_rol": {  
+      "carrera": "String",
+      "semestre": "int",
+      "grupos_inscritos": [
+        {
+          "id_grupo": "String",
+          "materia": "String",
+          "nombre_materia": "String",
+          "horario": [
+            {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+            {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+          ]
+        },
+        {
+          "id_grupo": "F1",
+          "materia": "FIS202",
+          "nombre_materia": "Física II",
+          "horario": [
+            {"dia": "Martes", "hora_inicio": "10:00", "hora_fin": "12:00"},
+            {"dia": "Jueves", "hora_inicio": "10:00", "hora_fin": "12:00"}
+          ]
+        }
+      ]
+    }
+  },
+
+  "Coleccion: Materia": {
+    "id_materia": "String",
+    "nombre": "String",
+    "creditos": "int",
+    "facultad": "String"
+  },
+
+  "Coleccion: Grupo": {
+    "id_grupo": "String",
+    "id_materia": "String",
+    "profesor": {
+      "id_usuario": "String",
+      "nombre": "String"
+    },
+    "cupos_maximos": "int",
+    "cupos_asignados": "int",
+    "horario": [
+      {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+      {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+    ]
+  },
+
+  "Coleccion: Solicitud_Cambio": {
+    "id_solicitud": "String",
+    "id_estudiante": "String",
+    "origen": {
+      "id_grupo": "String",
+      "materia": "String",
+      "horario": [
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+      ]
+    },
+    "destino": {
+      "id_grupo": "String",
+      "materia": "String",
+      "horario": [
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"},
+        {"dia": "Date", "hora_inicio": "Date", "hora_fin": "Date"}
+      ]
+    },
+    "descripcion": "String",
+    "fecha_solicitud": "Date",
+    "estado": "String",
+    "prioridad": "int",
+    "id_periodo": "String"
+  },
+
+  "Coleccion: Periodo_Habilitado": {
+    "id_periodo": "String",
+    "fecha_inicio": "Date",
+    "fecha_fin": "Date"
+  },
+
+
+  "Coleccion: Rol": {
+    "rol": "String",
+    "permisos": ["String","String","String","..."]
+  }
+}
+```
 ---
 
 ## Dependencias:  
 
 ```xml
- <dependencies>
-        <!-- Spring Boot Web -->
+<dependencies>
+  
+        <!-- Starter web para exponer APIs REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring Boot con MongoDB -->
+        <!-- MongoDB: para trabajar con base de datos NoSQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 
-        <!-- Swagger / OpenAPI con Springdoc -->
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${springdoc.version}</version>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
         </dependency>
 
-        <!-- Testing -->
+        <!-- Validación de datos -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Pruebas unitarias -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Springdoc OpenAPI para generar la documentación Swagger UI automáticamente -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
     </dependencies>
 ```
 
@@ -184,4 +317,56 @@ docs #Documentacion del proyecto
             </plugin>
         </plugins>
 ```
+
+---
+
+## Aplicacion properties
+
+```
+spring.application.name=proyecto-sirha-dosw
+
+# URI de conexion a Atlas MongoDB (con usuario y pass correctos)
+spring.data.mongodb.uri=mongodb+srv://admin:admin@sirha-db.3qb8g8p.mongodb.net/SIRHA-DB?retryWrites=true&w=majority&appName=SIRHA-DB
+
+# Nombre de la base de datos
+spring.data.mongodb.database=SIRHA-DB
+
+# Configuracion estandar de Springdoc OpenAPI
+server.port=8080
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.path=/swagger-ui/index.html
+
+```
+## Como ejecutar el proyecto:
+
+Compilar y ejecutar el proyecto:  
+
+'mvn clean install
+mvn spring-boot:run'
+
+Ver documentacion API REST en SWAGGER/OPENAI:  
+
+'http://localhost:8080/swagger-ui.html'    
+'http://localhost:8080/swagger-ui/index.html'  
+
+Pruebas unitaras:  
+'./mvnw test jacoco:report'
+
+Anilisis con Sonar:  
+[^nota] Se debe de cambiar el token al ejecutar en otra maquina:
+
+'mvn clean verify sonar:sonar "-Dsonar.projectKey=proyecto-sirha-dosw" "-Dsonar.projectName=proyecto-sirha-dosw" "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=sqp_07717f1d20be7eb614a7dbfaabfe693787cfa4dd"'
+
+---
+
+## Cobertura de pruebas unitarias:  
+<img width="1126" height="201" alt="image" src="https://github.com/user-attachments/assets/4b78da6b-15e9-48e5-9c7e-357d76347611" />
+
+---
+
+## Analisis estatico con SonarQube:
+<img width="1078" height="590" alt="image" src="https://github.com/user-attachments/assets/7b5dafe4-72cd-43b4-8679-70841d72fd50" />
+
+
+
 
