@@ -2,7 +2,6 @@ package com.sirha.proyecto_sirha_dosw.model;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -34,25 +33,25 @@ public abstract class Usuario {
     private String id;
 
     @Field("nombre")
-    @NotNull(message = "El nombre no puede estar vacío")
+    @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
 
     @Field("apellido")
-    @NotNull(message = "El apellido no puede estar vacío")
+    @NotBlank(message = "El apellido no puede estar vacío")
     private String apellido;
 
     @Field("correo")
     @Email(message = "El correo debe ser válido")
-    @NotNull(message = "El correo no puede estar vacío")
+    @NotBlank(message = "El correo no puede estar vacío")
     @Indexed(unique = true)
     private String email;
 
     @Field("rol")
-    @NotNull(message = "El rol no puede estar vacío")
+    @NotBlank(message = "El rol no puede estar vacío")
     private Rol rol;
 
     @Field("password")
-    @NotNull(message = "La contraseña no puede estar vacío")
+    @NotBlank(message = "La contraseña no puede estar vacío")
     private String password;
 
 
