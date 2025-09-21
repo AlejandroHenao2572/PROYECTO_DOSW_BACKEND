@@ -104,7 +104,7 @@ docs #Documentacion del proyecto
 <img width="826" height="935" alt="image" src="https://github.com/user-attachments/assets/36f0dc30-1ebc-44fd-9f5a-e249298e27ee" />
 
 ### Diagrama de clases  
-<img width="1407" height="843" alt="image" src="https://github.com/user-attachments/assets/5b1cc964-99bf-4222-8dea-2797facfcdfe" />
+[enlace para verl el diagrama de clases](https://pruebacorreoescuelaingeduco-my.sharepoint.com/:b:/g/personal/david_patacon-h_mail_escuelaing_edu_co/EeULhd29uHRNu3Iks7h6qLIBTHoFVzCLM1y8Zacqdxy4AQ?e=5KvTdC)
 
 ### Diagrama base de datos  
 <img width="1312" height="662" alt="image" src="https://github.com/user-attachments/assets/d7438a5b-dfec-45ed-b73e-9827abedf262" />
