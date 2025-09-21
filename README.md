@@ -348,13 +348,9 @@ Anilisis con Sonar:
 
 ---
 
-## Analsis estatico con Sonar:  
+## Analisis estatico con SonarQube:
 <img width="1078" height="590" alt="image" src="https://github.com/user-attachments/assets/7b5dafe4-72cd-43b4-8679-70841d72fd50" />
 
-
-
-
-## Analisis estatico con SonarQube:
 
 
 
