@@ -1,157 +1,167 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
-import com.sirha.proyecto_sirha_dosw.model.EstadoSolicitud;
-import com.sirha.proyecto_sirha_dosw.model.Estudiante;
-import com.sirha.proyecto_sirha_dosw.model.Horario;
-import com.sirha.proyecto_sirha_dosw.model.Materia;
-import com.sirha.proyecto_sirha_dosw.model.SemaforoAcademico;
-import com.sirha.proyecto_sirha_dosw.model.SolicitudCambio;
-import com.sirha.proyecto_sirha_dosw.repository.EstudianteRepository;
-import com.sirha.proyecto_sirha_dosw.repository.SolicitudCambioRepository;
+import com.sirha.proyecto_sirha_dosw.dto.SolicitudDTO;
+import com.sirha.api.model.*;
+import com.sirha.proyecto_sirha_dosw.model.*;
+import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
+import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
+import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
+import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
 
 @Service
 public class EstudianteService {
 
-    @Autowired
-    private EstudianteRepository estudianteRepository;
+    private final SolicitudRepository solicitudRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final GrupoRepository grupoRepository;
+    private final MateriaRepository materiaRepository;
 
     @Autowired
-    private SolicitudCambioRepository solicitudCambioRepository;
-
-    public Optional<Estudiante> getEstudianteById(String id) {
-        return estudianteRepository.findById(id);
+    public EstudianteService(SolicitudRepository solicitudRepository, UsuarioRepository usuarioRepository,
+                             GrupoRepository grupoRepository, MateriaRepository materiaRepository) {
+        this.solicitudRepository = solicitudRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.grupoRepository = grupoRepository;
+        this.materiaRepository = materiaRepository;
     }
 
-    // Métodos para solicitudes (existentes mejorados)
-    public SolicitudCambio crearSolicitud(SolicitudCambio solicitud) {
-        // Lógica de negocio:
-        // 1. Validar que las solicitudes están habilitadas
-        if (!fechasHabilitadas()) {
-            throw new IllegalStateException("El período para crear solicitudes de cambio no está activo.");
+    public List<RegistroMaterias> consultarHorarioBySemester(String idEstudiante, int semestre) {
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        if (estudianteOpt.isEmpty()) {
+            throw new IllegalArgumentException("El estudiante con ID " + idEstudiante + " no existe");
         }
-
-        // 2. Validar que el estudiante existe
-        if (solicitud.getIdEstudiante() != null && 
-            !estudianteRepository.existsById(solicitud.getIdEstudiante())) {
-            throw new IllegalArgumentException("El estudiante especificado no existe.");
-        }
-
-        // 3. Asignar estado inicial, fecha y prioridad
-        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
-        solicitud.setFechaCreacion(LocalDateTime.now());
-
-        // La prioridad por orden de llegada se gestiona ordenando por fechaCreacion.
-        solicitud.setPrioridad((int) solicitudCambioRepository.count() + 1);
-
-        return solicitudCambioRepository.save(solicitud);
-    }
-
-    public List<SolicitudCambio> getHistorialSolicitudes(String idEstudiante) {
-        return solicitudCambioRepository.findByIdEstudianteOrderByFechaCreacionDesc(idEstudiante);
-    }
-
-    public Optional<SolicitudCambio> getSolicitudById(String idSolicitud) {
-        return solicitudCambioRepository.findById(idSolicitud);
-    }
-
-    private boolean fechasHabilitadas() {
-        // Lógica para verificar si la fecha actual está en el período permitido.
-        // Por ahora, devolvemos 'true' para permitir pruebas.
-        return true;
-    }
-
-    public Horario getHorarioActual(String estudianteId) {
-        Optional<Estudiante> estudianteOpt = estudianteRepository.findById(estudianteId);
-        if (estudianteOpt.isPresent()) {
-            return estudianteOpt.get().getHorarioActual();
-        }
-        return null;
-    }
-
-    public Horario getHorarioPorSemestre(String estudianteId, int numeroSemestre) {
-        Optional<Estudiante> estudianteOpt = estudianteRepository.findById(estudianteId);
-        if (estudianteOpt.isPresent()) {
-            return estudianteOpt.get().getHorarioPorSemestre(numeroSemestre);
-        }
-        return null;
-    }
-
-    public Map<String, SemaforoAcademico> getSemaforoAcademico(String estudianteId) {
-        Optional<Estudiante> estudianteOpt = estudianteRepository.findById(estudianteId);
-        if (estudianteOpt.isPresent()) {
-            return estudianteOpt.get().calcularSemaforoAcademico();
-        }
-        return Map.of();
-    }
-
-    public SolicitudCambio actualizarSolicitud(String idSolicitud, SolicitudCambio solicitudActualizada) {
-        Optional<SolicitudCambio> solicitudExistenteOpt = solicitudCambioRepository.findById(idSolicitud);
-        
-        if (solicitudExistenteOpt.isPresent()) {
-            SolicitudCambio solicitudExistente = solicitudExistenteOpt.get();
-            
-            // Solo permitir actualización si está en estado PENDIENTE
-            if (solicitudExistente.getEstado() != EstadoSolicitud.PENDIENTE) {
-                throw new IllegalStateException("Solo se pueden modificar solicitudes en estado PENDIENTE.");
-            }
-            
-            // Actualizar campos permitidos
-            if (solicitudActualizada.getMateriaConProblema() != null) {
-                solicitudExistente.setMateriaConProblema(solicitudActualizada.getMateriaConProblema());
-            }
-            if (solicitudActualizada.getSugerenciaCambio() != null) {
-                solicitudExistente.setSugerenciaCambio(solicitudActualizada.getSugerenciaCambio());
-            }
-            if (solicitudActualizada.getObservaciones() != null) {
-                solicitudExistente.setObservaciones(solicitudActualizada.getObservaciones());
-            }
-            
-            return solicitudCambioRepository.save(solicitudExistente);
-        }
-        
-        return null;
-    }
-
-    public List<String> getMateriasPendientes(String estudianteId) {
-        Optional<Estudiante> estudianteOpt = estudianteRepository.findById(estudianteId);
-        if (estudianteOpt.isPresent()) {
-            return estudianteOpt.get().getMateriasPendientes()
-                    .stream()
-                    .map(Materia::getNombre)
-                    .collect(Collectors.toList());
-        }
-        return List.of();
-    }
-
-    public Estudiante actualizarHorario(String estudianteId, int semestre, Horario nuevoHorario) {
-        Optional<Estudiante> estudianteOpt = estudianteRepository.findById(estudianteId);
-        if (estudianteOpt.isPresent()) {
+        try {
             Estudiante estudiante = estudianteOpt.get();
-            estudiante.setHorarioPorSemestre(semestre, nuevoHorario);
-            return estudianteRepository.save(estudiante);
+            List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(semestre);
+            if (registroMaterias.isEmpty()) {
+                throw new IllegalArgumentException("No se encontraron registros para el semestre: " + semestre);
+            }
+            return registroMaterias;
+        }catch (Exception e) {
+            throw new IllegalArgumentException("Semestre no válido " + semestre);
         }
-        return null;
     }
 
-    // Método para inscribir a un estudiante en un grupo
-    public boolean inscribirEnGrupo(String estudianteId, String grupoId) {
-        Optional<Estudiante> estudianteOpt = estudianteRepository.findById(estudianteId);
-        if (estudianteOpt.isPresent()) {
-            Estudiante estudiante = estudianteOpt.get();
-            estudiante.inscribirEnGrupo(grupoId);
-            estudianteRepository.save(estudiante);
-            return true;
+    public Map<String, Semaforo> consultarSemaforoAcademico(String idEstudiante) {
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        if (estudianteOpt.isEmpty()) {
+            throw new IllegalArgumentException("El estudiante con ID " + idEstudiante + " no existe");
         }
-        return false;
+        Estudiante estudiante = estudianteOpt.get();
+        return estudiante.getSemaforo();
     }
 
+    public Solicitud crearSolicitud(SolicitudDTO solicitudDTO) {
+        // 1. Verificar que el estudiante existe
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(solicitudDTO.getEstudianteId());
+        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
+            throw new IllegalArgumentException("El estudiante con ID " + solicitudDTO.getEstudianteId() + " no existe o no es un estudiante");
+        }
+        Estudiante estudiante = (Estudiante) usuarioOpt.get();
+
+        // 2. Verificar grupo y materia de origen
+        Optional<Grupo> grupoProblemaOpt = grupoRepository.findById(solicitudDTO.getGrupoProblemaId());
+        if (grupoProblemaOpt.isEmpty()) {
+            throw new IllegalArgumentException("El grupo con ID " + solicitudDTO.getGrupoProblemaId() + " no existe");
+        }
+        Grupo grupoProblema = grupoProblemaOpt.get();
+
+        Optional<Materia> materiaProblemaOpt = materiaRepository.findByAcronimo(solicitudDTO.getMateriaProblemaAcronimo());
+        if (materiaProblemaOpt.isEmpty()) {
+            throw new IllegalArgumentException("La materia con acrónimo " + solicitudDTO.getMateriaProblemaAcronimo() + " no existe");
+        }
+        Materia materiaProblema = materiaProblemaOpt.get();
+
+        // 3. Verificar que la materia corresponde al grupo
+        if (!grupoProblema.getMateria().getId().equals(materiaProblema.getId())) {
+            throw new IllegalArgumentException("La materia indicada no corresponde al grupo con problemas");
+        }
+
+        // 4. Verificar que el estudiante está inscrito en el grupo
+        if (!grupoProblema.getEstudiantesId().contains(solicitudDTO.getEstudianteId())) {
+            throw new IllegalArgumentException("El estudiante no está inscrito en el grupo indicado");
+        }
+
+        // 5. Si es CAMBIO_GRUPO, verificar grupo y materia destino
+        Grupo grupoDestino = null;
+        Materia materiaDestino = null;
+
+        if (solicitudDTO.getTipoSolicitud() == TipoSolicitud.CAMBIO_GRUPO) {
+            if (solicitudDTO.getGrupoDestinoId() == null || solicitudDTO.getMateriaDestinoAcronimo() == null) {
+                throw new IllegalArgumentException("Para cambio de grupo se requiere especificar el grupo y materia destino");
+            }
+
+            Optional<Grupo> grupoDestinoOpt = grupoRepository.findById(solicitudDTO.getGrupoDestinoId());
+            if (grupoDestinoOpt.isEmpty()) {
+                throw new IllegalArgumentException("El grupo destino con ID " + solicitudDTO.getGrupoDestinoId() + " no existe");
+            }
+            grupoDestino = grupoDestinoOpt.get();
+
+            Optional<Materia> materiaDestinoOpt = materiaRepository.findByAcronimo(solicitudDTO.getMateriaDestinoAcronimo());
+            if (materiaDestinoOpt.isEmpty()) {
+                throw new IllegalArgumentException("La materia destino con acrónimo " + solicitudDTO.getMateriaDestinoAcronimo() + " no existe");
+            }
+            materiaDestino = materiaDestinoOpt.get();
+
+            // Verificar que la materia destino corresponde al grupo destino
+            if (!grupoDestino.getMateria().getId().equals(materiaDestino.getId())) {
+                throw new IllegalArgumentException("La materia destino no corresponde al grupo destino");
+            }
+
+            // Verificar que el grupo destino no esté lleno
+            if (grupoDestino.isEstaCompleto()) {
+                throw new IllegalArgumentException("El grupo destino está completo");
+            }
+        }
+
+        // 6. Crear la solicitud
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstudianteId(estudiante.getId());
+        solicitud.setTipoSolicitud(solicitudDTO.getTipoSolicitud());
+        solicitud.setGrupoProblema(grupoProblema);
+        solicitud.setMateriaProblema(materiaProblema);
+
+        if (grupoDestino != null && materiaDestino != null) {
+            solicitud.setGrupoDestino(grupoDestino);
+            solicitud.setMateriaDestino(materiaDestino);
+        }
+
+        solicitud.setObservaciones(solicitudDTO.getObservaciones());
+
+        return solicitudRepository.save(solicitud);
+    }
+
+    public List<Solicitud> consultarSolicitudes(String idEstudiante) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
+        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
+            throw new IllegalArgumentException("El estudiante con ID " + idEstudiante + " no existe o no es un estudiante");
+        }
+        return solicitudRepository.findByEstudianteId(idEstudiante);
+    }
+
+    public Solicitud consultarSolicitudesById(String idEstudiante, String solicitudId) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
+        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
+            throw new IllegalArgumentException("El estudiante con ID " + idEstudiante + " no existe o no es un estudiante");
+        }
+        Optional<Solicitud> solicitudOpt = solicitudRepository.findById(solicitudId);
+        if (solicitudOpt.isEmpty()) {
+            throw new IllegalArgumentException("La solicitud con ID " + solicitudId + " no existe");
+        }
+        Solicitud solicitud = solicitudOpt.get();
+        if (!solicitud.getEstudianteId().equals(idEstudiante)) {
+            throw new IllegalArgumentException("La solicitud no pertenece al estudiante con ID " + idEstudiante);
+        }
+        return solicitud;
+    }
 }

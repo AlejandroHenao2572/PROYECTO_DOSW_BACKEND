@@ -1,15 +1,42 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-public class Decano extends Usuario {
-    private CarreraTipo facultad;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-    public Decano(String nombre ,String apellido,String email, String password,Rol rol, CarreraTipo facultad) {
-        super(nombre,apellido,email,password,rol);
-        this.facultad = facultad;
+@Document(collection = "usuarios")
+public class Decano extends Profesor implements GestorSolicitudes {
+
+    private Facultad carrera;
+
+    public Decano() {
+        super();
     }
 
-    public CarreraTipo getFacultad() { return facultad; }
+    public Decano(String nombre, String apellido, String email, String contraseña, Facultad carrera) {
+        super(nombre, apellido, email, contraseña);
+        this.carrera = carrera;
+    }
+
+    public Decano(String nombre, String apellido, String email, String contraseña, Rol rol, Facultad carrera) {
+        super(nombre, apellido, email, contraseña, rol);
+        this.carrera = carrera;
+    }
+
+    public Facultad getCarrera() {
+        return carrera;
+    }
+
+    public void setCarrera(Facultad carrera) {
+        this.carrera = carrera;
+    }
 
 
+    @Override
+    public void agregarSolicitud(Solicitud solicitud) {
+
+    }
+
+    @Override
+    public void gestionarSolicitud(Solicitud solicitud, String accion) {
+
+    }
 }
-

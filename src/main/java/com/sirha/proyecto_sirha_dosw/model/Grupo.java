@@ -1,86 +1,131 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import org.springframework.data.annotation.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "grupos")
 public class Grupo {
-    @Id
-    private String id;
-    private String numero;
-    private String materiaId;
-    private String profesorId;
-    private Integer capacidadMaxima;
-    private List<String> estudiantesInscritos;
-    private Horario horario;
-    private String salon;
-    private String semestre;
-    
-    public Grupo() {
-        this.estudiantesInscritos = new ArrayList<>();
+
+
+	private String id;
+
+    @NotNull
+    @NotBlank
+	private int capacidad = 0;
+
+    @NotNull
+    @NotBlank
+	private int cantidadInscritos;
+
+    @NotNull
+    @NotBlank
+	private boolean estaCompleto;
+
+    @NotNull
+    @NotBlank
+	private List<Horario> horarios = new ArrayList<>();
+
+    @NotNull
+    @NotBlank
+	private Materia materia;
+
+    private List<String> estudiantesId = new ArrayList<String>();
+
+    private Profesor profesor;
+
+	public Grupo() {
+	}
+
+    public Grupo(Materia materia, int capacidad, List<Horario> horarios) {
+        this.materia = materia;
+        this.capacidad = capacidad;
+        this.horarios = horarios;
+        this.cantidadInscritos = 0;
+        this.estaCompleto = false;
+        this.estudiantesId = new ArrayList<String>();
     }
-    
-    public Grupo(String numero, String materiaId, String profesorId, Integer capacidadMaxima, String semestre) {
-        this();
-        this.numero = numero;
-        this.materiaId = materiaId;
-        this.profesorId = profesorId;
-        this.capacidadMaxima = capacidadMaxima;
-        this.semestre = semestre;
-    }
-    
-    // Métodos de lógica de negocio
-    public boolean estaCompleto() {
-        return estudiantesInscritos.size() >= capacidadMaxima;
-    }
-    
-    public int getCuposDisponibles() {
-        return capacidadMaxima - estudiantesInscritos.size();
-    }
-    
-    public int getCantidadInscritos() {
-        return estudiantesInscritos.size();
-    }
-    
-    public boolean inscribirEstudiante(String estudianteId) {
-        if (!estaCompleto() && !estudiantesInscritos.contains(estudianteId)) {
-            estudiantesInscritos.add(estudianteId);
-            return true;
+
+	public Materia getMateria() {
+		return materia;
+	}
+
+	public void setMateria(Materia materia) {
+		this.materia = materia;
+	}
+
+	public List<String> getEstudiantesId() {
+		return estudiantesId;
+	}
+
+	public void setEstudiantesId(List<String> estudiantesId) {
+		this.estudiantesId = estudiantesId;
+	}
+
+	public List<Horario> getHorarios() {
+		return horarios;
+	}
+
+	public void setHorarios(List<Horario> horarios) {
+		this.horarios = horarios;
+	}
+
+	public boolean isEstaCompleto() {
+		return estaCompleto;
+	}
+
+	public void setEstaCompleto(boolean estaCompleto) {
+		this.estaCompleto = estaCompleto;
+	}
+
+	public int getCantidadInscritos() {
+		return cantidadInscritos;
+	}
+
+	public void setCantidadInscritos(int cantidadInscritos) {
+		this.cantidadInscritos = cantidadInscritos;
+	}
+
+	public int getCapacidad() {
+		return capacidad;
+	}
+
+	public void setCapacidad(int capacidad) {
+		this.capacidad = capacidad;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+    public void addEstudiante(String estudianteId) {
+        if (!this.estudiantesId.contains(estudianteId)) {
+            this.estudiantesId.add(estudianteId);
+            this.cantidadInscritos++;
+            if (this.cantidadInscritos >= this.capacidad) {
+                this.estaCompleto = true;
+            }
         }
-        return false;
     }
-    
-    public boolean desinscribirEstudiante(String estudianteId) {
-        return estudiantesInscritos.remove(estudianteId);
+
+    public void removeEstudiante(String estudianteId) {
+        this.estudiantesId.remove(estudianteId);
+        this.cantidadInscritos--;
+        if (this.cantidadInscritos < this.capacidad) {
+            this.estaCompleto = false;
+        }
     }
-    
-    // Getters y Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    
-    public String getNumero() { return numero; }
-    public void setNumero(String numero) { this.numero = numero; }
-    
-    public String getMateriaId() { return materiaId; }
-    public void setMateriaId(String materiaId) { this.materiaId = materiaId; }
-    
-    public String getProfesorId() { return profesorId; }
-    public void setProfesorId(String profesorId) { this.profesorId = profesorId; }
-    
-    public Integer getCapacidadMaxima() { return capacidadMaxima; }
-    public void setCapacidadMaxima(Integer capacidadMaxima) { this.capacidadMaxima = capacidadMaxima; }
-    
-    public List<String> getEstudiantesInscritos() { return estudiantesInscritos; }
-    public void setEstudiantesInscritos(List<String> estudiantesInscritos) { this.estudiantesInscritos = estudiantesInscritos; }
-    
-    public Horario getHorario() { return horario; }
-    public void setHorario(Horario horario) { this.horario = horario; }
-    
-    public String getSalon() { return salon; }
-    public void setSalon(String salon) { this.salon = salon; }
-    
-    public String getSemestre() { return semestre; }
-    public void setSemestre(String semestre) { this.semestre = semestre; }
+    public Profesor getProfesor() {
+        return profesor;
+    }
+    public void setProfesor(Profesor profesor) {
+        this.profesor = profesor;
+    }
 }

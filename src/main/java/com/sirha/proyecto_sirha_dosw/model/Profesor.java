@@ -1,20 +1,19 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-import jakarta.validation.constraints.NotBlank;
-import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(collection = "usuarios")
 public class Profesor extends Usuario {
 
-    @Field("departamento")
-    @NotBlank(message = "La departamento no puede estar vacío")
-    private CarreraTipo departamento;
-
-    public Profesor(String nombre ,String apellido,String email, String password,Rol rol,CarreraTipo departamento ) {
-        super(nombre,apellido,email,password,rol);
-        this.departamento = departamento;
+    public Profesor() {
+        super();
     }
 
-    public CarreraTipo getDepartamento() { return departamento; }
+    public Profesor(String nombre, String apellido, String email, String password) {
+        super(nombre, apellido, email, password);
+    }
 
-
+    public Profesor(String nombre, String apellido, String email, String password, Rol rol) {
+        super(nombre, apellido, email, password, rol);
+    }
 }

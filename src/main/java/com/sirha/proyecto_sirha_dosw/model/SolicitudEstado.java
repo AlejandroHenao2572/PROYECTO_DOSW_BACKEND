@@ -1,8 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-public enum EstadoSolicitud {
+public enum SolicitudEstado {
     PENDIENTE,
-    EN_REVISION,
-    APROBADA,
+    ACEPTADA,
     RECHAZADA
 }

@@ -13,7 +13,7 @@
 ## 📑 Tabla de Contenidos  
 
 1. [Miembros del Equipo](#miembros-del-equipo)  
-2. [Estructura del Proyecto](#estructura-del-proyecto-spring-boot-mvc)  
+2. [Estructura del Proyecto](#estructura-del-proyecto-spring-boot-mvc)  [Administracion.java](src/main/java/com/sirha/proyecto_sirha_dosw/model/Administracion.java)
 3. [Estrategia de Gitflow](#estrategia-de-gitflow)  
 4. [Tecnologías Usadas](#tecnologías-usadas)  
 5. [Artefactos de Análisis y Diseño](#artefactos-de-análisis-y-diseño)  
