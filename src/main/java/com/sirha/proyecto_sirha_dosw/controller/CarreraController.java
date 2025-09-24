@@ -11,16 +11,32 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controlador REST para gestionar las carreras y sus materias.
+ * Expone Endpoints para registrar nuevas carreras y asociar materias a ellas.
+ */
+
 @RestController
 @RequestMapping("/api/carreras")
 public class CarreraController {
 
     private final CarreraService carreraService;
 
+    /**
+     * Constructor con inyección de dependencias de CarreraService.
+     * @param carreraService servicio que maneja la lógica de negocio para carreras
+     */
+
     @Autowired
     public CarreraController(CarreraService carreraService) {
         this.carreraService = carreraService;
     }
+
+    /**
+     * Registra una nueva carrera en el sistema.
+     * @param dto objeto DTO
+     * @return
+     */
 
     @PostMapping("/register")
     public ResponseEntity register(@Valid @RequestBody CarreraDTO dto) {
