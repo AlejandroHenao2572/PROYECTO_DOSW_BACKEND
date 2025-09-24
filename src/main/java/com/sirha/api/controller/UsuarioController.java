@@ -16,15 +16,9 @@ import java.util.Map;
 
 /**
  * Controlador REST para gestionar operaciones relacionadas con los usuarios.
- *
- * <p>
- * Expone endpoints para registrar, autenticar y consultar usuarios
- * por distintos criterios (ID, correo, rol, nombre y apellido).
- * </p>
- *
- * <p>
+ * Expone endpoints para registrar, autenticar y consultar usuarios por,
+ *          distintos criterios (ID, correo, rol, nombre y apellido).
  * Los endpoints están disponibles bajo la ruta base {@code /api/auth}.
- * </p>
  */
 
 @RestController
@@ -51,9 +45,9 @@ public class UsuarioController {
     /**
      * Endpoint para autenticar un usuario (login).
      *
-     * @param data mapa con los campos: email y password
+     * @param data mapa con los campos: email y password.
      * @return 200 OK si las credenciales son correctas,
-     *         401 Unauthorized si no coinciden
+     *         401 Unauthorized si no coinciden.
      */
 
     // Login
@@ -71,6 +65,13 @@ public class UsuarioController {
         }
     }
 
+    /**
+     * Actualiza los datos de un usuario existente.
+     * @param usuarioId identificador único del usuario.
+     * @param dto datos actualziados.
+     * @return usuario actualizado o 404 si no existe.
+     */
+
     @PutMapping("/{usuarioId}")
     public ResponseEntity updateUsuario(@PathVariable String usuarioId, @RequestBody UsuarioDTO dto) {
         try {
@@ -80,6 +81,12 @@ public class UsuarioController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+
+    /**
+     * Elimina un usuario del sistema.
+     * @param usuarioId identificador único del usuario.
+     * @return 204 No Content si se eliminó, 404 si no existe.
+     */
 
     @DeleteMapping("/{usuarioId}")
     public ResponseEntity deleteUsuario(@PathVariable String usuarioId) {
@@ -94,7 +101,7 @@ public class UsuarioController {
     /**
      * Obtiene todos los usuarios registrados.
      *
-     * @return lista de {@link Usuario}
+     * @return lista de {@link Usuario}.
      */
 
     // Listar todos
@@ -111,8 +118,8 @@ public class UsuarioController {
     /**
      * Busca un usuario por su identificador único.
      *
-     * @param id identificador del usuario
-     * @return {@link Usuario} si existe, 404 si no
+     * @param id identificador del usuario.
+     * @return {@link Usuario} si existe, 404 si no.
      */
 
     // Buscar por ID
@@ -126,8 +133,8 @@ public class UsuarioController {
     /**
      * Busca un usuario por su correo electrónico.
      *
-     * @param email correo electrónico
-     * @return {@link Usuario} si existe, 404 si no
+     * @param email correo electrónico.
+     * @return {@link Usuario} si existe, 404 si no.
      */
 
     // Buscar por email
@@ -141,8 +148,8 @@ public class UsuarioController {
     /**
      * Busca todos los usuarios que tengan el rol indicado.
      *
-     * @param rol nombre del rol (ESTUDIANTE, PROFESOR, DECANO, ADMINISTRADOR)
-     * @return lista de usuarios, 204 si no hay ninguno, 400 si el rol es inválido
+     * @param rol nombre del rol (ESTUDIANTE, PROFESOR, DECANO, ADMINISTRADOR).
+     * @return lista de usuarios, 204 si no hay ninguno, 400 si el rol es inválido.
      */
 
     // Buscar por Rol
@@ -165,9 +172,10 @@ public class UsuarioController {
     /**
      * Busca usuarios por su nombre.
      *
-     * @param nombre nombre del usuario
-     * @return lista de {@link Usuario} si existen, lista vacía si no
+     * @param nombre nombre del usuario.
+     * @return lista de {@link Usuario} si existen, lista vacía si no.
      */
+
     @GetMapping("/nombre/{nombre}")
     public ResponseEntity<List<Usuario>> obtenerPorNombre(@PathVariable String nombre) {
         List<Usuario> usuarios = usuarioService.obtenerPorNombre(nombre);
@@ -179,10 +187,10 @@ public class UsuarioController {
 
     /**
      * Busca usuarios por su apellido.
-     *
-     * @param apellido apellido del usuario
-     * @return lista de {@link Usuario} si existen, lista vacía si no
+     * @param apellido apellido del usuario.
+     * @return lista de {@link Usuario} si existen, lista vacía si no.
      */
+
     @GetMapping("/apellido/{apellido}")
     public ResponseEntity<List<Usuario>> obtenerPorApellido(@PathVariable String apellido) {
         List<Usuario> usuarios = usuarioService.obtenerPorApellido(apellido);
@@ -194,11 +202,11 @@ public class UsuarioController {
 
     /**
      * Busca usuarios por su nombre y apellido.
-     *
-     * @param nombre   nombre del usuario
-     * @param apellido apellido del usuario
-     * @return lista de {@link Usuario} si existen, lista vacía si no
+     * @param nombre   nombre del usuario.
+     * @param apellido apellido del usuario.
+     * @return lista de {@link Usuario} si existen, lista vacía si no.
      */
+
     @GetMapping("/nombre/{nombre}/{apellido}")
     public ResponseEntity<List<Usuario>> obtenerPorNombreYApellido(@PathVariable String nombre,
             @PathVariable String apellido) {
