@@ -14,12 +14,9 @@ import java.util.Optional;
 
 /**
  * Servicio que gestiona las operaciones relacionadas con los usuarios.
- *
- * <p>
  * Se encarga de acceder al repositorio {@code UsuarioRepository}
  * y proveer métodos para consultar usuarios por diferentes criterios
  * como ID, correo, rol, nombre y apellido.
- * </p>
  */
 
 @Service
@@ -43,7 +40,7 @@ public class UsuarioService {
      * Registra un nuevo usuario en el sistema.
      *
      * <p>
-     * Valida que los campos obligatorios estén presentes y que
+     * Válida que los campos obligatorios estén presentes y que
      * el correo no esté ya registrado. Luego crea una instancia
      * de {@link Usuario} usando la {@code UsuarioFactory} y la
      * guarda en la base de datos.
@@ -54,6 +51,7 @@ public class UsuarioService {
      * @throws IllegalArgumentException si faltan campos obligatorios o el email ya
      *                                  existe
      */
+
     public Usuario registrar(UsuarioDTO dto) {
         if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalArgumentException("El email ya está registrado");
@@ -85,6 +83,13 @@ public class UsuarioService {
                 facultad);
         return usuarioRepository.insert(usuario);
     }
+
+    /**
+     * Actualiza a un usuario.
+     * @param usuarioId ID del usuario.
+     * @param dto datos a modificar.
+     * @return usuario actualizado.
+     */
 
     public Usuario actualizarUsuario(String usuarioId, UsuarioDTO dto) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
@@ -119,6 +124,11 @@ public class UsuarioService {
         }
         return usuarioRepository.save(usuario);
     }
+
+    /**
+     * Para eliminar un usuario.
+     * @param usuarioId ID del usuario.
+     */
 
     public void eliminarUsuario(String usuarioId) {
         if (!usuarioRepository.existsById(usuarioId)) {

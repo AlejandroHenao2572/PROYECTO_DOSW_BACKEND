@@ -15,12 +15,25 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Servicio que gestiona la lógica relacionada con los {@link Grupo}
+ * Permite crear, actualizar, eliminar grupos, asignar materias y profesores, además
+ *          también administra la inscripción de estudiantes.
+ */
+
 @Service
 public class GrupoService {
 
     private final GrupoRepository grupoRepository;
     private final MateriaRepository materiaRepository;
     private final UsuarioRepository usuarioRepository;
+
+    /**
+     * Constructor con inyección de dependencias.
+     * @param grupoRepository repositorio de {@link Grupo}
+     * @param materiaRepository repositorio de {@link Materia}
+     * @param usuarioRepository repositorio de {@link Usuario}
+     */
 
     @Autowired
     public GrupoService(GrupoRepository grupoRepository, MateriaRepository materiaRepository,
@@ -30,13 +43,31 @@ public class GrupoService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    /**
+     * Obtiene todos los grupos registrados.
+     * @return lista de {@link Grupo}
+     */
+
     public List<Grupo> getAllGrupos() {
         return grupoRepository.findAll();
     }
 
+    /**
+     * Busca un grupo por su ID.
+     * @param id identificador del grupo.
+     * @return un {@link Optional} con el grupo si existe.
+     */
+
     public Optional<Grupo> getGrupoById(String id) {
         return grupoRepository.findById(id);
     }
+
+    /**
+     * Crea un nuevo grupo con base en la información del DTO y realiza validaciones.
+     * @param grupoDTO datos del grupo.
+     * @return el grupo creado.
+     * @throws IllegalArgumentException si la materia o profesor no existen.
+     */
 
     public Grupo createGrupo(@Valid GrupoDTO grupoDTO) {
         // Get the materia from the database using the ID provided in the DTO
@@ -66,6 +97,14 @@ public class GrupoService {
 
         return grupoRepository.save(grupo);
     }
+
+    /**
+     * Actualiza los datos de un grupo existente y realiza validaciones.
+     * @param id ID del grupo a actualizar.
+     * @param grupoDTO datos a modificar.
+     * @return el grupo actualizado.
+     * @throws IllegalArgumentException si el grupo, materia o profesor no existen.
+     */
 
     public Grupo updateGrupo(String id, @Valid GrupoDTO grupoDTO) {
         Optional<Grupo> grupoOpt = grupoRepository.findById(id);
@@ -108,6 +147,12 @@ public class GrupoService {
         return grupoRepository.save(grupo);
     }
 
+    /**
+     * Elimina un grupo por su ID.
+     * @param id identificador del grupo.
+     * @throws IllegalArgumentException si el grupo no existe.
+     */
+
     public void deleteGrupo(String id) {
         if (!grupoRepository.existsById(id)) {
             throw new IllegalArgumentException("Grupo con ID " + id + " no encontrado");
@@ -115,17 +160,42 @@ public class GrupoService {
         grupoRepository.deleteById(id);
     }
 
+    /**
+     * Obtiene todos los grupos asociados a una materia.
+     * @param materiaId ID de la materia.
+     * @return lista de {@link Grupo}
+     */
+
     public List<Grupo> getGruposByMateria(String materiaId) {
         return grupoRepository.findByMateria_Id(materiaId);
     }
+
+    /**
+     * Obtiene todos los grupos asignados a un profesor.
+     * @param profesorId ID del profesor.
+     * @return lista de {@link Grupo}
+     */
 
     public List<Grupo> getGruposByProfesor(String profesorId) {
         return grupoRepository.findByProfesor_Id(profesorId);
     }
 
+    /**
+     * Obtiene todos los grupos que aún tienen cupos disponibles.
+     * @return lista de {@link Grupo} con {@code estaCompleto = false}
+     */
+
     public List<Grupo> getGruposDisponibles() {
         return grupoRepository.findByEstaCompletoFalse();
     }
+
+    /**
+     * Agrega un estudiante a un grupo y realiza algunas validaciones.
+     * @param grupoId ID del grupo.
+     * @param estudianteId ID del estudiante.
+     * @return grupo actualizado con el estudiante agregado.
+     * @throws IllegalArgumentException si alguna validación falla.
+     */
 
     public Grupo addEstudianteToGrupo(String grupoId, String estudianteId) {
         Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
@@ -153,6 +223,14 @@ public class GrupoService {
         grupo.addEstudiante(estudianteId);
         return grupoRepository.save(grupo);
     }
+
+    /**
+     * Elimina a un estudiante de un grupo.
+     * @param grupoId ID del grupo.
+     * @param estudianteId ID del estudiante.
+     * @return grupo actualizado sin el estudiante.
+     * @throws IllegalArgumentException si el grupo no existe o si el estudiante no está inscrito.
+     */
 
     public Grupo removeEstudianteFromGrupo(String grupoId, String estudianteId) {
         Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);

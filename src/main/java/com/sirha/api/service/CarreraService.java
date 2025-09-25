@@ -14,17 +14,36 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Servicio que gestiona la lógica de negocio relacionada con {@link Carrera}
+ * Permite registrar nuevas carreras y asociar materias a una carrera existente.
+ */
+
 @Service
 public class CarreraService {
 
     private final CarreraRepository carreraRepository;
     private final MateriaRepository materiaRepository;
 
+    /**
+     * Constructor con inyección de dependencias para repositorios.
+     * @param carreraRepository repositorio de {@link Carrera}
+     * @param materiaRepository repositorio de {@link Materia}
+     */
+
     @Autowired
     public CarreraService(CarreraRepository carreraRepository,MateriaRepository materiaRepository) {
         this.carreraRepository = carreraRepository;
         this.materiaRepository = materiaRepository;
     }
+
+    /**
+     * Registra una nueva carrera en el sistema.
+     * Válida que no existe otra carrera con el mismo código o nombre.
+     * @param dto objeto {@link CarreraDTO} con los datos de la carrera.
+     * @return la {@link Carrera} registrada.
+     * @throws IllegalArgumentException si ya existe una carrera con el mismo código o nombre.
+     */
 
     public Carrera registrar(@Valid CarreraDTO dto) {
         Optional<Carrera> carreraOpt = carreraRepository.findByCodigo(dto.getCodigo());
@@ -48,6 +67,16 @@ public class CarreraService {
                 .build();
         return carreraRepository.insert(carrera);
    }
+
+    /**
+     * Agrega una nueva materia a una carrera existente.
+     * Valida que no existe una materia con el mismo acrónimo o nombre antes de insertarla.
+     * @param dto objeto {@link MateriaDTO} con los datos de la materia.
+     * @param codigoCarrera código único de la carrera a la que se agregará la materia.
+     * @return la {@link Materia} creada y asociada a la carrera.
+     * @throws IllegalArgumentException si la carrera no existe, o si ya existe,
+     *          una materia con el mismo acrónimo o nombre.
+     */
 
     public Materia addMateria(@Valid MateriaDTO dto, String codigoCarrera) {
         Optional<Carrera> carreraOpt = carreraRepository.findById(codigoCarrera);
