@@ -18,7 +18,6 @@ import java.util.Optional;
  * Servicio que gestiona la lógica de negocio relacionada con {@link Carrera}
  * Permite registrar nuevas carreras y asociar materias a una carrera existente.
  */
-
 @Service
 public class CarreraService {
 
@@ -30,7 +29,6 @@ public class CarreraService {
      * @param carreraRepository repositorio de {@link Carrera}
      * @param materiaRepository repositorio de {@link Materia}
      */
-
     @Autowired
     public CarreraService(CarreraRepository carreraRepository,MateriaRepository materiaRepository) {
         this.carreraRepository = carreraRepository;
@@ -44,7 +42,6 @@ public class CarreraService {
      * @return la {@link Carrera} registrada.
      * @throws IllegalArgumentException si ya existe una carrera con el mismo código o nombre.
      */
-
     public Carrera registrar(@Valid CarreraDTO dto) {
         Optional<Carrera> carreraOpt = carreraRepository.findByCodigo(dto.getCodigo());
         if (carreraOpt.isPresent()) {
@@ -77,7 +74,6 @@ public class CarreraService {
      * @throws IllegalArgumentException si la carrera no existe, o si ya existe,
      *          una materia con el mismo acrónimo o nombre.
      */
-
     public Materia addMateria(@Valid MateriaDTO dto, String codigoCarrera) {
         Optional<Carrera> carreraOpt = carreraRepository.findById(codigoCarrera);
         if (carreraOpt.isEmpty()) {

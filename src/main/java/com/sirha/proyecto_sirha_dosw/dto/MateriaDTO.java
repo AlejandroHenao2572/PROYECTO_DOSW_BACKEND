@@ -1,6 +1,8 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.index.Indexed;
 
 /**
@@ -8,7 +10,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
  * Se utiliza en los controladores para crear, actualizar o consultar materias,
  *          sin exponer directamente la entidad del modelo.
  */
-
 public class MateriaDTO {
 
     @NotBlank(message = "El nombre no puede estar vacío")

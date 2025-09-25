@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotNull;
  * Este objeto se utiliza en los controladores para registrar o actualizar,
  *          carreras sin exponer directamente la entidad del modelo.
  */
-
 public class CarreraDTO {
 
     @NotNull(message = "El nombre de la facultad no puede ser nulo")

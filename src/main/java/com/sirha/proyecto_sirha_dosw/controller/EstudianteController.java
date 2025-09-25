@@ -17,13 +17,16 @@ import java.util.Map;
  * Controlador REST para gestionar las funcionalidades relacionadas con los estudiantes.
  * Expone endpoints para consultar horarios, semáforos académicos y solicitudes.
  */
-
 @RestController
 @RequestMapping("/api/Estudiantes")
 public class EstudianteController {
 
     private final EstudianteService estudianteService;
 
+    /**
+     * Constructor con inyección de dependencias de CarreraService.
+     * @param estudianteService servicio que maneja la lógica de negocio para estudiante.
+     */
     @Autowired
     public EstudianteController(EstudianteService estudianteService) {
         this.estudianteService = estudianteService;
@@ -35,7 +38,6 @@ public class EstudianteController {
      * @param semestre número del semestre.
      * @return Map con el nombre de la materia y la lista de horarios asociados.
      */
-
     @GetMapping("/horario/{idEstudiante}/{semestre}")
     public ResponseEntity<?> consultarHorarioPorSemestre(@PathVariable String idEstudiante, @PathVariable int semestre) {
         try {
@@ -64,7 +66,6 @@ public class EstudianteController {
      * @param idEstudiante ID único del estudiante.
      * @return Mapa con el estado del semáforo académico (ej. verde, azul, rojo).
      */
-
     @GetMapping("/semaforo/{idEstudiante}")
     public ResponseEntity<?> consultarSemaforoAcademico(@PathVariable String idEstudiante) {
         try {
@@ -84,7 +85,6 @@ public class EstudianteController {
      * @param solicitudDTO Datos de la solicitud enviados en el cuerpo de la petición.
      * @return La solicitud creada si el proceso es exitoso.
      */
-
     @PostMapping("/solicitudes")
     public ResponseEntity<?> crearSolicitud(@Valid @RequestBody SolicitudDTO solicitudDTO) {
         try {
@@ -103,7 +103,6 @@ public class EstudianteController {
      * @param idEstudiante ID único del estudiante.
      * @return Lista de solicitudes asociadas al estudiante.
      */
-
     @GetMapping("/solicitudes/{idEstudiante}")
     public ResponseEntity<?> consultarSolicitudes(@PathVariable String idEstudiante) {
         try {
@@ -124,7 +123,6 @@ public class EstudianteController {
      * @param solicitudId ID de la solicitud.
      * @return La solicitud encontrada.
      */
-
     @GetMapping("/solicitudes/{idEstudiante}/{solicitudId}")
     public ResponseEntity<?> consultarSolicitudesPorId(@PathVariable String idEstudiante, @PathVariable String solicitudId) {
         try {

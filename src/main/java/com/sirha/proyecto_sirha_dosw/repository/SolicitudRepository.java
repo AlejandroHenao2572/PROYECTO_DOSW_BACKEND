@@ -9,7 +9,6 @@ import java.util.List;
 /**
  * Repositorio para la gestión de Solicitud en la base de datos MongoDB.
  */
-
 @Repository
 public interface SolicitudRepository extends MongoRepository<Solicitud, String> {
 
@@ -18,7 +17,6 @@ public interface SolicitudRepository extends MongoRepository<Solicitud, String> 
      * @param estudianteId identificador único del estudiante.
      * @return lista de {@link Solicitud} realizadas pr el estudiante.
      */
-
     List<Solicitud> findByEstudianteId(String estudianteId);
 
     /**
@@ -26,6 +24,5 @@ public interface SolicitudRepository extends MongoRepository<Solicitud, String> 
      * @param estado estado de la solicitud (ej. 'PENDIENTE', 'ACEPTADA', 'RECHAZADA')
      * @return lista de {@link Solicitud} en el estado indicado.
      */
-
     List<Solicitud> findByEstado(String estado);
 }

@@ -8,7 +8,6 @@ import java.util.Optional;
 /**
  * Repositorio de acceso a datos para la entidad Materia.
  */
-
 @Repository
 public interface MateriaRepository extends MongoRepository<Materia, String> {
 
@@ -17,7 +16,6 @@ public interface MateriaRepository extends MongoRepository<Materia, String> {
      * @param id identificador de la materia
      * @return un {@link Optional} que contiene la materia si existe, vacío si no.
      */
-
     Optional<Materia> findById(String id);
 
     /**
@@ -25,7 +23,6 @@ public interface MateriaRepository extends MongoRepository<Materia, String> {
      * @param acronimo acrónimo de la materia.
      * @return un {@link Optional} que contiene la materia si existe, vacío si no.
      */
-
     Optional<Materia> findByAcronimo(String acronimo);
 
     /**
@@ -33,6 +30,5 @@ public interface MateriaRepository extends MongoRepository<Materia, String> {
      * @param nombre nombre de la materia.
      * @return un {@link Optional} que contiene la materia si existe, vacío si no.
      */
-
     Optional<Materia> findByNombre(String nombre);
 }

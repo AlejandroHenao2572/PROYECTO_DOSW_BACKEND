@@ -13,7 +13,6 @@ import java.util.List;
  * Este objeto se utiliza en los controladores para registrar, actualizar o consultar,
  *          información de grupos sin exponer directamente la entidad del modelo.
  */
-
 public class GrupoDTO {
 
     private String id;

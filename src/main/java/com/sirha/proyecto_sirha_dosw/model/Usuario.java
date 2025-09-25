@@ -110,19 +110,4 @@ public abstract class Usuario {
 		this.rol = rol;
 	}
 
-	public LocalDateTime getFechaCreacion() {
-		return fechaCreacion;
-	}
-
-	public void setFechaCreacion(LocalDateTime fechaCreacion) {
-		this.fechaCreacion = fechaCreacion;
-	}
-
-	public LocalDateTime getFechaActualizacion() {
-		return fechaActualizacion;
-	}
-
-	public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-		this.fechaActualizacion = fechaActualizacion;
-	}
 }

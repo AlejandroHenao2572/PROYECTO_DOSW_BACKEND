@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+
 /**
  * Servicio que gestiona las operaciones académicas relacionadas con los estudiantes.
  * Permite consultar horarios, semáforos académicos, crear solicitudes de cambio,
  *          y recuperar solicitudes existentes.
  */
-
 @Service
 public class EstudianteService {
 
@@ -34,7 +34,6 @@ public class EstudianteService {
      * @param grupoRepository repositorio de {@link Grupo}
      * @param materiaRepository repositorio de {@link Materia}
      */
-
     @Autowired
     public EstudianteService(SolicitudRepository solicitudRepository, UsuarioRepository usuarioRepository,
                              GrupoRepository grupoRepository, MateriaRepository materiaRepository) {
@@ -51,7 +50,6 @@ public class EstudianteService {
      * @return lista de {@link RegistroMaterias} correspondientes al semestre.
      * @throws IllegalArgumentException si esl estudiante no existe o no tiene registros.
      */
-
     public List<RegistroMaterias> consultarHorarioBySemester(String idEstudiante, int semestre) {
         Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
                 .filter(Estudiante.class::isInstance)
@@ -78,7 +76,6 @@ public class EstudianteService {
      * @return mapa donde la clave es el acrónimo de la materia y el valor es el {@link Semaforo}
      * @throws IllegalArgumentException si el estudiante no existe.
      */
-
     public Map<String, Semaforo> consultarSemaforoAcademico(String idEstudiante) {
         Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
                 .filter(Estudiante.class::isInstance)
@@ -96,7 +93,6 @@ public class EstudianteService {
      * @return la {@link Solicitud} creada y almacenada.
      * @throws IllegalArgumentException si alguna validación falla.
      */
-
     public Solicitud crearSolicitud(SolicitudDTO solicitudDTO) {
         // 1. Verificar que el estudiante existe
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(solicitudDTO.getEstudianteId());
@@ -183,7 +179,6 @@ public class EstudianteService {
      * @return lista de {@link Solicitud} asociadas al estudiante.
      * @throws IllegalArgumentException si el estudiante no existe o no es un estudiante.
      */
-
     public List<Solicitud> consultarSolicitudes(String idEstudiante) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
         if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
@@ -199,7 +194,6 @@ public class EstudianteService {
      * @return la {@link Solicitud} encontrada.
      * @throws IllegalArgumentException si el estudiante no existe, si la solicitud no existe.
      */
-
     public Solicitud consultarSolicitudesById(String idEstudiante, String solicitudId) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
         if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {

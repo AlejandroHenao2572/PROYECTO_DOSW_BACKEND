@@ -24,7 +24,7 @@ public class Carrera {
     @NotBlank
     private int duracionSemestres;
 
-    @NotBlank
+    @NotNull
     @NotBlank
     private int creditosTotales;
 
@@ -93,12 +93,6 @@ public class Carrera {
 
     public int getTotalMaterias() {
         return materias != null ? materias.size() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Carrera{nombre='%s', codigo='%s', duracion=%d semestres, materias=%d, creditos=%d}",
-                nombre, codigo, duracionSemestres, getTotalMaterias(), creditosTotales);
     }
 
     public void addMateria(Materia materia) {

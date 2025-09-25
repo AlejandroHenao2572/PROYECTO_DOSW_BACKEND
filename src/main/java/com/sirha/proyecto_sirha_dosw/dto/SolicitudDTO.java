@@ -10,7 +10,6 @@ import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
  * Este objeto se utiliza en los controladores para recibir la información necesaria,
  *          al crear una solicitud, sin exponer directamente la entidad del modelo.
  */
-
 public class SolicitudDTO {
 
     @NotBlank(message = "El ID del estudiante no puede estar vacío")

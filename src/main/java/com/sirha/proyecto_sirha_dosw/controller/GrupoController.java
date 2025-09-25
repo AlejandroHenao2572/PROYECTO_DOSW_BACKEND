@@ -12,13 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
  * Controlador REST para gestioanar grupos.
  * Permite crear, actualizar, eliminar y consultar grupos,
  *          así como asignar o remover estudiantes.
  */
-
 @RestController
 @RequestMapping("/api/grupos")
 public class GrupoController {
@@ -34,7 +32,6 @@ public class GrupoController {
      * Obtiene todos los grupos registrados.
      * @return lista de grupos existentes.
      */
-
     @GetMapping
     public ResponseEntity<List<Grupo>> getAllGrupos() {
         return ResponseEntity.ok(grupoService.getAllGrupos());
@@ -45,7 +42,6 @@ public class GrupoController {
      * @param id identificador único del grupo.
      * @return grupo encontrado o 404 si no existe.
      */
-
     @GetMapping("/{id}")
     public ResponseEntity<Grupo> getGrupoById(@PathVariable String id) {
         Optional<Grupo> grupo = grupoService.getGrupoById(id);
@@ -58,7 +54,6 @@ public class GrupoController {
      * @param grupoDTO objeto con los datos del grupo.
      * @return grupo creado con código HTTP 201.
      */
-
     @PostMapping
     public ResponseEntity<Grupo> createGrupo(@Valid @RequestBody GrupoDTO grupoDTO) {
         try {
@@ -76,7 +71,6 @@ public class GrupoController {
      * @param grupoDTO datos actualizados del grupo.
      * @return grupo actualizado o 404 si no existe.
      */
-
     @PutMapping("/{id}")
     public ResponseEntity<Grupo> updateGrupo(@PathVariable String id, @Valid @RequestBody GrupoDTO grupoDTO) {
         try {
@@ -92,7 +86,6 @@ public class GrupoController {
      * @param id identificador del grupo.
      * @return código HTTP 204 si fue eliminado, 404 si no existe.
      */
-
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGrupo(@PathVariable String id) {
         try {
@@ -108,7 +101,6 @@ public class GrupoController {
      * @param materiaId identificador de la materia.
      * @return lista de grupos relacionados con la materia.
      */
-
     @GetMapping("/materia/{materiaId}")
     public ResponseEntity<List<Grupo>> getGruposByMateria(@PathVariable String materiaId) {
         List<Grupo> grupos = grupoService.getGruposByMateria(materiaId);
@@ -120,7 +112,6 @@ public class GrupoController {
      * @param profesorId identificador del profesor.
      * @return lista de grupos asignados al profesor.
      */
-
     @GetMapping("/profesor/{profesorId}")
     public ResponseEntity<List<Grupo>> getGruposByProfesor(@PathVariable String profesorId) {
         List<Grupo> grupos = grupoService.getGruposByProfesor(profesorId);
@@ -131,7 +122,6 @@ public class GrupoController {
      * Obtiene los grupos que todavía tienen cupos disponibles.
      * @return lista de grupos disponibles.
      */
-
     @GetMapping("/disponibles")
     public ResponseEntity<List<Grupo>> getGruposDisponibles() {
         List<Grupo> grupos = grupoService.getGruposDisponibles();
@@ -144,7 +134,6 @@ public class GrupoController {
      * @param estudianteId identificador del estudiante.
      * @return grupo actualizado con el estudiante agregado.
      */
-
     @PostMapping("/{grupoId}/estudiantes/{estudianteId}")
     public ResponseEntity<Grupo> addEstudianteToGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
         try {
@@ -165,7 +154,6 @@ public class GrupoController {
      * @param estudianteId identificador del estudiante.
      * @return grupo actualizado sin el estudiante.
      */
-
     @DeleteMapping("/{grupoId}/estudiantes/{estudianteId}")
     public ResponseEntity<Grupo> removeEstudianteFromGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
         try {
