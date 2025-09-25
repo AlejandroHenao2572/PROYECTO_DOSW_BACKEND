@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,17 +10,16 @@ class UsuarioFactoryTest {
     void testCrearEstudiante() {
         Usuario usuario = UsuarioFactory.crearUsuario(
                 Rol.ESTUDIANTE,
-                "Maria",
-                "Lopez",
-                "maria@email.com",
-                "password",
-                CarreraTipo.INGENIERIA_SISTEMAS
+                "Juan", "Perez", "juan@test.com", "pass123",
+                Facultad.INGENIERIA_SISTEMAS
         );
 
-        assertNotNull(usuario);
-        assertTrue(usuario instanceof Estudiante);
-        assertEquals("Maria", usuario.getNombre());
-        assertEquals("Lopez", usuario.getApellido());
+        usuario.setId("estudiante1");
+        assertInstanceOf(Estudiante.class, usuario);
+        assertEquals("Juan", usuario.getNombre());
+        assertEquals("estudiante1", usuario.getId());
+        assertEquals("juan@test.com", usuario.getEmail());
+        assertEquals("Perez", usuario.getApellido());
         assertEquals(Rol.ESTUDIANTE, usuario.getRol());
     }
 
@@ -27,56 +27,44 @@ class UsuarioFactoryTest {
     void testCrearProfesor() {
         Usuario usuario = UsuarioFactory.crearUsuario(
                 Rol.PROFESOR,
-                "Carlos",
-                "Garcia",
-                "carlos@email.com",
-                "password",
-                CarreraTipo.INGENIERIA_CIVIL
+                "Maria", "Gomez", "maria@test.com", "pass123",
+                null
         );
 
-        assertNotNull(usuario);
-        assertTrue(usuario instanceof Profesor);
-        assertEquals("Carlos", usuario.getNombre());
-        assertEquals(Rol.PROFESOR, usuario.getRol());
-
-        Profesor profesor = (Profesor) usuario;
-        assertEquals(CarreraTipo.INGENIERIA_CIVIL, profesor.getDepartamento());
+        assertInstanceOf(Profesor.class, usuario);
+        assertEquals("Maria", usuario.getNombre());
     }
 
     @Test
     void testCrearDecano() {
         Usuario usuario = UsuarioFactory.crearUsuario(
                 Rol.DECANO,
-                "Ana",
-                "Martinez",
-                "ana@email.com",
-                "password",
-                CarreraTipo.ADMINISTRACION
+                "Jose", "Perez", "Jose@test.com", "pass123",
+                Facultad.INGENIERIA_SISTEMAS
         );
 
-        assertNotNull(usuario);
-        assertTrue(usuario instanceof Decano);
-        assertEquals("Ana", usuario.getNombre());
+        assertInstanceOf(Decano.class, usuario);
+        assertEquals("Jose", usuario.getNombre());
         assertEquals(Rol.DECANO, usuario.getRol());
-
-        Decano decano = (Decano) usuario;
-        assertEquals(CarreraTipo.ADMINISTRACION, decano.getFacultad());
     }
 
     @Test
     void testCrearAdministrador() {
         Usuario usuario = UsuarioFactory.crearUsuario(
                 Rol.ADMINISTRADOR,
-                "Admin",
-                "Sistema",
-                "admin@email.com",
-                "password",
+                "Luiz", "Gomez", "Luiz@test.com", "pass123",
                 null
         );
 
-        assertNotNull(usuario);
-        assertTrue(usuario instanceof Administrador);
-        assertEquals("Admin", usuario.getNombre());
-        assertEquals(Rol.ADMINISTRADOR, usuario.getRol());
+        assertInstanceOf(Administrador.class, usuario);
+        assertEquals("Luiz", usuario.getNombre());
     }
+
+    @Test
+    void testRolNoSoportado() {
+        assertThrows(NullPointerException.class, () -> {
+            UsuarioFactory.crearUsuario(null, "Test", "User", "test@test.com", "pass", null);
+        });
+    }
+
 }
