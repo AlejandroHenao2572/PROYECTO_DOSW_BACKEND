@@ -4,9 +4,11 @@
  */
 package com.sirha.proyecto_sirha_dosw.model;
 
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "usuarios")
+@TypeAlias("administrador")
 public class Administrador extends Usuario implements GestorSolicitudes {
 
     /**

@@ -4,10 +4,12 @@
  */
 package com.sirha.proyecto_sirha_dosw.model;
 
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.*;
 
 @Document(collection = "usuarios")
+@TypeAlias("estudiante")
 public class Estudiante extends Usuario {
 	// Campos
 	private Facultad carrera;

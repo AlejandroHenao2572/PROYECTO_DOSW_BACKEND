@@ -5,9 +5,11 @@
  */
 package com.sirha.proyecto_sirha_dosw.model;
 
+import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "usuarios")
+@TypeAlias("decano")
 public class Decano extends Profesor implements GestorSolicitudes {
     // Campo específico del decano
     private Facultad carrera;
