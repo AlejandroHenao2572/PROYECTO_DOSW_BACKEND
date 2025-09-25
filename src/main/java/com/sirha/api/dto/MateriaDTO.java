@@ -5,6 +5,12 @@ import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.index.Indexed;
 
+/**
+ * DTO para la transferencia de datos relacionados con una Materia.
+ * Se utiliza en los controladores para crear, actualizar o consultar materias,
+ *          sin exponer directamente la entidad del modelo.
+ */
+
 public class MateriaDTO {
 
     @NotBlank(message = "El nombre no puede estar vacío")

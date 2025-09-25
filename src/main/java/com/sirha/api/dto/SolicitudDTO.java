@@ -1,85 +1,91 @@
 package com.sirha.api.dto;
 
-    import com.sirha.api.model.TipoSolicitud;
+import com.sirha.api.model.TipoSolicitud;
     import jakarta.validation.constraints.NotBlank;
     import jakarta.validation.constraints.NotNull;
     import jakarta.validation.constraints.Size;
 
-    public class SolicitudDTO {
+/**
+ * DTO para la transferencia de datos relacionados con una Solicitud, de cambio de grupo o materia.
+ * Este objeto se utiliza en los controladores para recibir la información necesaria,
+ *          al crear una solicitud, sin exponer directamente la entidad del modelo.
+ */
 
-        @NotBlank(message = "El ID del estudiante no puede estar vacío")
-        private String estudianteId;
+public class SolicitudDTO {
 
-        @NotNull(message = "El tipo de solicitud no puede ser nulo")
-        private TipoSolicitud tipoSolicitud;
+    @NotBlank(message = "El ID del estudiante no puede estar vacío")
+    private String estudianteId;
 
-        @NotBlank(message = "El ID del grupo con problemas no puede estar vacío")
-        private String grupoProblemaId;
+    @NotNull(message = "El tipo de solicitud no puede ser nulo")
+    private TipoSolicitud tipoSolicitud;
 
-        @NotBlank(message = "El acrónimo de la materia con problemas no puede estar vacío")
-        private String materiaProblemaAcronimo;
+    @NotBlank(message = "El ID del grupo con problemas no puede estar vacío")
+    private String grupoProblemaId;
 
-        // Para solicitudes de CAMBIO_GRUPO, estos campos serán obligatorios
-        private String grupoDestinoId;
-        private String materiaDestinoAcronimo;
+    @NotBlank(message = "El acrónimo de la materia con problemas no puede estar vacío")
+    private String materiaProblemaAcronimo;
 
-        @Size(max = 500, message = "Las observaciones no pueden exceder los 500 caracteres")
-        private String observaciones;
+    // Para solicitudes de CAMBIO_GRUPO, estos campos serán obligatorios
+    private String grupoDestinoId;
+    private String materiaDestinoAcronimo;
 
-        // Getters and setters
-        public String getEstudianteId() {
-            return estudianteId;
-        }
+    @Size(max = 500, message = "Las observaciones no pueden exceder los 500 caracteres")
+    private String observaciones;
 
-        public void setEstudianteId(String estudianteId) {
-            this.estudianteId = estudianteId;
-        }
-
-        public TipoSolicitud getTipoSolicitud() {
-            return tipoSolicitud;
-        }
-
-        public void setTipoSolicitud(TipoSolicitud tipoSolicitud) {
-            this.tipoSolicitud = tipoSolicitud;
-        }
-
-        public String getGrupoProblemaId() {
-            return grupoProblemaId;
-        }
-
-        public void setGrupoProblemaId(String grupoProblemaId) {
-            this.grupoProblemaId = grupoProblemaId;
-        }
-
-        public String getMateriaProblemaAcronimo() {
-            return materiaProblemaAcronimo;
-        }
-
-        public void setMateriaProblemaAcronimo(String materiaProblemaAcronimo) {
-            this.materiaProblemaAcronimo = materiaProblemaAcronimo;
-        }
-
-        public String getGrupoDestinoId() {
-            return grupoDestinoId;
-        }
-
-        public void setGrupoDestinoId(String grupoDestinoId) {
-            this.grupoDestinoId = grupoDestinoId;
-        }
-
-        public String getMateriaDestinoAcronimo() {
-            return materiaDestinoAcronimo;
-        }
-
-        public void setMateriaDestinoAcronimo(String materiaDestinoAcronimo) {
-            this.materiaDestinoAcronimo = materiaDestinoAcronimo;
-        }
-
-        public String getObservaciones() {
-            return observaciones;
-        }
-
-        public void setObservaciones(String observaciones) {
-            this.observaciones = observaciones;
-        }
+    // Getters and setters
+    public String getEstudianteId() {
+        return estudianteId;
     }
+
+    public void setEstudianteId(String estudianteId) {
+        this.estudianteId = estudianteId;
+    }
+
+    public TipoSolicitud getTipoSolicitud() {
+        return tipoSolicitud;
+    }
+
+    public void setTipoSolicitud(TipoSolicitud tipoSolicitud) {
+        this.tipoSolicitud = tipoSolicitud;
+    }
+
+    public String getGrupoProblemaId() {
+        return grupoProblemaId;
+    }
+
+    public void setGrupoProblemaId(String grupoProblemaId) {
+        this.grupoProblemaId = grupoProblemaId;
+    }
+
+    public String getMateriaProblemaAcronimo() {
+        return materiaProblemaAcronimo;
+    }
+
+    public void setMateriaProblemaAcronimo(String materiaProblemaAcronimo) {
+        this.materiaProblemaAcronimo = materiaProblemaAcronimo;
+    }
+
+    public String getGrupoDestinoId() {
+        return grupoDestinoId;
+    }
+
+    public void setGrupoDestinoId(String grupoDestinoId) {
+        this.grupoDestinoId = grupoDestinoId;
+    }
+
+    public String getMateriaDestinoAcronimo() {
+        return materiaDestinoAcronimo;
+    }
+
+    public void setMateriaDestinoAcronimo(String materiaDestinoAcronimo) {
+        this.materiaDestinoAcronimo = materiaDestinoAcronimo;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+}

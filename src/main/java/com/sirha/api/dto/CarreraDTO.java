@@ -12,6 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * DTO para la transferencia de datos relacionados con una Carrera.
+ * Este objeto se utiliza en los controladores para registrar o actualizar,
+ *          carreras sin exponer directamente la entidad del modelo.
+ */
+
 public class CarreraDTO {
 
     @NotNull(message = "El nombre de la facultad no puede ser nulo")
