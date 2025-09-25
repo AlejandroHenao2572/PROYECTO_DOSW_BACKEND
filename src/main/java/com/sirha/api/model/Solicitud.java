@@ -1,12 +1,17 @@
 package com.sirha.api.model;
 
-	import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.CreatedDate;
 	import org.springframework.data.annotation.Id;
 	import org.springframework.data.mongodb.core.mapping.Document;
 
 	import java.time.LocalDateTime;
 
-	@Document(collection = "solicitudes")
+/**
+ * Representa una solicitud realizada por un estudiante, como
+ * 			inscripción cambio o cancelación de grupo.
+ */
+
+@Document(collection = "solicitudes")
 	public class Solicitud {
 
 	    @Id

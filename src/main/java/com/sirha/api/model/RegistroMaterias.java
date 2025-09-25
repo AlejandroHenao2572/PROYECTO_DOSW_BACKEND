@@ -1,5 +1,9 @@
 package com.sirha.api.model;
 
+/**
+ * Representa el registro de una materia a la que un estudiante está inscrito.
+ */
+
 public class RegistroMaterias {
 
 	private Semaforo estado;

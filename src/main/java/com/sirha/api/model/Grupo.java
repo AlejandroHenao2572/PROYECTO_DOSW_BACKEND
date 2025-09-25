@@ -8,6 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Representa un grupo de una materia con capacidad, estudiantes y horarios definidos.
+ */
+
 @Document(collection = "grupos")
 public class Grupo {
 

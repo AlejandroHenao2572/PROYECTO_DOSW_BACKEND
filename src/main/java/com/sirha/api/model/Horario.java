@@ -1,5 +1,9 @@
 package com.sirha.api.model;
 
+/**
+ * Representa un horario específico en un día de la semana.
+ */
+
 public class Horario {
 
 	private String HoraInicio;

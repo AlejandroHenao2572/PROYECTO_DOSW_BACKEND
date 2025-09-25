@@ -10,6 +10,10 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Representa una carrera universitaria dentro del sistema.
+ */
+
 @Document(collection = "carreras")
 public class Carrera {
 
@@ -35,12 +39,29 @@ public class Carrera {
 
     public Carrera() {}
 
+    /**
+     * Constructor básico.
+     * @param nombre facultad asociada.
+     * @param codigo código único de la carrera.
+     * @param duracionSemestres duración en semestres.
+     * @param creditosTotales créditos totales de la carrera.
+     */
+
     public Carrera(Facultad nombre, String codigo, int duracionSemestres, int creditosTotales) {
         this.nombre = nombre;
         this.codigo = codigo;
         this.duracionSemestres = duracionSemestres;
         this.creditosTotales = creditosTotales;
     }
+
+    /**
+     * Constructor extendido.
+     * @param nombre facultad asociada.
+     * @param codigo código único de la carrera.
+     * @param duracionSemestres duración en semestres.
+     * @param materias materias que pertenecen a la carrera.
+     * @param creditosTotales créditos totales de la carrera.
+     */
 
     public Carrera(Facultad nombre, String codigo,
                    int duracionSemestres, List<Materia> materias, int creditosTotales) {
@@ -93,15 +114,32 @@ public class Carrera {
         this.creditosTotales = creditosTotales;
     }
 
+    /**
+     * Calcula el total de materias registradas en la carrera.
+     * @return número total de materias.
+     */
+
     public int getTotalMaterias() {
         return materias != null ? materias.size() : 0;
     }
+
+    /**
+     * Devuelve una representación en formato String de la carrera.
+     * @return descripción con nombre, código, duración, materias y créditos.
+     */
 
     @Override
     public String toString() {
         return String.format("Carrera{nombre='%s', codigo='%s', duracion=%d semestres, materias=%d, creditos=%d}",
                 nombre, codigo, duracionSemestres, getTotalMaterias(), creditosTotales);
     }
+
+    /**
+     * Agrega una nueva materia a la carrera validando que no existe previamente,
+     *          una con el mismo acrónimo.
+     * @param materia materia a agregar.
+     * @throws IllegalArgumentException si la materia ya existe en la carrera.
+     */
 
     public void addMateria(Materia materia) {
         for(Materia materia1 : materias) {

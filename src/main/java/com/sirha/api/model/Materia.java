@@ -6,6 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Representa una materia dentro de un plan académico.
+ */
+
 @Document(collection = "materias")
 public class Materia {
 

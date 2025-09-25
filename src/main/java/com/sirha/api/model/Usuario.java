@@ -10,6 +10,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
+/**
+ * Usuario que es la entidad principal en este módelo.
+ */
+
 @Document(collection = "usuarios")
 public abstract class Usuario {
 

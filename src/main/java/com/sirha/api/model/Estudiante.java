@@ -4,6 +4,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.*;
 
+/**
+ * Representa a un estudiante dentro del sistema académico.
+ */
 
 @Document(collection = "usuarios")
 public class Estudiante extends Usuario {
@@ -18,10 +21,29 @@ public class Estudiante extends Usuario {
 		super();
 	}
 
+	/**
+	 * Constructor básico.
+	 * @param nombre nombre del estudiante.
+	 * @param apellido apellido del estudiante.
+	 * @param email correo electrónico.
+	 * @param contraseña contraseña de acceso.
+	 * @param carrera carrera universitaria del estudiante.
+	 */
+
 	public Estudiante(String nombre, String apellido, String email, String contraseña, Facultad carrera) {
 		super(nombre, apellido, email, contraseña);
 		this.carrera = carrera;
 	}
+
+	/**
+	 * Constructor extendido.
+	 * @param nombre nombre del estudiante.
+	 * @param apellido apellido del estudiante.
+	 * @param email correo electrónico.
+	 * @param contraseña contraseña de acceso.
+	 * @param rol Rol del usuario (en este caso {@link Rol#ESTUDIANTE}).
+	 * @param carrera Carrera universitaria del estudiante.
+	 */
 
 	public Estudiante(String nombre, String apellido, String email, String contraseña, Rol rol, Facultad carrera) {
 		super(nombre, apellido, email, contraseña, rol);
@@ -57,11 +79,22 @@ public class Estudiante extends Usuario {
 		this.solicitudes.add(solicitud);
 	}
 
+	/**
+	 * Obtiene los registros de materias de un semestre específico.
+	 * @param semestre número del semestre.
+	 * @return lista de registros de materias correspondientes al semestre.
+	 */
 
 	public List<RegistroMaterias> getRegistrosBySemestre(int semestre) {
 		List<RegistroMaterias> registros = semestres.get(semestre-1).getRegistros();
 		return registros;
 	}
+
+	/**
+	 * Genera un mapa con el estado de cada materia cursada.
+	 * @return mapa de materias y sus estados en semáforo.
+	 */
+
 	public Map<String, Semaforo> getSemaforo() {
 		HashMap<String, Semaforo> semaforo = new HashMap<>();
 		for (Semestre semestre : semestres) {

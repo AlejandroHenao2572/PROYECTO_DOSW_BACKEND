@@ -2,6 +2,11 @@ package com.sirha.api.model;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Representa un profesor dentro del sistema académico.
+ * Extiende de usuario y siempre tiene el rol Profesor.
+ */
+
 @Document(collection = "usuarios")
 public class Profesor extends Usuario {
 
