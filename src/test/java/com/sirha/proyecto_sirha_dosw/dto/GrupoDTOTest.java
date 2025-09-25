@@ -1,7 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
-import com.sirha.api.model.Dia;
-import com.sirha.api.model.Horario;
+import com.sirha.proyecto_sirha_dosw.model.Dia;
+import com.sirha.proyecto_sirha_dosw.model.Horario;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;

@@ -30,7 +30,6 @@ package com.sirha.proyecto_sirha_dosw.model;
 
 	    private SolicitudEstado estado; // PENDIENTE, APROBADA, RECHAZADA
 
-	    private String comentariosAdmin;
 
 		public Solicitud() {
 			this.estado = SolicitudEstado.PENDIENTE;
@@ -121,11 +120,4 @@ package com.sirha.proyecto_sirha_dosw.model;
 			this.estado = estado;
 		}
 
-		public String getComentariosAdmin() {
-	        return comentariosAdmin;
-	    }
-
-	    public void setComentariosAdmin(String comentariosAdmin) {
-	        this.comentariosAdmin = comentariosAdmin;
-	    }
 	}

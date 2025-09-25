@@ -13,6 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Controlador REST para gestionar las funcionalidades relacionadas con los estudiantes.
+ * Expone endpoints para consultar horarios, semáforos académicos y solicitudes.
+ */
+
 @RestController
 @RequestMapping("/api/Estudiantes")
 public class EstudianteController {
@@ -23,6 +28,13 @@ public class EstudianteController {
     public EstudianteController(EstudianteService estudianteService) {
         this.estudianteService = estudianteService;
     }
+
+    /**
+     * Consulta el horario de un estudiante por semestre.
+     * @param idEstudiante ID único del estudiante.
+     * @param semestre número del semestre.
+     * @return Map con el nombre de la materia y la lista de horarios asociados.
+     */
 
     @GetMapping("/horario/{idEstudiante}/{semestre}")
     public ResponseEntity<?> consultarHorarioPorSemestre(@PathVariable String idEstudiante, @PathVariable int semestre) {
@@ -47,6 +59,12 @@ public class EstudianteController {
         }
     }
 
+    /**
+     * Consulta el semáforo académico de un estudiante.
+     * @param idEstudiante ID único del estudiante.
+     * @return Mapa con el estado del semáforo académico (ej. verde, azul, rojo).
+     */
+
     @GetMapping("/semaforo/{idEstudiante}")
     public ResponseEntity<?> consultarSemaforoAcademico(@PathVariable String idEstudiante) {
         try {
@@ -61,6 +79,12 @@ public class EstudianteController {
         }
     }
 
+    /**
+     * Crea una nueva solicitud de cambio para el estudiante.
+     * @param solicitudDTO Datos de la solicitud enviados en el cuerpo de la petición.
+     * @return La solicitud creada si el proceso es exitoso.
+     */
+
     @PostMapping("/solicitudes")
     public ResponseEntity<?> crearSolicitud(@Valid @RequestBody SolicitudDTO solicitudDTO) {
         try {
@@ -73,6 +97,12 @@ public class EstudianteController {
                     .body("Error al procesar la solicitud: " + e.getMessage());
         }
     }
+
+    /**
+     * Consulta todas las solicitudes hechas por un estudiante.
+     * @param idEstudiante ID único del estudiante.
+     * @return Lista de solicitudes asociadas al estudiante.
+     */
 
     @GetMapping("/solicitudes/{idEstudiante}")
     public ResponseEntity<?> consultarSolicitudes(@PathVariable String idEstudiante) {
@@ -87,6 +117,14 @@ public class EstudianteController {
             return ResponseEntity.status(409).body(e.getMessage());
         }
     }
+
+    /**
+     * Consulta una solicitud específica de un estudiante por su ID.
+     * @param idEstudiante ID del estudiante.
+     * @param solicitudId ID de la solicitud.
+     * @return La solicitud encontrada.
+     */
+
     @GetMapping("/solicitudes/{idEstudiante}/{solicitudId}")
     public ResponseEntity<?> consultarSolicitudesPorId(@PathVariable String idEstudiante, @PathVariable String solicitudId) {
         try {

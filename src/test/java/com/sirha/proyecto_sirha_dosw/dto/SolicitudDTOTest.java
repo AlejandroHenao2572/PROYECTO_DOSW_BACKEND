@@ -1,6 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
-import com.sirha.api.model.TipoSolicitud;
+import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;

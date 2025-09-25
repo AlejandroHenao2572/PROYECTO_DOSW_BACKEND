@@ -8,6 +8,12 @@ import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DTO para la transferencia de datos relacionados con un Grupo.
+ * Este objeto se utiliza en los controladores para registrar, actualizar o consultar,
+ *          información de grupos sin exponer directamente la entidad del modelo.
+ */
+
 public class GrupoDTO {
 
     private String id;

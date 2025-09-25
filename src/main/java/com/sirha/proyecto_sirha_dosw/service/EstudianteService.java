@@ -1,7 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.SolicitudDTO;
-import com.sirha.api.model.*;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
@@ -14,6 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Servicio que gestiona las operaciones académicas relacionadas con los estudiantes.
+ * Permite consultar horarios, semáforos académicos, crear solicitudes de cambio,
+ *          y recuperar solicitudes existentes.
+ */
+
 @Service
 public class EstudianteService {
 
@@ -21,6 +26,14 @@ public class EstudianteService {
     private final UsuarioRepository usuarioRepository;
     private final GrupoRepository grupoRepository;
     private final MateriaRepository materiaRepository;
+
+    /**
+     * Constructor con inyección de dependencias.
+     * @param solicitudRepository repositorio de {@link Solicitud}
+     * @param usuarioRepository repositorio de {@link Usuario}
+     * @param grupoRepository repositorio de {@link Grupo}
+     * @param materiaRepository repositorio de {@link Materia}
+     */
 
     @Autowired
     public EstudianteService(SolicitudRepository solicitudRepository, UsuarioRepository usuarioRepository,
@@ -30,6 +43,14 @@ public class EstudianteService {
         this.grupoRepository = grupoRepository;
         this.materiaRepository = materiaRepository;
     }
+
+    /**
+     * Consulta el horario académico de un estudiante para un semestre específico.
+     * @param idEstudiante ID del estudiante.
+     * @param semestre número de semestre a consultar.
+     * @return lista de {@link RegistroMaterias} correspondientes al semestre.
+     * @throws IllegalArgumentException si esl estudiante no existe o no tiene registros.
+     */
 
     public List<RegistroMaterias> consultarHorarioBySemester(String idEstudiante, int semestre) {
         Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
@@ -50,6 +71,14 @@ public class EstudianteService {
         }
     }
 
+    /**
+     * Consulta el semáforo académico de un estudiante.
+     * El semáforo refleja el estado de las materias inscritas por el estudiante.
+     * @param idEstudiante ID del estudiante.
+     * @return mapa donde la clave es el acrónimo de la materia y el valor es el {@link Semaforo}
+     * @throws IllegalArgumentException si el estudiante no existe.
+     */
+
     public Map<String, Semaforo> consultarSemaforoAcademico(String idEstudiante) {
         Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
                 .filter(Estudiante.class::isInstance)
@@ -60,6 +89,13 @@ public class EstudianteService {
         Estudiante estudiante = estudianteOpt.get();
         return estudiante.getSemaforo();
     }
+
+    /**
+     * Crea una nueva solicitud académica (ej. cambio de grupo) y realiza unas validaciones.
+     * @param solicitudDTO objeto con los datos de la solicitud.
+     * @return la {@link Solicitud} creada y almacenada.
+     * @throws IllegalArgumentException si alguna validación falla.
+     */
 
     public Solicitud crearSolicitud(SolicitudDTO solicitudDTO) {
         // 1. Verificar que el estudiante existe
@@ -141,6 +177,13 @@ public class EstudianteService {
         return solicitudRepository.save(solicitud);
     }
 
+    /**
+     * Consulta todas las solicitudes hechas por un estudiante.
+     * @param idEstudiante ID del estudiante.
+     * @return lista de {@link Solicitud} asociadas al estudiante.
+     * @throws IllegalArgumentException si el estudiante no existe o no es un estudiante.
+     */
+
     public List<Solicitud> consultarSolicitudes(String idEstudiante) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
         if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
@@ -148,6 +191,14 @@ public class EstudianteService {
         }
         return solicitudRepository.findByEstudianteId(idEstudiante);
     }
+
+    /**
+     * Consulta una solicitud específica de un estudiante.
+     * @param idEstudiante ID del estudiante.
+     * @param solicitudId ID de la solicitud.
+     * @return la {@link Solicitud} encontrada.
+     * @throws IllegalArgumentException si el estudiante no existe, si la solicitud no existe.
+     */
 
     public Solicitud consultarSolicitudesById(String idEstudiante, String solicitudId) {
         Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
