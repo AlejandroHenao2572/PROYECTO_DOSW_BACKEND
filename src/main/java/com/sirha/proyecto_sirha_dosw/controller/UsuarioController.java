@@ -1,6 +1,9 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.UsuarioDTO;
+import com.sirha.proyecto_sirha_dosw.dto.UsuarioLoginDTO;
+import com.sirha.proyecto_sirha_dosw.exception.Log;
+import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Rol;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 import com.sirha.proyecto_sirha_dosw.service.UsuarioService;
@@ -41,7 +44,8 @@ public class UsuarioController {
         try {
             Usuario nuevo = usuarioService.registrar(dto);
             return new ResponseEntity(HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
+            Log.record(e);
             return ResponseEntity.status(409).body(e.getMessage());
         }
     }
@@ -54,16 +58,16 @@ public class UsuarioController {
      *         401 Unauthorized si no coinciden.
      */
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> data) {
-        String email = data.get("email");
-        String password = data.get("password");
+    public ResponseEntity<String> login(@Valid @RequestBody UsuarioLoginDTO data) {
+        String email = data.getEmail();
+        String password = data.getPassword();
 
         boolean valido = usuarioService.autenticar(email, password);
 
         if (valido) {
             return ResponseEntity.ok("Login exitoso");
         } else {
-            return ResponseEntity.status(401).body("Credenciales incorrectas");
+            return ResponseEntity.status(401).body(SirhaException.CREDENCIALES_INVALIDAS);
         }
     }
 
@@ -78,8 +82,9 @@ public class UsuarioController {
         try {
             Usuario actualizado = usuarioService.actualizarUsuario(usuarioId, dto);
             return ResponseEntity.ok(actualizado);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(404).body(SirhaException.ERROR_ACTUALIZACION_USUARIO+e.getMessage());
         }
     }
 
@@ -93,8 +98,9 @@ public class UsuarioController {
         try {
             usuarioService.eliminarUsuario(usuarioId);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(404).body(SirhaException.ERROR_ELIMINACION_USUARIO+e.getMessage());
         }
     }
 
@@ -108,7 +114,7 @@ public class UsuarioController {
         if (usuarios.size() > 0) {
             return ResponseEntity.ok(usuarioService.listarUsuarios());
         } else {
-            return new ResponseEntity<>("No se encontraron Usuarios", HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(SirhaException.USUARIO_NO_ENCONTRADO, HttpStatus.NO_CONTENT);
         }
     }
 
@@ -153,6 +159,7 @@ public class UsuarioController {
             return ResponseEntity.ok(usuarios);
 
         } catch (IllegalArgumentException e) {
+            Log.record(e);
             return ResponseEntity.badRequest().body(null);
         }
     }

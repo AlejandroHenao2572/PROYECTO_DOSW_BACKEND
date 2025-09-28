@@ -14,7 +14,6 @@ public class Estudiante extends Usuario {
 	// Campos
 	private Facultad carrera;
 	private List<Semestre> semestres = new ArrayList<>();
-	private List<Solicitud> solicitudes = new ArrayList<Solicitud>();
 
 	/**
 	 * Constructor por defecto.
@@ -55,16 +54,6 @@ public class Estudiante extends Usuario {
 	public void setCarrera(Facultad carrera) { this.carrera = carrera; }
 	public List<Semestre> getSemestres() { return semestres; }
 	public void setSemestres(List<Semestre> semestres) { this.semestres = semestres; }
-	public List<Solicitud> getSolicitudes() { return solicitudes; }
-	public void setSolicitudes(List<Solicitud> solicitudes) { this.solicitudes = solicitudes; }
-
-	/**
-	 * Agrega una solicitud a la lista de solicitudes del estudiante.
-	 * @param solicitud Solicitud a agregar
-	 */
-	public void addSolicitud(Solicitud solicitud) {
-		this.solicitudes.add(solicitud);
-	}
 
 	/**
 	 * Obtiene los registros de materias para un semestre específico.

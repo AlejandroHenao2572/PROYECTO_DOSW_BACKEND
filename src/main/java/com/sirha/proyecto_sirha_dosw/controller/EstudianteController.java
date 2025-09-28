@@ -1,6 +1,8 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.SolicitudDTO;
+import com.sirha.proyecto_sirha_dosw.exception.Log;
+import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.service.EstudianteService;
 import jakarta.validation.Valid;
@@ -43,7 +45,7 @@ public class EstudianteController {
         try {
             List<RegistroMaterias> registroMaterias = estudianteService.consultarHorarioBySemester(idEstudiante, semestre);
             if (registroMaterias.isEmpty()) {
-                return new ResponseEntity<>("No se encontro el horario", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(SirhaException.NO_HORARIO_ENCONTRADO, HttpStatus.NOT_FOUND);
             }
 
             Map<String, List<Horario>> horariosPorMateria = new HashMap<>();
@@ -56,8 +58,9 @@ public class EstudianteController {
                 }
             }
             return ResponseEntity.ok(horariosPorMateria);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -73,10 +76,11 @@ public class EstudianteController {
             if (!semaforo.isEmpty()) {
                 return ResponseEntity.ok(estudianteService.consultarSemaforoAcademico(idEstudiante));
             } else {
-                return new ResponseEntity<>("No se encontro el horario", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(SirhaException.NO_HORARIO_ENCONTRADO, HttpStatus.NO_CONTENT);
             }
-        }catch (IllegalArgumentException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        }catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -90,11 +94,10 @@ public class EstudianteController {
         try {
             Solicitud solicitudCreada = estudianteService.crearSolicitud(solicitudDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(solicitudCreada);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
+        }catch (SirhaException e) {
+            Log.record(e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar la solicitud: " + e.getMessage());
+                    .body(e.getMessage());
         }
     }
 
@@ -110,10 +113,11 @@ public class EstudianteController {
             if (!solicitudes.isEmpty()) {
                 return ResponseEntity.ok(solicitudes);
             } else {
-                return new ResponseEntity<>("No se encontraron Solicitudes", HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(SirhaException.SOLICITUD_NO_ENCONTRADA, HttpStatus.NO_CONTENT);
             }
-        }catch (IllegalArgumentException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        }catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -128,8 +132,9 @@ public class EstudianteController {
         try {
             Solicitud solicitud = estudianteService.consultarSolicitudesById(idEstudiante, solicitudId);
             return ResponseEntity.ok(solicitud);
-        }catch (IllegalArgumentException e) {
-            return ResponseEntity.status(409).body(e.getMessage());
+        }catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 

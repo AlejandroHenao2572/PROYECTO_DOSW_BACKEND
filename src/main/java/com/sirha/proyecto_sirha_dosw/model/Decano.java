@@ -49,8 +49,8 @@ public class Decano extends Profesor implements GestorSolicitudes {
     }
 
     // Getters y setters con documentación básica
-    public Facultad getCarrera() { return carrera; }
-    public void setCarrera(Facultad carrera) { this.carrera = carrera; }
+    public Facultad getFacultad() { return carrera; }
+    public void setFacultad(Facultad carrera) { this.carrera = carrera; }
 
     /**
      * Implementación del método para agregar solicitudes (pendiente de implementación).
@@ -70,4 +70,5 @@ public class Decano extends Profesor implements GestorSolicitudes {
     public void gestionarSolicitud(Solicitud solicitud, String accion) {
         // Pendiente de implementación
     }
+
 }

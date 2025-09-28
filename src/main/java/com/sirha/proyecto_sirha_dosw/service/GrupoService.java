@@ -1,6 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.GrupoDTO;
+import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
 import com.sirha.proyecto_sirha_dosw.model.Profesor;
@@ -67,16 +68,16 @@ public class GrupoService {
      * @return el grupo creado.
      * @throws IllegalArgumentException si la materia o profesor no existen.
      */
-    public Grupo createGrupo(@Valid GrupoDTO grupoDTO) {
+    public Grupo createGrupo(@Valid GrupoDTO grupoDTO) throws SirhaException {
         Materia materia = null;
         if (grupoDTO.getMateriaId() != null) {
             Optional<Materia> materiaOpt = materiaRepository.findById(grupoDTO.getMateriaId());
             if (materiaOpt.isEmpty()) {
-                throw new IllegalArgumentException("La materia con ID " + grupoDTO.getMateriaId() + " no existe");
+                throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
             }
             materia = materiaOpt.get();
         } else {
-            throw new IllegalArgumentException("Se requiere el ID de una materia existente para crear un grupo");
+            throw new SirhaException(SirhaException.ERROR_FALTAN_DATOS);
         }
         Grupo grupo = new Grupo(materia, grupoDTO.getCapacidad(), grupoDTO.getHorarios());
         if (grupoDTO.getProfesorId() != null) {
@@ -84,7 +85,7 @@ public class GrupoService {
             if (profesorOpt.isPresent() && profesorOpt.get() instanceof Profesor) {
                 grupo.setProfesor((Profesor) profesorOpt.get());
             } else {
-                throw new IllegalArgumentException("El profesor con ID " + grupoDTO.getProfesorId() + " no existe o no es un profesor");
+                throw new SirhaException(SirhaException.PROFESOR_NO_ENCONTRADO);
             }
         }
         return grupoRepository.save(grupo);
@@ -97,23 +98,23 @@ public class GrupoService {
      * @return el grupo actualizado.
      * @throws IllegalArgumentException si el grupo, materia o profesor no existen.
      */
-    public Grupo updateGrupo(String id, @Valid GrupoDTO grupoDTO) {
+    public Grupo updateGrupo(String id, @Valid GrupoDTO grupoDTO) throws SirhaException {
         Optional<Grupo> grupoOpt = grupoRepository.findById(id);
         if (grupoOpt.isEmpty()) {
-            throw new IllegalArgumentException("Grupo con ID " + id + " no encontrado");
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
         }
         Grupo grupo = grupoOpt.get();
         if (grupoDTO.getMateriaId() != null) {
             Optional<Materia> materiaOpt = materiaRepository.findById(grupoDTO.getMateriaId());
             if (materiaOpt.isEmpty()) {
-                throw new IllegalArgumentException("La materia con ID " + grupoDTO.getMateriaId() + " no existe");
+                throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
             }
             grupo.setMateria(materiaOpt.get());
         }
         if (grupoDTO.getProfesorId() != null) {
             Optional<Usuario> profesorOpt = usuarioRepository.findById(grupoDTO.getProfesorId());
             if (profesorOpt.isEmpty() || !(profesorOpt.get() instanceof Profesor)) {
-                throw new IllegalArgumentException("El profesor con ID " + grupoDTO.getProfesorId() + " no existe o no es un profesor");
+                throw new SirhaException(SirhaException.PROFESOR_NO_ENCONTRADO);
             }
             grupo.setProfesor((Profesor) profesorOpt.get());
         }
@@ -131,9 +132,9 @@ public class GrupoService {
      * @param id identificador del grupo.
      * @throws IllegalArgumentException si el grupo no existe.
      */
-    public void deleteGrupo(String id) {
+    public void deleteGrupo(String id) throws SirhaException{
         if (!grupoRepository.existsById(id)) {
-            throw new IllegalArgumentException("Grupo con ID " + id + " no encontrado");
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
         }
         grupoRepository.deleteById(id);
     }
@@ -171,27 +172,27 @@ public class GrupoService {
      * @return grupo actualizado con el estudiante agregado.
      * @throws IllegalArgumentException si alguna validación falla.
      */
-    public Grupo addEstudianteToGrupo(String grupoId, String estudianteId) {
+    public Grupo addEstudianteToGrupo(String grupoId, String estudianteId) throws SirhaException {
         Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
         if (grupoOpt.isEmpty()) {
-            throw new IllegalArgumentException("Grupo con ID " + grupoId + " no encontrado");
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
         }
 
         Grupo grupo = grupoOpt.get();
 
         // Check if the grupo is already full
         if (grupo.isEstaCompleto()) {
-            throw new IllegalArgumentException("El grupo está completo, no se pueden agregar más estudiantes");
+            throw new SirhaException(SirhaException.GRUPO_COMPLETO);
         }
 
         // Check if the student is already in the grupo
         if (grupo.getEstudiantesId().contains(estudianteId)) {
-            throw new IllegalArgumentException("El estudiante ya está inscrito en este grupo");
+            throw new SirhaException(SirhaException.ESTUDIANTE_YA_INSCRITO);
         }
 
         // Verify the student exists
         if (!usuarioRepository.existsById(estudianteId)) {
-            throw new IllegalArgumentException("El estudiante con ID " + estudianteId + " no existe");
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
         }
 
         grupo.addEstudiante(estudianteId);
@@ -205,17 +206,17 @@ public class GrupoService {
      * @return grupo actualizado sin el estudiante.
      * @throws IllegalArgumentException si el grupo no existe o si el estudiante no está inscrito.
      */
-    public Grupo removeEstudianteFromGrupo(String grupoId, String estudianteId) {
+    public Grupo removeEstudianteFromGrupo(String grupoId, String estudianteId) throws SirhaException{
         Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
         if (grupoOpt.isEmpty()) {
-            throw new IllegalArgumentException("Grupo con ID " + grupoId + " no encontrado");
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
         }
 
         Grupo grupo = grupoOpt.get();
 
         // Check if the student is in the grupo
         if (!grupo.getEstudiantesId().contains(estudianteId)) {
-            throw new IllegalArgumentException("El estudiante no está inscrito en este grupo");
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_INSCRITO);
         }
 
         grupo.removeEstudiante(estudianteId);

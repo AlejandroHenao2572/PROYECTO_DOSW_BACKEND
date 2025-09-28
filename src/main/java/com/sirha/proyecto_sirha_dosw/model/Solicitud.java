@@ -22,6 +22,7 @@ public class Solicitud {
 	private Grupo grupoDestino;
 	private Materia materiaDestino;
 	private String observaciones;
+	private String respuesta;
 
 	@CreatedDate
 	private LocalDateTime fechaCreacion;
@@ -62,4 +63,6 @@ public class Solicitud {
 	public void setEstado(SolicitudEstado estado) { this.estado = estado; }
 	public String getComentariosAdmin() { return comentariosAdmin; }
 	public void setComentariosAdmin(String comentariosAdmin) { this.comentariosAdmin = comentariosAdmin; }
+	public String getRespuesta() {return respuesta;}
+	public void setRespuesta(String respuesta) {this.respuesta = respuesta;}
 }

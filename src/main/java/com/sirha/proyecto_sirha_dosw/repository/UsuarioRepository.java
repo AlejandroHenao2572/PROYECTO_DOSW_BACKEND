@@ -2,6 +2,7 @@ package com.sirha.proyecto_sirha_dosw.repository;
 
 import com.sirha.proyecto_sirha_dosw.model.Rol;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 
@@ -55,4 +56,16 @@ public interface UsuarioRepository extends MongoRepository<Usuario, String> {
      * @return lista de todos los {@link Usuario}
      */
     List<Usuario> findAll();
+    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
+    List<Usuario> findByFacultadAndRol(String facultad, Rol rol);
+    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
+    Usuario findByIdAndFacultadAndRol(String id, String facultad, Rol rol);
+    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
+    Usuario findByEmailAndFacultadAndRol(String email, String facultad, Rol rol);
+    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
+    List<Usuario> findByNombreAndFacultadAndRol(String nombre, String facultad, Rol rol);
+    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
+    List<Usuario> findByApellidoAndFacultadAndRol(String apellido, String facultad, Rol rol);
+    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
+    List<Usuario> findByNombreAndApellidoAndFacultadAndRol(String nombre, String apellido, String facultad, Rol rol);
 }

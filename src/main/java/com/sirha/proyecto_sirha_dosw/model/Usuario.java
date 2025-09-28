@@ -35,7 +35,7 @@ public abstract class Usuario {
 
 	@NotNull
 	@NotBlank
-	private String contraseña;
+	private String password;
 
 	@NotNull
 	@NotBlank
@@ -64,7 +64,7 @@ public abstract class Usuario {
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.email = email;
-		this.contraseña = contraseña;
+		this.password = contraseña;
 	}
 
 	/**
@@ -79,7 +79,7 @@ public abstract class Usuario {
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.email = email;
-		this.contraseña = contraseña;
+		this.password = contraseña;
 		this.rol = rol;
 	}
 
@@ -92,8 +92,8 @@ public abstract class Usuario {
 	public void setApellido(String apellido) { this.apellido = apellido; }
 	public String getEmail() { return email; }
 	public void setEmail(String email) { this.email = email; }
-	public String getContraseña() { return contraseña; }
-	public void setContraseña(String contraseña) { this.contraseña = contraseña; }
+	public String getPassword() { return password; }
+	public void setPassword(String password) { this.password = password; }
 	public Rol getRol() { return rol; }
 	public void setRol(Rol rol) { this.rol = rol; }
 }

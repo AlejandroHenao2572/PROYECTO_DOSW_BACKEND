@@ -87,15 +87,6 @@ class EstudianteTest {
     }
 
     @Test
-    void testSetSolicitudes() {
-        List<Solicitud> solicitudes = Arrays.asList(solicitud);
-        estudiante.setSolicitudes(solicitudes);
-
-        assertEquals(1, estudiante.getSolicitudes().size());
-        assertEquals(solicitud, estudiante.getSolicitudes().get(0));
-    }
-
-    @Test
     void testGetCarrera() {
         assertEquals(Facultad.INGENIERIA_SISTEMAS, estudiante.getCarrera());
     }
@@ -177,13 +168,6 @@ class EstudianteTest {
     }
 
     @Test
-    void testAddSolicitud() {
-        estudiante.addSolicitud(solicitud);
-        assertEquals(1, estudiante.getSolicitudes().size());
-        assertEquals(solicitud, estudiante.getSolicitudes().get(0));
-    }
-
-    @Test
     void testSetSemestres() {
         List<Semestre> semestres = Arrays.asList(semestre1, semestre2);
         estudiante.setSemestres(semestres);
@@ -201,12 +185,4 @@ class EstudianteTest {
         assertEquals(1, estudiante.getSemestres().size());
     }
 
-    @Test
-    void testGetSolicitudes() {
-        assertNotNull(estudiante.getSolicitudes());
-        assertTrue(estudiante.getSolicitudes().isEmpty());
-
-        estudiante.addSolicitud(solicitud);
-        assertEquals(1, estudiante.getSolicitudes().size());
-    }
 }

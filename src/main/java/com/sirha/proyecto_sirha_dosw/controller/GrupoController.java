@@ -1,6 +1,8 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.GrupoDTO;
+import com.sirha.proyecto_sirha_dosw.exception.Log;
+import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.service.GrupoService;
 import jakarta.validation.Valid;
@@ -55,13 +57,14 @@ public class GrupoController {
      * @return grupo creado con código HTTP 201.
      */
     @PostMapping
-    public ResponseEntity<Grupo> createGrupo(@Valid @RequestBody GrupoDTO grupoDTO) {
+    public ResponseEntity<?> createGrupo(@Valid @RequestBody GrupoDTO grupoDTO) {
         try {
             // No need to validate materia/profesor objects since we're using IDs now
             Grupo createdGrupo = grupoService.createGrupo(grupoDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdGrupo);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(409).body(SirhaException.ERROR_CREACION_GRUPO+e.getMessage());
         }
     }
 
@@ -72,12 +75,13 @@ public class GrupoController {
      * @return grupo actualizado o 404 si no existe.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Grupo> updateGrupo(@PathVariable String id, @Valid @RequestBody GrupoDTO grupoDTO) {
+    public ResponseEntity<?> updateGrupo(@PathVariable String id, @Valid @RequestBody GrupoDTO grupoDTO) {
         try {
             Grupo updatedGrupo = grupoService.updateGrupo(id, grupoDTO);
             return ResponseEntity.ok(updatedGrupo);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(409).body(SirhaException.ERROR_ACTUALIZACION_GRUPO+e.getMessage());
         }
     }
 
@@ -87,12 +91,13 @@ public class GrupoController {
      * @return código HTTP 204 si fue eliminado, 404 si no existe.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGrupo(@PathVariable String id) {
+    public ResponseEntity<?> deleteGrupo(@PathVariable String id) {
         try {
             grupoService.deleteGrupo(id);
             return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(409).body(SirhaException.ERROR_ELIMINACION_GRUPO+e.getMessage());
         }
     }
 
@@ -135,16 +140,13 @@ public class GrupoController {
      * @return grupo actualizado con el estudiante agregado.
      */
     @PostMapping("/{grupoId}/estudiantes/{estudianteId}")
-    public ResponseEntity<Grupo> addEstudianteToGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
+    public ResponseEntity<?> addEstudianteToGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
         try {
             Grupo updatedGrupo = grupoService.addEstudianteToGrupo(grupoId, estudianteId);
             return ResponseEntity.ok(updatedGrupo);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(null);
+        }catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(409).body(SirhaException.ERROR_INSCRIPCION_ESTUDIANTE+e.getMessage());
         }
     }
 
@@ -155,12 +157,13 @@ public class GrupoController {
      * @return grupo actualizado sin el estudiante.
      */
     @DeleteMapping("/{grupoId}/estudiantes/{estudianteId}")
-    public ResponseEntity<Grupo> removeEstudianteFromGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
+    public ResponseEntity<?> removeEstudianteFromGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
         try {
             Grupo updatedGrupo = grupoService.removeEstudianteFromGrupo(grupoId, estudianteId);
             return ResponseEntity.ok(updatedGrupo);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(409).body(SirhaException.ERROR_DESINSCRIPCION_ESTUDIANTE+e.getMessage());
         }
     }
 }

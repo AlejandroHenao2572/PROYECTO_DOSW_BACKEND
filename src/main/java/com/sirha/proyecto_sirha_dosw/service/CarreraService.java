@@ -2,6 +2,7 @@ package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.CarreraDTO;
 import com.sirha.proyecto_sirha_dosw.dto.MateriaDTO;
+import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Carrera;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
@@ -42,19 +43,16 @@ public class CarreraService {
      * @return la {@link Carrera} registrada.
      * @throws IllegalArgumentException si ya existe una carrera con el mismo código o nombre.
      */
-    public Carrera registrar(@Valid CarreraDTO dto) {
+    public Carrera registrar(@Valid CarreraDTO dto) throws  SirhaException {
         Optional<Carrera> carreraOpt = carreraRepository.findByCodigo(dto.getCodigo());
         if (carreraOpt.isPresent()) {
-            throw new IllegalArgumentException("Carrera con codigo" + dto.getCodigo() + " ya existe");
+            throw new SirhaException(SirhaException.CARRERA_YA_EXISTE + dto.getCodigo());
         }
+        Optional<Carrera> carreraOptName;
         try {
-            Optional<Carrera> carreraOptName = carreraRepository.findByNombre(Facultad.valueOf(dto.getNombre().toUpperCase()));
-            if (carreraOptName.isPresent()) {
-                throw new IllegalArgumentException("Carrera con nombre" + dto.getCodigo() + " ya existe");
-            }
+            carreraOptName = carreraRepository.findByNombre(Facultad.valueOf(dto.getNombre().toUpperCase()));
         }catch (Exception e){
-            throw new IllegalArgumentException("tipo no válido: " + dto.getNombre() + ", formas correctas son: " +
-                    "INGENIERIA_SISTEMAS, INGENIERIA_CIVIL, ADMINISTRACION.");
+            throw new SirhaException(SirhaException.FACULTAD_ERROR + dto.getNombre());
         }
         Carrera carrera = new ImpCarreraBuilder()
                 .nombre(Facultad.valueOf(dto.getNombre().toUpperCase()))
@@ -74,20 +72,20 @@ public class CarreraService {
      * @throws IllegalArgumentException si la carrera no existe, o si ya existe,
      *          una materia con el mismo acrónimo o nombre.
      */
-    public Materia addMateria(@Valid MateriaDTO dto, String codigoCarrera) {
+    public Materia addMateria(@Valid MateriaDTO dto, String codigoCarrera) throws SirhaException {
         Optional<Carrera> carreraOpt = carreraRepository.findById(codigoCarrera);
         if (carreraOpt.isEmpty()) {
-            throw new IllegalArgumentException("Carrera con codigo " + codigoCarrera + " no existe");
+            throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + codigoCarrera);
         }
 
         Optional<Materia> materiaOpt = materiaRepository.findByAcronimo(dto.getAcronimo());
         if (materiaOpt.isPresent()) {
-            throw new IllegalArgumentException("Materia con acronimo " + dto.getAcronimo() + " ya existe");
+            throw new SirhaException(SirhaException.MATERIA_YA_EXISTE + dto.getAcronimo());
         }
 
         Optional<Materia> materiaOptName = materiaRepository.findByNombre(dto.getNombre());
         if (materiaOptName.isPresent()) {
-            throw new IllegalArgumentException("Materia con el nombre " + dto.getNombre() + " ya existe");
+            throw new SirhaException(SirhaException.MATERIA_YA_EXISTE + dto.getNombre());
         }
 
         // Insert the materia first
@@ -100,5 +98,21 @@ public class CarreraService {
         carreraRepository.save(carrera);  // Save the updated carrera
 
         return savedMateria;
+    }
+
+    public Carrera addMateriaById(String codigoCarrera, String codigoMateria) throws SirhaException {
+        Optional<Carrera> carreraOpt = carreraRepository.findById(codigoCarrera);
+        if (carreraOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + codigoCarrera);
+        }
+        Optional<Materia> materiaOpt = materiaRepository.findById(codigoMateria);
+        if (materiaOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA + codigoMateria);
+        }
+        Carrera carrera = carreraOpt.get();
+        carrera.addMateria(materiaOpt.get());
+        carreraRepository.save(carrera);
+
+        return carrera;
     }
 }
