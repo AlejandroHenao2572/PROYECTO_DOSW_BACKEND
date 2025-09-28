@@ -1,9 +1,12 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
 import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
-    import jakarta.validation.constraints.NotBlank;
-    import jakarta.validation.constraints.NotNull;
-    import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.time.LocalDate;
 
 /**
  * DTO para la transferencia de datos relacionados con una Solicitud, de cambio de grupo o materia.
@@ -30,6 +33,11 @@ public class SolicitudDTO {
 
     @Size(max = 500, message = "Las observaciones no pueden exceder los 500 caracteres")
     private String observaciones;
+
+    // Campo opcional para especificar la fecha de la solicitud (para pruebas o casos especiales)
+    // Si no se proporciona, se usará la fecha actual
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaSolicitud;
 
     // Getters and setters
     public String getEstudianteId() {
@@ -86,5 +94,13 @@ public class SolicitudDTO {
 
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
+    }
+
+    public LocalDate getFechaSolicitud() {
+        return fechaSolicitud;
+    }
+
+    public void setFechaSolicitud(LocalDate fechaSolicitud) {
+        this.fechaSolicitud = fechaSolicitud;
     }
 }

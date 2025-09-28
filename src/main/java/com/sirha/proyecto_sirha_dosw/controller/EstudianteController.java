@@ -86,12 +86,28 @@ public class EstudianteController {
 
     /**
      * Crea una nueva solicitud de cambio para el estudiante.
-     * @param solicitudDTO Datos de la solicitud enviados en el cuerpo de la petición.
+     * Solo se pueden crear solicitudes dentro de las fechas habilitadas por la institucion.
+     * Si se proporciona fechaSolicitud en el JSON, se validará esa fecha; caso contrario se usa la fecha actual.
+     * @param solicitudDTO Datos de la solicitud enviados en el cuerpo de la peticion.
      * @return La solicitud creada si el proceso es exitoso.
      */
     @PostMapping("/solicitudes")
     public ResponseEntity<?> crearSolicitud(@Valid @RequestBody SolicitudDTO solicitudDTO) {
         try {
+            // Determinar que fecha usar para la validación
+            java.time.LocalDate fechaValidacion = solicitudDTO.getFechaSolicitud() != null 
+                ? solicitudDTO.getFechaSolicitud() 
+                : java.time.LocalDate.now();
+            
+            // Validar que la fecha este dentro del plazo para crear solicitudes
+            if (!PlazoSolicitudes.INSTANCIA.estaEnPlazo(fechaValidacion)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No se pueden crear solicitudes fuera del plazo establecido. " +
+                          "Plazo valido: " + PlazoSolicitudes.INSTANCIA.getFechaInicio() + 
+                          " al " + PlazoSolicitudes.INSTANCIA.getFechaFin() +
+                          ". Fecha de solicitud: " + fechaValidacion);
+            }
+            
             Solicitud solicitudCreada = estudianteService.crearSolicitud(solicitudDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(solicitudCreada);
         }catch (SirhaException e) {
