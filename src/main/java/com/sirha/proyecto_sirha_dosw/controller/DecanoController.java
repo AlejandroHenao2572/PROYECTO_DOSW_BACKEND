@@ -278,13 +278,13 @@ public class DecanoController {
             @PathVariable String solicitudId,
             @RequestBody RespuestaSolicitudDTO respuesta) {
         try {
-            // Establecer el ID de la solicitud en el DTO
+
             respuesta.setSolicitudId(solicitudId);
             
             decanoService.responderSolicitud(respuesta, facultad);
             
             return ResponseEntity.ok(Map.of(
-                "mensaje", "Solicitud respondida exitosamente",
+                "mensaje", "Solicitud respondida",
                 "solicitudId", solicitudId,
                 "estado", respuesta.getNuevoEstado().name()
             ));

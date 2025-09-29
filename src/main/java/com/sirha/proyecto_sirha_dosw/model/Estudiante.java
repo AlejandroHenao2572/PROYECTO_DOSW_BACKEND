@@ -103,4 +103,32 @@ public class Estudiante extends Usuario {
 		
 		return false;
 	}
+
+	public Semestre getSemestreActual() {
+		if (semestres.isEmpty()) {
+			return null; 
+		}
+		return semestres.get(semestres.size() - 1);
+	}
+
+	public void addGrupo(Grupo grupo) {
+		Semestre semestreActual = semestres.get(semestres.size() - 1);
+		RegistroMaterias nuevoRegistro = new RegistroMaterias(grupo);
+		semestreActual.addRegistro(nuevoRegistro);
+	}
+
+	public void removeGrupo(Grupo grupo) {
+		Semestre semestreActual = semestres.get(semestres.size() - 1);
+		RegistroMaterias registroARemover = null;
+		for (RegistroMaterias registro : semestreActual.getRegistros()) {
+			if (registro.getGrupo().equals(grupo)) {
+				registroARemover = registro;
+				break;
+			}
+		}
+		if (registroARemover != null) {
+			semestreActual.removeRegistro(registroARemover);
+		}
+	}
+
 }

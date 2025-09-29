@@ -11,7 +11,7 @@ public enum CalendarioAcademico {
     // Constructor del singleton
     CalendarioAcademico() {
         // Se inicializan los valores por defecto, calendario 2025-2
-        fechaInicio = LocalDate.of(2025, 11, 7);
+        fechaInicio = LocalDate.of(2025, 7, 11);
         fechaFin = LocalDate.of(2025, 12, 17);
     }
 

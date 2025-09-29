@@ -10,6 +10,7 @@ import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import com.sirha.proyecto_sirha_dosw.util.SolicitudUtil;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -168,6 +169,7 @@ public class EstudianteService {
         solicitud.setGrupoProblema(grupoProblema);
         solicitud.setMateriaProblema(materiaProblema);
         solicitud.setFacultad(estudiante.getCarrera());
+        solicitud.setFechaCreacion(LocalDateTime.now());
 
         // 8. Generar número de radicado automático
         solicitud.setNumeroRadicado(solicitudUtil.generarNumeroRadicado());

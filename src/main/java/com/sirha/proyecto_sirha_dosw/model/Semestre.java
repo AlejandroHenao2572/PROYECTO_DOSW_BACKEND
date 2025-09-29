@@ -32,4 +32,8 @@ public class Semestre {
 
     public int getNumero() { return numero; }
     public void setNumero(int numero) { this.numero = numero; }
+
+    public void removeRegistro(RegistroMaterias registro) {
+        this.registros.remove(registro);
+    }
 }

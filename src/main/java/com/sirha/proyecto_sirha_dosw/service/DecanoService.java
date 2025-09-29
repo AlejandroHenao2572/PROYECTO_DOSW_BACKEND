@@ -307,6 +307,18 @@ public class DecanoService {
         if (respuesta.getNuevoEstado() == SolicitudEstado.APROBADA) {
             validarAprobacionSolicitud(solicitud);
         }
+
+        else if (respuesta.getNuevoEstado() == SolicitudEstado.RECHAZADA) {
+            RechazoSolicitud(solicitud);
+        }
+
+        else if (respuesta.getNuevoEstado() == SolicitudEstado.EN_REVISION) {
+            SolicitudEnRevision(solicitud);
+        }
+        else {
+            throw new SirhaException("Estado de respuesta inválido: " + respuesta.getNuevoEstado());
+        }
+        
         
         // Actualizar la solicitud
         solicitud.setEstado(respuesta.getNuevoEstado());
@@ -339,12 +351,12 @@ public class DecanoService {
         // Validar que el grupo destino tiene cupos disponibles
         if (solicitud.getGrupoDestino() != null) {
             Grupo grupoDestino = solicitud.getGrupoDestino();
-            if (grupoDestino.isEstaCompleto() || grupoDestino.getCantidadInscritos() >= grupoDestino.getCapacidad()) {
+            if (grupoDestino.isEstaCompleto()) {
                 throw new SirhaException("El grupo destino ya está lleno");
             }
         }
         
-        // Validar plazo de respuesta (5 días hábiles)
+        // Validar plazo de respuesta (5 dias habiles)
         LocalDateTime fechaLimite = solicitud.getFechaCreacion().plusDays(5);
         if (LocalDateTime.now().isAfter(fechaLimite)) {
             throw new SirhaException("El plazo para responder la solicitud ha vencido");
@@ -356,11 +368,17 @@ public class DecanoService {
      * @param solicitud solicitud aprobada
      */
     private void procesarAprobacionSolicitud(Solicitud solicitud) {
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(solicitud.getEstudianteId())
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        Estudiante estudiante = estudianteOpt.get();
+
         // Remover estudiante del grupo problema si existe
         if (solicitud.getGrupoProblema() != null) {
             Grupo grupoProblema = solicitud.getGrupoProblema();
             grupoProblema.removeEstudiante(solicitud.getEstudianteId());
-            grupoRepository.save(grupoProblema);
+            grupoRepository.save(grupoProblema);    
+            estudiante.removeGrupo(grupoProblema);
         }
         
         // Agregar estudiante al grupo destino si existe
@@ -368,7 +386,34 @@ public class DecanoService {
             Grupo grupoDestino = solicitud.getGrupoDestino();
             grupoDestino.addEstudiante(solicitud.getEstudianteId());
             grupoRepository.save(grupoDestino);
+            estudiante.addGrupo(grupoDestino);
         }
+
+
+        solicitud.setEstado(SolicitudEstado.APROBADA);
+        solicitud.setRespuesta("Solicitud aprobada y procesada con éxito.");
+        solicitudRepository.save(solicitud);
+        usuarioRepository.save(estudiante);
+    }
+
+    /**
+     * Procesa el rechazo de una solicitud.
+     * @param solicitud solicitud rechazada
+     */ 
+    private void RechazoSolicitud(Solicitud solicitud) {
+        solicitud.setEstado(SolicitudEstado.RECHAZADA);
+        solicitud.setRespuesta("Solicitud rechazada.");
+        solicitudRepository.save(solicitud);
+    }
+
+    /**
+     * Procesa la puesta en revisión de una solicitud.
+     * @param solicitud solicitud en revisión
+     */
+    private void SolicitudEnRevision(Solicitud solicitud) {
+        solicitud.setEstado(SolicitudEstado.EN_REVISION);
+        solicitud.setRespuesta("Solicitud en revisión, se necesita información adicional.");
+        solicitudRepository.save(solicitud);
     }
 
     /**

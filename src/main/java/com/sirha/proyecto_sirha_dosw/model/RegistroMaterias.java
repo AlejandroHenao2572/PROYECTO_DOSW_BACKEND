@@ -10,6 +10,18 @@ public class RegistroMaterias {
 	private Grupo grupo;
 
 	/**
+	 * Constructor por defecto.
+	 */
+	public RegistroMaterias(Grupo grupo) {
+		this.estado = Semaforo.AZUL; // Estado inicial
+		this.grupo = grupo; // Grupo asignado
+	}
+
+	public RegistroMaterias() {
+		
+	}
+
+	/**
 	 * Obtiene el estado actual del registro (semáforo).
 	 * @return Estado del semáforo (AZUL, VERDE, ROJO)
 	 */

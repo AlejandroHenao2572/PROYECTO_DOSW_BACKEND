@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -109,6 +110,7 @@ public class DataSeed implements CommandLineRunner {
 
         // 7. Crear decano
         Decano decano = crearDecano("Claudia", "Cely", "roberto.fernandez@universidad.edu", "decano123");
+        decano.setId("DEC001");
 
         // 8. Guardar todos los cambios
         materiaRepository.saveAll(Arrays.asList(desarrolloSoftware, sistemasOperativos));
@@ -211,6 +213,7 @@ public class DataSeed implements CommandLineRunner {
         solicitud1.setFacultad(Facultad.INGENIERIA_SISTEMAS);
         solicitud1.setNumeroRadicado("RAD-2025-001");
         solicitud1.setPrioridad(1);
+        solicitud1.setFechaCreacion(LocalDateTime.now());
         
         // Solicitud 2: Estudiante2 quiere cambiar de grupoODSC2 a grupoODSC1 (Sistemas Operativos)
         Solicitud solicitud2 = new Solicitud();
@@ -226,6 +229,7 @@ public class DataSeed implements CommandLineRunner {
         solicitud2.setFacultad(Facultad.INGENIERIA_SISTEMAS);
         solicitud2.setNumeroRadicado("RAD-2025-002");
         solicitud2.setPrioridad(2);
+        solicitud2.setFechaCreacion(LocalDateTime.now());
         
         // Guardar las solicitudes
         solicitudRepository.saveAll(Arrays.asList(solicitud1, solicitud2));
