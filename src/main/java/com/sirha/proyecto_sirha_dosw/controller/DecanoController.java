@@ -3,6 +3,7 @@ package com.sirha.proyecto_sirha_dosw.controller;
 import com.sirha.proyecto_sirha_dosw.dto.CalendarioAcademicoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.MonitoreoGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.PlazoSolicitudesDTO;
 import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
@@ -503,6 +504,103 @@ public class DecanoController {
                 "fechaFin", plazo.getFechaFin(),
                 "activo", plazoActivo
             ));
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Obtiene el estado de todos los grupos de una facultad para monitoreo de cargas.
+     * @param facultad nombre de la facultad
+     * @return lista con información de monitoreo de todos los grupos
+     */
+    @GetMapping("/{facultad}/grupos/monitoreo")
+    public ResponseEntity<Object> monitorearGrupos(@PathVariable String facultad) {
+        try {
+            List<MonitoreoGrupoDTO> grupos = decanoService.monitorearGruposPorFacultad(facultad);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("totalGrupos", grupos.size());
+            response.put("grupos", grupos);
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Obtiene solo los grupos que tienen alerta de capacidad (90% o más ocupados).
+     * @param facultad nombre de la facultad
+     * @return lista con grupos que superan el 90% de ocupación
+     */
+    @GetMapping("/{facultad}/grupos/alertas")
+    public ResponseEntity<Object> obtenerGruposConAlerta(@PathVariable String facultad) {
+        try {
+            List<MonitoreoGrupoDTO> gruposConAlerta = decanoService.obtenerGruposConAlerta(facultad);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("totalGruposConAlerta", gruposConAlerta.size());
+            response.put("gruposConAlerta", gruposConAlerta);
+            response.put("mensaje", gruposConAlerta.isEmpty() ? 
+                "No hay grupos con alerta de capacidad en esta facultad." :
+                "Se encontraron " + gruposConAlerta.size() + " grupos con alerta de capacidad."
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Obtiene estadísticas de ocupación de grupos por nivel de alerta.
+     * @param facultad nombre de la facultad
+     * @return estadísticas agrupadas por nivel de alerta (NORMAL, ADVERTENCIA, CRITICO)
+     */
+    @GetMapping("/{facultad}/grupos/estadisticas")
+    public ResponseEntity<Object> obtenerEstadisticasGrupos(@PathVariable String facultad) {
+        try {
+            Map<String, Long> estadisticas = decanoService.obtenerEstadisticasAlertas(facultad);
+            List<MonitoreoGrupoDTO> todosGrupos = decanoService.monitorearGruposPorFacultad(facultad);
+            
+            // Calcular totales y porcentajes
+            long totalGrupos = todosGrupos.size();
+            long gruposNormales = estadisticas.getOrDefault("NORMAL", 0L);
+            long gruposAdvertencia = estadisticas.getOrDefault("ADVERTENCIA", 0L);
+            long gruposCriticos = estadisticas.getOrDefault("CRITICO", 0L);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("totalGrupos", totalGrupos);
+            response.put("estadisticasPorNivel", Map.of(
+                "NORMAL", Map.of(
+                    "cantidad", gruposNormales,
+                    "porcentaje", totalGrupos > 0 ? Math.round((gruposNormales * 100.0) / totalGrupos) : 0
+                ),
+                "ADVERTENCIA", Map.of(
+                    "cantidad", gruposAdvertencia,
+                    "porcentaje", totalGrupos > 0 ? Math.round((gruposAdvertencia * 100.0) / totalGrupos) : 0
+                ),
+                "CRITICO", Map.of(
+                    "cantidad", gruposCriticos,
+                    "porcentaje", totalGrupos > 0 ? Math.round((gruposCriticos * 100.0) / totalGrupos) : 0
+                )
+            ));
+            response.put("alertaGeneral", (gruposAdvertencia + gruposCriticos) > 0 ? 
+                "Hay " + (gruposAdvertencia + gruposCriticos) + " grupos que requieren atención." :
+                "Todos los grupos tienen capacidad normal."
+            );
             
             return ResponseEntity.ok(response);
         } catch (SirhaException e) {

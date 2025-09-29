@@ -4,6 +4,7 @@ package com.sirha.proyecto_sirha_dosw.service;
 import com.sirha.proyecto_sirha_dosw.dto.CalendarioAcademicoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.MonitoreoGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.PlazoSolicitudesDTO;
 import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DecanoService {
@@ -524,6 +526,103 @@ public class DecanoService {
         PlazoSolicitudes plazo = PlazoSolicitudes.INSTANCIA;
         LocalDate fechaActual = LocalDate.now();
         return plazo.estaEnPlazo(fechaActual);
+    }
+
+    /**
+     * Calcula el porcentaje de ocupación de un grupo.
+     * @param grupo el grupo del cual calcular la ocupación
+     * @return porcentaje de ocupación (0-100)
+     */
+    public double calcularPorcentajeOcupacion(Grupo grupo) {
+        if (grupo.getCapacidad() == 0) return 0.0;
+        return ((double) grupo.getCantidadInscritos() / grupo.getCapacidad()) * 100.0;
+    }
+
+    /**
+     * Verifica si un grupo tiene alerta de capacidad (90% o más ocupado).
+     * @param grupo el grupo a verificar
+     * @return true si el grupo supera el 90% de ocupación
+     */
+    public boolean tieneAlertaCapacidad(Grupo grupo) {
+        return calcularPorcentajeOcupacion(grupo) >= 90.0;
+    }
+
+    /**
+     * Convierte un grupo a DTO de monitoreo con información de alertas.
+     * @param grupo el grupo a convertir
+     * @return DTO con información de monitoreo del grupo
+     */
+    public MonitoreoGrupoDTO convertirGrupoAMonitoreoDTO(Grupo grupo) {
+        MonitoreoGrupoDTO dto = new MonitoreoGrupoDTO(
+            grupo.getId(),
+            grupo.getMateria().getId(),
+            grupo.getMateria().getNombre(),
+            grupo.getCapacidad(),
+            grupo.getCantidadInscritos()
+        );
+        
+        dto.setEstudiantesId(grupo.getEstudiantesId());
+        if (grupo.getProfesor() != null) {
+            dto.setProfesorId(grupo.getProfesor().getId());
+        }
+        
+        return dto;
+    }
+
+    /**
+     * Obtiene todos los grupos de una facultad para monitoreo de cargas.
+     * @param facultad facultad de la cual obtener los grupos
+     * @return lista de DTOs con información de monitoreo de todos los grupos
+     * @throws SirhaException si la facultad no es válida
+     */
+    public List<MonitoreoGrupoDTO> monitorearGruposPorFacultad(String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        List<Grupo> grupos = grupoRepository.findByMateria_Facultad(facultadEnum);
+        
+        return grupos.stream()
+                .map(this::convertirGrupoAMonitoreoDTO)
+                .toList();
+    }
+
+    /**
+     * Obtiene solo los grupos con alerta de capacidad (90% o más ocupados) de una facultad.
+     * @param facultad facultad de la cual obtener los grupos con alerta
+     * @return lista de DTOs con información de grupos que tienen alerta de capacidad
+     * @throws SirhaException si la facultad no es válida
+     */
+    public List<MonitoreoGrupoDTO> obtenerGruposConAlerta(String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        List<Grupo> grupos = grupoRepository.findByMateria_Facultad(facultadEnum);
+        
+        return grupos.stream()
+                .filter(this::tieneAlertaCapacidad)
+                .map(this::convertirGrupoAMonitoreoDTO)
+                .toList();
+    }
+
+    /**
+     * Obtiene el conteo de grupos por nivel de alerta para una facultad.
+     * @param facultad facultad de la cual obtener estadísticas
+     * @return mapa con conteos por nivel de alerta (NORMAL, ADVERTENCIA, CRITICO)
+     * @throws SirhaException si la facultad no es válida
+     */
+    public Map<String, Long> obtenerEstadisticasAlertas(String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        List<MonitoreoGrupoDTO> grupos = monitorearGruposPorFacultad(facultad);
+        
+        return grupos.stream()
+                .collect(Collectors.groupingBy(
+                    MonitoreoGrupoDTO::getNivelAlerta,
+                    Collectors.counting()
+                ));
     }
 }
 

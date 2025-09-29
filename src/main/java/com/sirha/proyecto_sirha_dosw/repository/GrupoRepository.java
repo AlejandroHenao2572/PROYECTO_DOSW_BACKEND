@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.repository;
 
+import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
 import com.sirha.proyecto_sirha_dosw.model.Profesor;
@@ -62,5 +63,12 @@ public interface GrupoRepository extends MongoRepository<Grupo, String> {
      * @return lista de grupos que cumplen con esa capacidad exacta.
      */
     List<Grupo> findByCapacidad(int capacidad);
+
+    /**
+     * Busca todos los grupos de materias que pertenecen a una facultad específica.
+     * @param facultad facultad de la cual se quieren obtener los grupos
+     * @return lista de grupos de materias de la facultad indicada
+     */
+    List<Grupo> findByMateria_Facultad(Facultad facultad);
 
 }
