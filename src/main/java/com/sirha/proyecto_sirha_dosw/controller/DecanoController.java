@@ -328,4 +328,49 @@ public class DecanoController {
             return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Consulta resumen estadístico de solicitudes por facultad.
+     * Proporciona un resumen con contadores por estado para análisis rápido del decano.
+     * @param facultad nombre de la facultad
+     * @return resumen estadístico de solicitudes con contadores por estado
+     */
+    @GetMapping("/{facultad}/solicitudes/resumen")
+    public ResponseEntity<Object> consultarResumenSolicitudesPorFacultad(@PathVariable String facultad) {
+        try {
+            // Validar facultad
+            decanoService.validarFacultad(facultad);
+            
+            Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+            
+            // Obtener todas las solicitudes
+            List<Solicitud> todasLasSolicitudes = decanoService.consultarSolicitudesPorFacultad(facultadEnum);
+            
+            // Contar por estado
+            long pendientes = todasLasSolicitudes.stream()
+                    .filter(s -> s.getEstado() == SolicitudEstado.PENDIENTE)
+                    .count();
+            long aprobadas = todasLasSolicitudes.stream()
+                    .filter(s -> s.getEstado() == SolicitudEstado.APROBADA)
+                    .count();
+            long rechazadas = todasLasSolicitudes.stream()
+                    .filter(s -> s.getEstado() == SolicitudEstado.RECHAZADA)
+                    .count();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("totalSolicitudes", todasLasSolicitudes.size());
+            response.put("resumen", Map.of(
+                    "pendientes", pendientes,
+                    "aprobadas", aprobadas,
+                    "rechazadas", rechazadas
+            ));
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
