@@ -1,5 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
+import com.sirha.proyecto_sirha_dosw.dto.AsignacionProfesorDTO;
+import com.sirha.proyecto_sirha_dosw.dto.CapacidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.GrupoDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -166,6 +169,21 @@ public class GrupoService {
     }
 
     /**
+     * Obtiene todos los grupos disponibles (con cupos) de una materia específica.
+     * @param materiaId ID de la materia
+     * @return lista de {@link Grupo} de la materia especificada con {@code estaCompleto = false}
+     */
+    public List<Grupo> getGruposDisponiblesPorMateria(String materiaId) {
+        // Obtener todos los grupos de la materia
+        List<Grupo> gruposMateria = grupoRepository.findByMateria_Id(materiaId);
+        
+        // Filtrar solo los que tienen cupos disponibles
+        return gruposMateria.stream()
+                .filter(grupo -> !grupo.isEstaCompleto())
+                .toList();
+    }
+
+    /**
      * Agrega un estudiante a un grupo y realiza algunas validaciones.
      * @param grupoId ID del grupo.
      * @param estudianteId ID del estudiante.
@@ -221,5 +239,129 @@ public class GrupoService {
 
         grupo.removeEstudiante(estudianteId);
         return grupoRepository.save(grupo);
+    }
+
+    /**
+     * Obtiene la información de capacidad de un grupo específico.
+     * @param grupoId ID del grupo
+     * @return DTO con información de capacidad del grupo
+     * @throws SirhaException si el grupo no existe
+     */
+    public CapacidadGrupoDTO obtenerCapacidadGrupo(String grupoId) throws SirhaException {
+        Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
+        if (grupoOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
+        }
+        
+        return convertirGrupoACapacidadDTO(grupoOpt.get());
+    }
+
+    /**
+     * Obtiene la información de capacidad de todos los grupos.
+     * @return lista de DTOs con información de capacidad de todos los grupos
+     */
+    public List<CapacidadGrupoDTO> obtenerCapacidadTodosLosGrupos() {
+        List<Grupo> grupos = grupoRepository.findAll();
+        return grupos.stream()
+                .map(this::convertirGrupoACapacidadDTO)
+                .toList();
+    }
+
+    /**
+     * Obtiene la información de capacidad de grupos por materia.
+     * @param materiaId ID de la materia
+     * @return lista de DTOs con información de capacidad de grupos de la materia
+     */
+    public List<CapacidadGrupoDTO> obtenerCapacidadGruposPorMateria(String materiaId) {
+        List<Grupo> grupos = grupoRepository.findByMateria_Id(materiaId);
+        return grupos.stream()
+                .map(this::convertirGrupoACapacidadDTO)
+                .toList();
+    }
+
+    /**
+     * Convierte un grupo a DTO de capacidad.
+     * @param grupo el grupo a convertir
+     * @return DTO con información de capacidad
+     */
+    private CapacidadGrupoDTO convertirGrupoACapacidadDTO(Grupo grupo) {
+        Materia materia = grupo.getMateria();
+        CapacidadGrupoDTO dto = new CapacidadGrupoDTO(
+            grupo.getId(),
+            materia.getId(),
+            materia.getNombre(),
+            materia.getAcronimo(),
+            grupo.getCapacidad(),
+            grupo.getCantidadInscritos()
+        );
+        
+        // Agregar información del profesor si está asignado
+        if (grupo.getProfesor() != null) {
+            dto.setProfesorId(grupo.getProfesor().getId());
+            dto.setProfesorNombre(grupo.getProfesor().getNombre() + " " + grupo.getProfesor().getApellido());
+        }
+        
+        return dto;
+    }
+
+    /**
+     * Asigna un profesor a un grupo.
+     * @param grupoId ID del grupo
+     * @param profesorId ID del profesor
+     * @return grupo actualizado con el profesor asignado
+     * @throws SirhaException si el grupo no existe o el profesor no es válido
+     */
+    public Grupo asignarProfesorAGrupo(String grupoId, String profesorId) throws SirhaException {
+        // Verificar que el grupo existe
+        Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
+        if (grupoOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
+        }
+
+        // Verificar que el profesor existe y es un profesor
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(profesorId);
+        if (usuarioOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.PROFESOR_NO_ENCONTRADO);
+        }
+
+        Usuario usuario = usuarioOpt.get();
+        if (!(usuario instanceof Profesor)) {
+            throw new SirhaException("El usuario especificado no es un profesor");
+        }
+
+        Grupo grupo = grupoOpt.get();
+        grupo.setProfesor((Profesor) usuario);
+        
+        return grupoRepository.save(grupo);
+    }
+
+    /**
+     * Remueve la asignación de profesor de un grupo.
+     * @param grupoId ID del grupo
+     * @return grupo actualizado sin profesor asignado
+     * @throws SirhaException si el grupo no existe
+     */
+    public Grupo removerProfesorDeGrupo(String grupoId) throws SirhaException {
+        Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
+        if (grupoOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
+        }
+
+        Grupo grupo = grupoOpt.get();
+        grupo.setProfesor(null);
+        
+        return grupoRepository.save(grupo);
+    }
+
+    /**
+     * Obtiene todos los grupos asignados a un profesor específico con información de capacidad.
+     * @param profesorId ID del profesor
+     * @return lista de DTOs con información de capacidad de grupos del profesor
+     */
+    public List<CapacidadGrupoDTO> obtenerGruposConCapacidadPorProfesor(String profesorId) {
+        List<Grupo> grupos = grupoRepository.findByProfesor_Id(profesorId);
+        return grupos.stream()
+                .map(this::convertirGrupoACapacidadDTO)
+                .toList();
     }
 }

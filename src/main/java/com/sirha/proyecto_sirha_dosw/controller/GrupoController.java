@@ -1,5 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.dto.AsignacionProfesorDTO;
+import com.sirha.proyecto_sirha_dosw.dto.CapacidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.GrupoDTO;
 import com.sirha.proyecto_sirha_dosw.exception.Log;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
@@ -134,6 +136,17 @@ public class GrupoController {
     }
 
     /**
+     * Obtiene los grupos disponibles (con cupos) de una materia específica.
+     * @param materiaId identificador de la materia.
+     * @return lista de grupos disponibles de la materia especificada.
+     */
+    @GetMapping("/materia/{materiaId}/disponibles")
+    public ResponseEntity<List<Grupo>> getGruposDisponiblesPorMateria(@PathVariable String materiaId) {
+        List<Grupo> grupos = grupoService.getGruposDisponiblesPorMateria(materiaId);
+        return ResponseEntity.ok(grupos);
+    }
+
+    /**
      * Agrega un estudiante a un grupo.
      * @param grupoId identificador del grupo.
      * @param estudianteId identificador del estudiante.
@@ -165,5 +178,87 @@ public class GrupoController {
             Log.record(e);
             return ResponseEntity.status(409).body(SirhaException.ERROR_DESINSCRIPCION_ESTUDIANTE+e.getMessage());
         }
+    }
+
+    /**
+     * Consulta la capacidad de un grupo específico.
+     * @param id identificador del grupo.
+     * @return información de capacidad del grupo.
+     */
+    @GetMapping("/{id}/capacidad")
+    public ResponseEntity<?> consultarCapacidadGrupo(@PathVariable String id) {
+        try {
+            CapacidadGrupoDTO capacidad = grupoService.obtenerCapacidadGrupo(id);
+            return ResponseEntity.ok(capacidad);
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(404).body("Grupo no encontrado: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Consulta la capacidad de todos los grupos.
+     * @return lista con información de capacidad de todos los grupos.
+     */
+    @GetMapping("/capacidad")
+    public ResponseEntity<List<CapacidadGrupoDTO>> consultarCapacidadTodosLosGrupos() {
+        List<CapacidadGrupoDTO> capacidades = grupoService.obtenerCapacidadTodosLosGrupos();
+        return ResponseEntity.ok(capacidades);
+    }
+
+    /**
+     * Consulta la capacidad de grupos por materia.
+     * @param materiaId identificador de la materia.
+     * @return lista con información de capacidad de grupos de la materia.
+     */
+    @GetMapping("/materia/{materiaId}/capacidad")
+    public ResponseEntity<List<CapacidadGrupoDTO>> consultarCapacidadGruposPorMateria(@PathVariable String materiaId) {
+        List<CapacidadGrupoDTO> capacidades = grupoService.obtenerCapacidadGruposPorMateria(materiaId);
+        return ResponseEntity.ok(capacidades);
+    }
+
+    /**
+     * Asigna un profesor a un grupo.
+     * @param grupoId identificador del grupo.
+     * @param profesorId identificador del profesor.
+     * @return grupo actualizado con profesor asignado.
+     */
+    @PutMapping("/{grupoId}/profesor/{profesorId}")
+    public ResponseEntity<?> asignarProfesorAGrupo(@PathVariable String grupoId, @PathVariable String profesorId) {
+        try {
+            Grupo grupoActualizado = grupoService.asignarProfesorAGrupo(grupoId, profesorId);
+            return ResponseEntity.ok(grupoActualizado);
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(400).body("Error al asignar profesor: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * Remueve la asignación de profesor de un grupo.
+     * @param grupoId identificador del grupo.
+     * @return grupo actualizado sin profesor asignado.
+     */
+    @DeleteMapping("/{grupoId}/profesor")
+    public ResponseEntity<?> removerProfesorDeGrupo(@PathVariable String grupoId) {
+        try {
+            Grupo grupoActualizado = grupoService.removerProfesorDeGrupo(grupoId);
+            return ResponseEntity.ok(grupoActualizado);
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(404).body("Grupo no encontrado: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Consulta grupos asignados a un profesor con información de capacidad.
+     * @param profesorId identificador del profesor.
+     * @return lista de grupos con información de capacidad del profesor.
+     */
+    @GetMapping("/profesor/{profesorId}/capacidad")
+    public ResponseEntity<List<CapacidadGrupoDTO>> consultarGruposConCapacidadPorProfesor(@PathVariable String profesorId) {
+        List<CapacidadGrupoDTO> grupos = grupoService.obtenerGruposConCapacidadPorProfesor(profesorId);
+        return ResponseEntity.ok(grupos);
     }
 }
