@@ -3,6 +3,7 @@ package com.sirha.proyecto_sirha_dosw.repository;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Solicitud;
 import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
+import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -42,4 +43,27 @@ public interface SolicitudRepository extends MongoRepository<Solicitud, String> 
      * @return lista de {@link Solicitud} en la facultad y estado indicados.
      */
     List<Solicitud> findByFacultadAndEstado(Facultad facultad, SolicitudEstado estado);
+
+    /**
+     * Busca todas las solicitudes de cambio de grupo por tipo de solicitud.
+     * @param tipoSolicitud tipo específico de solicitud
+     * @return lista de {@link Solicitud} del tipo indicado.
+     */
+    List<Solicitud> findByTipoSolicitud(TipoSolicitud tipoSolicitud);
+
+    /**
+     * Cuenta la cantidad de solicitudes de cambio hacia un grupo específico.
+     * @param grupoId ID del grupo destino
+     * @param tipoSolicitud tipo de solicitud (CAMBIO_GRUPO)
+     * @return cantidad de solicitudes hacia ese grupo
+     */
+    long countByGrupoDestino_IdAndTipoSolicitud(String grupoId, TipoSolicitud tipoSolicitud);
+
+    /**
+     * Busca todas las solicitudes de cambio hacia un grupo específico.
+     * @param grupoId ID del grupo destino
+     * @param tipoSolicitud tipo de solicitud (CAMBIO_GRUPO)
+     * @return lista de solicitudes hacia ese grupo
+     */
+    List<Solicitud> findByGrupoDestino_IdAndTipoSolicitud(String grupoId, TipoSolicitud tipoSolicitud);
 }
