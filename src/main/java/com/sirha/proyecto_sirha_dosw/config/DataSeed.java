@@ -80,11 +80,11 @@ public class DataSeed implements CommandLineRunner {
 
         Grupo grupoODSC1 = crearGrupo(sistemasOperativos, 28, profesorGerardo,
             crearHorarios(Dia.LUNES, "10:00", "12:00", Dia.MIERCOLES, "10:00", "12:00"));
-        grupoODSC1.setId("01");
+        grupoODSC1.setId("03");
 
         Grupo grupoODSC2 = crearGrupo(sistemasOperativos, 25, profesorGerardo,
             crearHorarios(Dia.MARTES, "16:00", "18:00", Dia.VIERNES, "16:00", "18:00"));
-        grupoODSC1.setId("02");
+        grupoODSC2.setId("04");
 
         // 4. Crear estudiantes
         Estudiante estudiante1 = crearEstudiante("David", "Patacon", "david.patacon@mail.escuelaing.edu.co", "student123");

@@ -7,7 +7,7 @@ import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.sirha.proyecto_sirha_dosw.util.SolicitudUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +27,7 @@ public class EstudianteService {
     private final UsuarioRepository usuarioRepository;
     private final GrupoRepository grupoRepository;
     private final MateriaRepository materiaRepository;
+    private final SolicitudUtil solicitudUtil;
 
     /**
      * Constructor con inyección de dependencias.
@@ -34,14 +35,16 @@ public class EstudianteService {
      * @param usuarioRepository repositorio de {@link Usuario}
      * @param grupoRepository repositorio de {@link Grupo}
      * @param materiaRepository repositorio de {@link Materia}
+     * @param solicitudUtil utilidad para generar radicados y prioridades
      */
-    @Autowired
     public EstudianteService(SolicitudRepository solicitudRepository, UsuarioRepository usuarioRepository,
-                             GrupoRepository grupoRepository, MateriaRepository materiaRepository) {
+                             GrupoRepository grupoRepository, MateriaRepository materiaRepository,
+                             SolicitudUtil solicitudUtil) {
         this.solicitudRepository = solicitudRepository;
         this.usuarioRepository = usuarioRepository;
         this.grupoRepository = grupoRepository;
         this.materiaRepository = materiaRepository;
+        this.solicitudUtil = solicitudUtil;
     }
 
     /**
@@ -164,6 +167,12 @@ public class EstudianteService {
         solicitud.setTipoSolicitud(solicitudDTO.getTipoSolicitud());
         solicitud.setGrupoProblema(grupoProblema);
         solicitud.setMateriaProblema(materiaProblema);
+
+        // 8. Generar número de radicado automático
+        solicitud.setNumeroRadicado(solicitudUtil.generarNumeroRadicado());
+        
+        // 9. Asignar prioridad secuencial automática (orden de llegada)
+        solicitud.setPrioridad(solicitudUtil.generarNumeroPrioridad());
 
         if (grupoDestino != null && materiaDestino != null) {
             solicitud.setGrupoDestino(grupoDestino);

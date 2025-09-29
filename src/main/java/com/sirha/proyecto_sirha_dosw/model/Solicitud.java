@@ -24,6 +24,10 @@ public class Solicitud {
 	private String observaciones;
 	private String respuesta;
 
+	// Campos para radicado y prioridad
+	private String numeroRadicado; // Número único de radicado
+	private Integer prioridad; // Número de prioridad secuencial (menor número = mayor prioridad)
+
 	@CreatedDate
 	private LocalDateTime fechaCreacion;
 	private LocalDateTime fechaResolucion;
@@ -65,4 +69,10 @@ public class Solicitud {
 	public void setComentariosAdmin(String comentariosAdmin) { this.comentariosAdmin = comentariosAdmin; }
 	public String getRespuesta() {return respuesta;}
 	public void setRespuesta(String respuesta) {this.respuesta = respuesta;}
+	
+	// Getters y setters para número de radicado y prioridad
+	public String getNumeroRadicado() { return numeroRadicado; }
+	public void setNumeroRadicado(String numeroRadicado) { this.numeroRadicado = numeroRadicado; }
+	public Integer getPrioridad() { return prioridad; }
+	public void setPrioridad(Integer prioridad) { this.prioridad = prioridad; }
 }
