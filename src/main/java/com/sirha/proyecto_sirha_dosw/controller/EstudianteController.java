@@ -154,4 +154,21 @@ public class EstudianteController {
         }
     }
 
+    /**
+     * Cancela una materia específica del estudiante en su semestre actual.
+     * @param idEstudiante ID del estudiante.
+     * @param acronimoMateria Acrónimo de la materia a cancelar.
+     * @return Mensaje de confirmación de la cancelación.
+     */
+    @PutMapping("/materias/{idEstudiante}/{acronimoMateria}/cancelar")
+    public ResponseEntity<?> cancelarMateria(@PathVariable String idEstudiante, @PathVariable String acronimoMateria) {
+        try {
+            String resultado = estudianteService.cancelarMateria(idEstudiante, acronimoMateria);
+            return ResponseEntity.ok(resultado);
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 }

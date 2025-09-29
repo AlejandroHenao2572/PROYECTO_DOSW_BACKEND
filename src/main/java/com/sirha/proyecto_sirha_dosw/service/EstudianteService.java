@@ -89,7 +89,7 @@ public class EstudianteService {
     }
 
     /**
-     * Crea una nueva solicitud académica (ej. cambio de grupo) y realiza unas validaciones.
+     * Crea una nueva solicitud académica (ej. cambio de grupo) y realiza validaciones.
      * @param solicitudDTO objeto con los datos de la solicitud.
      * @return la {@link Solicitud} creada y almacenada.
      * @throws IllegalArgumentException si alguna validación falla.
@@ -101,7 +101,15 @@ public class EstudianteService {
             throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
         }
         Estudiante estudiante = (Estudiante) usuarioOpt.get();
-        // 2. Verificar grupo y materia de origen
+        
+        // 2. Verificar que la materia no este cancelada en el semestre actual
+        if (estudiante.tieneMateriaCandeladaEnSemestreActual(solicitudDTO.getMateriaProblemaAcronimo())) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
+                "No se puede crear solicitud para la materia " + solicitudDTO.getMateriaProblemaAcronimo() + 
+                " porque ya fue cancelada en el semestre actual");
+        }
+        
+        // 3. Verificar grupo y materia de origen
         Optional<Grupo> grupoProblemaOpt = grupoRepository.findById(solicitudDTO.getGrupoProblemaId());
         if (grupoProblemaOpt.isEmpty()) {
             throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
@@ -112,15 +120,15 @@ public class EstudianteService {
             throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
         }
         Materia materiaProblema = materiaProblemaOpt.get();
-        // 3. Verificar que la materia corresponde al grupo
+        // 4. Verificar que la materia corresponde al grupo
         if (!grupoProblema.getMateria().getId().equals(materiaProblema.getId())) {
             throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "La materia problema no corresponde al grupo problema");
         }
-        // 4. Verificar que el estudiante está inscrito en el grupo
+        // 5. Verificar que el estudiante está inscrito en el grupo
         if (!grupoProblema.getEstudiantesId().contains(solicitudDTO.getEstudianteId())) {
             throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El estudiante no está inscrito en el grupo problema");
         }
-        // 5. Si es CAMBIO_GRUPO, verificar grupo y materia destino
+        // 6. Si es CAMBIO_GRUPO, verificar grupo y materia destino
         Grupo grupoDestino = null;
         Materia materiaDestino = null;
 
@@ -150,7 +158,7 @@ public class EstudianteService {
             }
         }
 
-        // 6. Crear la solicitud
+        // 7. Crear la solicitud
         Solicitud solicitud = new Solicitud();
         solicitud.setEstudianteId(estudiante.getId());
         solicitud.setTipoSolicitud(solicitudDTO.getTipoSolicitud());
@@ -202,5 +210,66 @@ public class EstudianteService {
             throw new SirhaException(SirhaException.SOLICITUD_NO_ENCONTRADA);
         }
         return solicitud;
+    }
+
+    /**
+     * Cancela una materia específica del estudiante en su semestre actual.
+     * @param idEstudiante ID del estudiante.
+     * @param acronimoMateria Acrónimo de la materia a cancelar.
+     * @return mensaje de confirmación de la cancelación.
+     * @throws SirhaException si el estudiante no existe, si la materia no está inscrita o ya está cancelada.
+     */
+    public String cancelarMateria(String idEstudiante, String acronimoMateria) throws SirhaException {
+        // 1. Verificar que el estudiante existe
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        if (estudianteOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
+        }
+        Estudiante estudiante = estudianteOpt.get();
+
+        // 2. Verificar que el estudiante tiene semestres
+        if (estudiante.getSemestres().isEmpty()) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El estudiante no tiene semestres registrados");
+        }
+
+        // 3. Obtener el semestre actual (último semestre)
+        Semestre semestreActual = estudiante.getSemestres().get(estudiante.getSemestres().size() - 1);
+
+        // 4. Buscar la materia en el semestre actual
+        RegistroMaterias registroEncontrado = null;
+        for (RegistroMaterias registro : semestreActual.getRegistros()) {
+            if (registro.getGrupo().getMateria().getAcronimo().equals(acronimoMateria)) {
+                registroEncontrado = registro;
+                break;
+            }
+        }
+
+        // 5. Verificar que se encontró la materia
+        if (registroEncontrado == null) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
+                "El estudiante no está inscrito en la materia " + acronimoMateria + " en el semestre actual");
+        }
+
+        // 6. Verificar que la materia no esté ya cancelada
+        if (registroEncontrado.getEstado() == Semaforo.CANCELADO) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
+                "La materia " + acronimoMateria + " ya está cancelada");
+        }
+
+        // 7. Verificar que la materia no esté ya aprobada
+        if (registroEncontrado.getEstado() == Semaforo.VERDE) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
+                "No se puede cancelar la materia " + acronimoMateria + " porque ya está aprobada");
+        }
+
+        // 8. Cancelar la materia
+        registroEncontrado.setEstado(Semaforo.CANCELADO);
+
+        // 9. Guardar los cambios
+        usuarioRepository.save(estudiante);
+
+        return "La materia " + acronimoMateria + " ha sido cancelada exitosamente";
     }
 }

@@ -80,4 +80,27 @@ public class Estudiante extends Usuario {
 		}
 		return semaforo;
 	}
+
+	/**
+	 * Verifica si una materia específica fue cancelada en el semestre actual.
+	 * @param acronimoMateria Acrónimo de la materia a verificar
+	 * @return true si la materia fue cancelada en el semestre actual, false en caso contrario
+	 */
+	public boolean tieneMateriaCandeladaEnSemestreActual(String acronimoMateria) {
+		if (semestres.isEmpty()) {
+			return false;
+		}
+		
+		// Obtener el semestre actual (último semestre)
+		Semestre semestreActual = semestres.get(semestres.size() - 1);
+		
+		for (RegistroMaterias registro : semestreActual.getRegistros()) {
+			if (registro.getGrupo().getMateria().getAcronimo().equals(acronimoMateria) 
+				&& registro.getEstado() == Semaforo.CANCELADO) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }
