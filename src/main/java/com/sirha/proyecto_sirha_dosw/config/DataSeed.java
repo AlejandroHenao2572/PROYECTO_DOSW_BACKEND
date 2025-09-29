@@ -32,6 +32,9 @@ public class DataSeed implements CommandLineRunner {
     @Autowired
     private CarreraRepository carreraRepository;
 
+    @Autowired
+    private SolicitudRepository solicitudRepository;
+
     @Override
     public void run(String... args) throws Exception {
         // Limpiar datos existentes para pruebas limpias
@@ -44,6 +47,7 @@ public class DataSeed implements CommandLineRunner {
     }
 
     private void limpiarDatos() {
+        solicitudRepository.deleteAll();
         grupoRepository.deleteAll();
         materiaRepository.deleteAll();
         usuarioRepository.deleteAll();
@@ -110,6 +114,10 @@ public class DataSeed implements CommandLineRunner {
         materiaRepository.saveAll(Arrays.asList(desarrolloSoftware, sistemasOperativos));
         usuarioRepository.saveAll(Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano));
         grupoRepository.saveAll(Arrays.asList(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2));
+
+        // 9. Crear solicitudes de prueba
+        crearSolicitudesDePrueba(estudiante1, estudiante2, grupoDOSW1, grupoDOSW2, 
+                               grupoODSC1, grupoODSC2, desarrolloSoftware, sistemasOperativos);
 
     }
 
@@ -179,5 +187,47 @@ public class DataSeed implements CommandLineRunner {
 
     private void inscribirEstudianteEnGrupo(Grupo grupo, String estudianteId) {
         grupo.addEstudiante(estudianteId);
+    }
+
+    /**
+     * Crea solicitudes de prueba para validar las funcionalidades del decano.
+     */
+    private void crearSolicitudesDePrueba(Estudiante estudiante1, Estudiante estudiante2, 
+                                         Grupo grupoDOSW1, Grupo grupoDOSW2, 
+                                         Grupo grupoODSC1, Grupo grupoODSC2,
+                                         Materia desarrolloSoftware, Materia sistemasOperativos) {
+        
+        // Solicitud 1: Estudiante1 quiere cambiar de grupoDOSW1 a grupoDOSW2 (Desarrollo de Software)
+        Solicitud solicitud1 = new Solicitud();
+        solicitud1.setId("SOL001");
+        solicitud1.setEstudianteId(estudiante1.getId());
+        solicitud1.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
+        solicitud1.setGrupoProblema(grupoDOSW1);
+        solicitud1.setMateriaProblema(desarrolloSoftware);
+        solicitud1.setGrupoDestino(grupoDOSW2);
+        solicitud1.setMateriaDestino(desarrolloSoftware);
+        solicitud1.setObservaciones("Solicito cambio de grupo debido a conflicto de horarios con trabajo de medio tiempo");
+        solicitud1.setEstado(SolicitudEstado.PENDIENTE);
+        solicitud1.setFacultad(Facultad.INGENIERIA_SISTEMAS);
+        solicitud1.setNumeroRadicado("RAD-2025-001");
+        solicitud1.setPrioridad(1);
+        
+        // Solicitud 2: Estudiante2 quiere cambiar de grupoODSC2 a grupoODSC1 (Sistemas Operativos)
+        Solicitud solicitud2 = new Solicitud();
+        solicitud2.setId("SOL002");
+        solicitud2.setEstudianteId(estudiante2.getId());
+        solicitud2.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
+        solicitud2.setGrupoProblema(grupoODSC2);
+        solicitud2.setMateriaProblema(sistemasOperativos);
+        solicitud2.setGrupoDestino(grupoODSC1);
+        solicitud2.setMateriaDestino(sistemasOperativos);
+        solicitud2.setObservaciones("Solicito cambio de grupo para mejorar mi rendimiento académico en horario matutino");
+        solicitud2.setEstado(SolicitudEstado.PENDIENTE);
+        solicitud2.setFacultad(Facultad.INGENIERIA_SISTEMAS);
+        solicitud2.setNumeroRadicado("RAD-2025-002");
+        solicitud2.setPrioridad(2);
+        
+        // Guardar las solicitudes
+        solicitudRepository.saveAll(Arrays.asList(solicitud1, solicitud2));
     }
 }

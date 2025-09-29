@@ -1,13 +1,20 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 
+import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
+import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
+import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,10 +24,15 @@ public class DecanoService {
 
     private final UsuarioRepository usuarioRepository;
     private final SolicitudRepository solicitudRepository;
+    private final GrupoRepository grupoRepository;
+    private final MateriaRepository materiaRepository;
 
-    public DecanoService(UsuarioRepository usuarioRepository, SolicitudRepository solicitudRepository) {
+    public DecanoService(UsuarioRepository usuarioRepository, SolicitudRepository solicitudRepository, 
+                        GrupoRepository grupoRepository, MateriaRepository materiaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.solicitudRepository = solicitudRepository;
+        this.grupoRepository = grupoRepository;
+        this.materiaRepository = materiaRepository;
     }
 
     public List<Usuario> findEstudiantesByFacultad(String facultad) {
@@ -217,6 +229,158 @@ public class DecanoService {
                 estudiante.getCarrera(),
                 semestreActual
         );
+    }
+
+    /**
+     * Consulta la disponibilidad de grupos para una materia específica.
+     * Muestra capacidad, cupos disponibles y lista de espera.
+     * @param materiaId ID de la materia
+     * @param facultad facultad del decano
+     * @return lista de DisponibilidadGrupoDTO con información de los grupos
+     * @throws SirhaException si la materia no existe o no pertenece a la facultad
+     */
+    public List<DisponibilidadGrupoDTO> consultarDisponibilidadGrupos(String materiaAcronimo, String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        // Buscar todos los grupos de la materia
+        Optional<Materia> materiaOpt = materiaRepository.findByAcronimo(materiaAcronimo);
+        if (materiaOpt.isEmpty()) {
+            throw new SirhaException("Materia no encontrada: " + materiaAcronimo);
+        }
+        List<Grupo> grupos = grupoRepository.findByMateria_Id(materiaOpt.get().getId());
+
+        if (grupos.isEmpty()) {
+            throw new SirhaException("No se encontraron grupos para la materia: " + materiaAcronimo);
+        }
+        
+        List<DisponibilidadGrupoDTO> disponibilidades = new ArrayList<>();
+        
+        for (Grupo grupo : grupos) {
+            // Validar que la materia pertenece a la facultad del decano
+            validarMateriaPerteneceFacultad(grupo.getMateria(), facultad);
+            
+            DisponibilidadGrupoDTO disponibilidad = new DisponibilidadGrupoDTO();
+            disponibilidad.setGrupoId(grupo.getId());
+            disponibilidad.setNombreMateria(grupo.getMateria().getNombre());
+            disponibilidad.setAcronimoMateria(grupo.getMateria().getAcronimo());
+            disponibilidad.setCapacidadMaxima(grupo.getCapacidad());
+            disponibilidad.setCantidadInscritos(grupo.getCantidadInscritos());
+            disponibilidad.setEstaCompleto(grupo.isEstaCompleto());
+            disponibilidad.setHorarios(grupo.getHorarios());
+            disponibilidad.setListaEspera(new ArrayList<>()); // Por ahora lista vacía
+            disponibilidades.add(disponibilidad);
+        }
+        
+        return disponibilidades;
+    }
+
+    /**
+     * Responde a una solicitud de cambio de grupo.
+     * @param respuesta DTO con la respuesta (aprobar, rechazar, en_revision)
+     * @param facultad facultad del decano
+     * @throws SirhaException si ocurre algún error en la validación o procesamiento
+     */
+    public void responderSolicitud(RespuestaSolicitudDTO respuesta, String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        // Buscar la solicitud
+        Optional<Solicitud> solicitudOpt = solicitudRepository.findById(respuesta.getSolicitudId());
+        if (solicitudOpt.isEmpty()) {
+            throw new SirhaException("Solicitud no encontrada: " + respuesta.getSolicitudId());
+        }
+        
+        Solicitud solicitud = solicitudOpt.get();
+        
+        // Validar que la solicitud pertenece a la facultad del decano
+        if (!solicitud.getFacultad().name().equals(facultad.toUpperCase())) {
+            throw new SirhaException("La solicitud no pertenece a la facultad: " + facultad);
+        }
+        
+        // Validar que la solicitud está pendiente
+        if (solicitud.getEstado() != SolicitudEstado.PENDIENTE) {
+            throw new SirhaException("Solo se pueden responder solicitudes pendientes");
+        }
+        
+        // Validar restricciones según el tipo de respuesta
+        if (respuesta.getNuevoEstado() == SolicitudEstado.APROBADA) {
+            validarAprobacionSolicitud(solicitud);
+        }
+        
+        // Actualizar la solicitud
+        solicitud.setEstado(respuesta.getNuevoEstado());
+        solicitud.setRespuesta(respuesta.getObservacionesRespuesta());
+        solicitud.setFechaResolucion(LocalDateTime.now());
+        
+        // Guardar los cambios
+        solicitudRepository.save(solicitud);
+        
+        // Si se aprueba, actualizar los grupos
+        if (respuesta.getNuevoEstado() == SolicitudEstado.APROBADA) {
+            procesarAprobacionSolicitud(solicitud);
+        }
+    }
+
+    /**
+     * Valida si una solicitud puede ser aprobada según las restricciones de negocio.
+     * @param solicitud solicitud a validar
+     * @throws SirhaException si la solicitud no puede ser aprobada
+     */
+    private void validarAprobacionSolicitud(Solicitud solicitud) throws SirhaException {
+        // Validar que estamos dentro del calendario académico
+        CalendarioAcademico calendario = CalendarioAcademico.INSTANCIA;
+        LocalDate fechaActual = LocalDate.now();
+        
+        if (fechaActual.isBefore(calendario.getFechaInicio()) || fechaActual.isAfter(calendario.getFechaFin())) {
+            throw new SirhaException("No se pueden aprobar solicitudes fuera del calendario académico");
+        }
+        
+        // Validar que el grupo destino tiene cupos disponibles
+        if (solicitud.getGrupoDestino() != null) {
+            Grupo grupoDestino = solicitud.getGrupoDestino();
+            if (grupoDestino.isEstaCompleto() || grupoDestino.getCantidadInscritos() >= grupoDestino.getCapacidad()) {
+                throw new SirhaException("El grupo destino ya está lleno");
+            }
+        }
+        
+        // Validar plazo de respuesta (5 días hábiles)
+        LocalDateTime fechaLimite = solicitud.getFechaCreacion().plusDays(5);
+        if (LocalDateTime.now().isAfter(fechaLimite)) {
+            throw new SirhaException("El plazo para responder la solicitud ha vencido");
+        }
+    }
+
+    /**
+     * Procesa la aprobación de una solicitud actualizando los grupos correspondientes.
+     * @param solicitud solicitud aprobada
+     */
+    private void procesarAprobacionSolicitud(Solicitud solicitud) {
+        // Remover estudiante del grupo problema si existe
+        if (solicitud.getGrupoProblema() != null) {
+            Grupo grupoProblema = solicitud.getGrupoProblema();
+            grupoProblema.removeEstudiante(solicitud.getEstudianteId());
+            grupoRepository.save(grupoProblema);
+        }
+        
+        // Agregar estudiante al grupo destino si existe
+        if (solicitud.getGrupoDestino() != null) {
+            Grupo grupoDestino = solicitud.getGrupoDestino();
+            grupoDestino.addEstudiante(solicitud.getEstudianteId());
+            grupoRepository.save(grupoDestino);
+        }
+    }
+
+    /**
+     * Valida que una materia pertenece a la facultad especificada.
+     * @param materia materia a validar
+     * @param facultad facultad esperada
+     * @throws SirhaException si la materia no pertenece a la facultad
+     */
+    private void validarMateriaPerteneceFacultad(Materia materia, String facultad) throws SirhaException {
+        // Por ahora asumimos que todas las materias pertenecen a la facultad
+        // Esta validación se puede mejorar agregando un campo facultad a Materia
+        // TODO: Implementar validación real de facultad en Materia
     }
 }
 

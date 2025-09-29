@@ -1,15 +1,14 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.service.DecanoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -238,6 +237,91 @@ public class DecanoController {
             
             EstudianteBasicoDTO informacionBasica = decanoService.obtenerInformacionBasicaEstudiante(idEstudiante, facultad);
             return new ResponseEntity<>(informacionBasica, HttpStatus.OK);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Consulta la disponibilidad de grupos para una materia específica.
+     * Muestra capacidad actual, cupo máximo y lista de espera.
+     * @param facultad nombre de la facultad del decano
+     * @param materiaId ID de la materia a consultar
+     * @return lista de grupos con información de disponibilidad
+     */
+    @GetMapping("/{facultad}/materia/{materiaAcronimo}/disponibilidad")
+    public ResponseEntity<Object> consultarDisponibilidadGrupos(
+            @PathVariable String facultad, 
+            @PathVariable String materiaAcronimo) {
+        try {
+            List<DisponibilidadGrupoDTO> disponibilidades = decanoService.consultarDisponibilidadGrupos(materiaAcronimo, facultad);
+            return ResponseEntity.ok(disponibilidades);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Responde a una solicitud de cambio de grupo (aprobar, rechazar, en_revision).
+     * @param facultad nombre de la facultad del decano
+     * @param solicitudId ID de la solicitud a responder
+     * @param respuesta datos de la respuesta (estado y observaciones)
+     * @return confirmación de la operación
+     */
+    @PostMapping("/{facultad}/solicitud/{solicitudId}/responder")
+    public ResponseEntity<Object> responderSolicitud(
+            @PathVariable String facultad,
+            @PathVariable String solicitudId,
+            @RequestBody RespuestaSolicitudDTO respuesta) {
+        try {
+            // Establecer el ID de la solicitud en el DTO
+            respuesta.setSolicitudId(solicitudId);
+            
+            decanoService.responderSolicitud(respuesta, facultad);
+            
+            return ResponseEntity.ok(Map.of(
+                "mensaje", "Solicitud respondida exitosamente",
+                "solicitudId", solicitudId,
+                "estado", respuesta.getNuevoEstado().name()
+            ));
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Obtiene una solicitud específica con todos sus detalles.
+     * Permite al decano revisar la información completa antes de responder.
+     * @param facultad nombre de la facultad del decano
+     * @param solicitudId ID de la solicitud a consultar
+     * @return detalles completos de la solicitud
+     */
+    @GetMapping("/{facultad}/solicitud/{solicitudId}/detalle")
+    public ResponseEntity<Object> consultarDetalleSolicitud(
+            @PathVariable String facultad,
+            @PathVariable String solicitudId) {
+        try {
+            // Validar facultad
+            decanoService.validarFacultad(facultad);
+            
+            // Obtener la solicitud y validar que pertenece a la facultad
+            List<Solicitud> solicitudes = decanoService.consultarSolicitudesPorFacultad(Facultad.valueOf(facultad.toUpperCase()));
+            Solicitud solicitud = solicitudes.stream()
+                    .filter(s -> s.getId().equals(solicitudId))
+                    .findFirst()
+                    .orElse(null);
+            
+            if (solicitud == null) {
+                return new ResponseEntity<>("Solicitud no encontrada en la facultad: " + facultad, HttpStatus.NOT_FOUND);
+            }
+            
+            return ResponseEntity.ok(solicitud);
         } catch (SirhaException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
