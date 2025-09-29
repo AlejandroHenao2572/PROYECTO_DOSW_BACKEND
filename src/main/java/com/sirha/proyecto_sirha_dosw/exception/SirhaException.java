@@ -45,6 +45,9 @@ public class SirhaException extends Exception{
     public static final String ERROR_ELIMINACION_USUARIO = "Error al eliminar el usuario: ";
     public static final String ERROR_ACTUALIZACION_USUARIO = "Error al actualizar el usuario: ";
     public static final String DECANO_YA_EXISTE = "Ya existe un decano para la facultad: ";
+    public static final String FACULTAD_INVALIDA = "Facultad no válida o no autorizada para el decano.";
+    public static final String DECANO_NO_AUTORIZADO = "El decano no tiene autorización para consultar esta facultad.";
+    public static final String SEMESTRE_FUERA_RANGO = "El semestre debe estar entre 1 y 10.";
 
 
     public SirhaException(String message) {

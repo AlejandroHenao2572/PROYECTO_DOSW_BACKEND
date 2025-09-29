@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -143,13 +144,13 @@ public class DataSeed implements CommandLineRunner {
         
         Horario horario1 = new Horario();
         horario1.setDia(dia1);
-        horario1.setHoraInicio(inicio1);
-        horario1.setHoraFin(fin1);
+        horario1.setHoraInicio(LocalTime.parse(inicio1));
+        horario1.setHoraFin(LocalTime.parse(fin1));
         
         Horario horario2 = new Horario();
         horario2.setDia(dia2);
-        horario2.setHoraInicio(inicio2);
-        horario2.setHoraFin(fin2);
+        horario2.setHoraInicio(LocalTime.parse(inicio2));
+        horario2.setHoraFin(LocalTime.parse(fin2));
         
         horarios.add(horario1);
         horarios.add(horario2);
@@ -169,7 +170,7 @@ public class DataSeed implements CommandLineRunner {
         for (Grupo grupo : grupos) {
             RegistroMaterias registro = new RegistroMaterias();
             registro.setGrupo(grupo);
-            registro.setEstado(Semaforo.AZUL); // Estado inicial
+            registro.setEstado(Semaforo.AZUL); 
             semestre.getRegistros().add(registro);
         }
         

@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.repository;
 
+import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Rol;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -56,16 +57,16 @@ public interface UsuarioRepository extends MongoRepository<Usuario, String> {
      * @return lista de todos los {@link Usuario}
      */
     List<Usuario> findAll();
-    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
-    List<Usuario> findByFacultadAndRol(String facultad, Rol rol);
-    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
-    Usuario findByIdAndFacultadAndRol(String id, String facultad, Rol rol);
-    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
-    Usuario findByEmailAndFacultadAndRol(String email, String facultad, Rol rol);
-    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
-    List<Usuario> findByNombreAndFacultadAndRol(String nombre, String facultad, Rol rol);
-    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
-    List<Usuario> findByApellidoAndFacultadAndRol(String apellido, String facultad, Rol rol);
-    @Query("{ '_class': 'estudiante', 'facultad': ?0, 'rol': ?1 }")
-    List<Usuario> findByNombreAndApellidoAndFacultadAndRol(String nombre, String apellido, String facultad, Rol rol);
+    @Query("{ 'facultad': ?0, 'rol': ?1 }")
+    List<Usuario> findByFacultadAndRol(Facultad facultad, Rol rol);
+    @Query("{ '_id': ?0, 'facultad': ?1, 'rol': ?2 }")
+    Usuario findByIdAndFacultadAndRol(String id, Facultad facultad, Rol rol);
+    @Query("{ 'email': ?0, 'facultad': ?1, 'rol': ?2 }")
+    Usuario findByEmailAndFacultadAndRol(String email, Facultad facultad, Rol rol);
+    @Query("{ 'nombre': ?0, 'facultad': ?1, 'rol': ?2 }")
+    List<Usuario> findByNombreAndFacultadAndRol(String nombre, Facultad facultad, Rol rol);
+    @Query("{ 'apellido': ?0, 'facultad': ?1, 'rol': ?2 }")
+    List<Usuario> findByApellidoAndFacultadAndRol(String apellido, Facultad facultad, Rol rol);
+    @Query("{ 'nombre': ?0, 'apellido': ?1, 'facultad': ?2, 'rol': ?3 }")
+    List<Usuario> findByNombreAndApellidoAndFacultadAndRol(String nombre, String apellido, Facultad facultad, Rol rol);
 }

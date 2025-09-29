@@ -3,6 +3,7 @@ package com.sirha.proyecto_sirha_dosw.model;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalTime;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,8 +18,8 @@ public class GrupoTest {
         materia = new Materia("Matemáticas", "MATH01", 3);
         horario = new Horario();
         horario.setDia(Dia.LUNES);
-        horario.setHoraInicio("08:00");
-        horario.setHoraFin("10:00");
+        horario.setHoraInicio(LocalTime.parse("08:00"));
+        horario.setHoraFin(LocalTime.parse("10:00"));
 
         grupo = new Grupo(materia, 30, Arrays.asList(horario));
     }

@@ -1,16 +1,15 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 
-import com.sirha.proyecto_sirha_dosw.model.Facultad;
-import com.sirha.proyecto_sirha_dosw.model.Rol;
-import com.sirha.proyecto_sirha_dosw.model.Solicitud;
-import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
-import com.sirha.proyecto_sirha_dosw.model.Usuario;
+import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
+import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class DecanoService {
@@ -24,27 +23,33 @@ public class DecanoService {
     }
 
     public List<Usuario> findEstudiantesByFacultad(String facultad) {
-        return usuarioRepository.findByFacultadAndRol(facultad, Rol.ESTUDIANTE);
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        return usuarioRepository.findByFacultadAndRol(facultadEnum, Rol.ESTUDIANTE);
     }
 
     public Usuario findEstudianteByIdAndFacultad(String id, String facultad) {
-        return usuarioRepository.findByIdAndFacultadAndRol(id, facultad, Rol.ESTUDIANTE);
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        return usuarioRepository.findByIdAndFacultadAndRol(id, facultadEnum, Rol.ESTUDIANTE);
     }
 
     public Usuario findEstudianteByEmailAndFacultad(String email, String facultad) {
-        return usuarioRepository.findByEmailAndFacultadAndRol(email, facultad, Rol.ESTUDIANTE);
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        return usuarioRepository.findByEmailAndFacultadAndRol(email, facultadEnum, Rol.ESTUDIANTE);
     }
 
     public List<Usuario> findEstudiantesByNombreAndFacultad(String nombre, String facultad) {
-        return usuarioRepository.findByNombreAndFacultadAndRol(nombre, facultad, Rol.ESTUDIANTE);
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        return usuarioRepository.findByNombreAndFacultadAndRol(nombre, facultadEnum, Rol.ESTUDIANTE);
     }
 
     public List<Usuario> findEstudiantesByApellidoAndFacultad(String apellido, String facultad) {
-        return usuarioRepository.findByApellidoAndFacultadAndRol(apellido, facultad, Rol.ESTUDIANTE);
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        return usuarioRepository.findByApellidoAndFacultadAndRol(apellido, facultadEnum, Rol.ESTUDIANTE);
     }
 
     public List<Usuario> findEstudiantesByNombreApellidoAndFacultad(String nombre, String apellido, String facultad) {
-        return usuarioRepository.findByNombreAndApellidoAndFacultadAndRol(nombre, apellido, facultad, Rol.ESTUDIANTE);
+        Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+        return usuarioRepository.findByNombreAndApellidoAndFacultadAndRol(nombre, apellido, facultadEnum, Rol.ESTUDIANTE);
     }
 
     /**
@@ -74,4 +79,108 @@ public class DecanoService {
     public List<Solicitud> consultarSolicitudesPorFacultadYEstado(Facultad facultad, SolicitudEstado estado) {
         return solicitudRepository.findByFacultadAndEstado(facultad, estado);
     }
+
+    /**
+     * Consulta el horario académico de un estudiante para un semestre específico.
+     * Permite al decano visualizar el horario del estudiante que solicita cambio.
+     * @param idEstudiante ID del estudiante
+     * @param semestre número de semestre a consultar
+     * @return lista de RegistroMaterias correspondientes al semestre
+     * @throws SirhaException si el estudiante no existe o no tiene registros
+     */
+    public List<RegistroMaterias> consultarHorarioEstudiante(String idEstudiante, int semestre) throws SirhaException {
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        
+        System.out.println(estudianteOpt.isEmpty());
+        if (estudianteOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
+        }
+        
+        try {
+            Estudiante estudiante = estudianteOpt.get();
+            List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(semestre);
+            if (registroMaterias.isEmpty()) {
+                throw new SirhaException(SirhaException.NO_HORARIO_ENCONTRADO);
+            }
+            return registroMaterias;
+        } catch (Exception e) {
+            throw new SirhaException(SirhaException.SEMESTRE_INVALIDO);
+        }
+    }
+
+    /**
+     * Consulta el semáforo académico de un estudiante.
+     * Permite al decano consultar el rendimiento académico del estudiante.
+     * @param idEstudiante ID del estudiante
+     * @return mapa donde la clave es el acrónimo de la materia y el valor es el Semaforo
+     * @throws SirhaException si el estudiante no existe
+     */
+    public Map<String, Semaforo> consultarSemaforoAcademicoEstudiante(String idEstudiante) throws SirhaException {
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        
+        if (estudianteOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
+        }
+        
+        Estudiante estudiante = estudianteOpt.get();
+        return estudiante.getSemaforo();
+    }
+
+    /**
+     * Valida que la facultad proporcionada sea válida.
+     * @param facultad nombre de la facultad a validar
+     * @throws SirhaException si la facultad no es válida
+     */
+    public void validarFacultad(String facultad) throws SirhaException {
+        if (facultad == null || facultad.trim().isEmpty()) {
+            throw new SirhaException(SirhaException.FACULTAD_INVALIDA);
+        }
+        
+        // Validar que la facultad exista en el enum Facultad
+        try {
+            Facultad.valueOf(facultad.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new SirhaException(SirhaException.FACULTAD_INVALIDA + facultad);
+        }
+    }
+
+    /**
+     * Valida que el estudiante exista y pertenezca a la facultad especificada.
+     * @param idEstudiante ID del estudiante
+     * @param facultad facultad a la que debe pertenecer el estudiante
+     * @throws SirhaException si el estudiante no existe o no pertenece a la facultad
+     */
+    public void validarEstudianteFacultad(String idEstudiante, String facultad) throws SirhaException {
+        if (idEstudiante == null || idEstudiante.trim().isEmpty()) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + "ID vacío");
+        }
+        
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        if (estudianteOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante);
+        }
+        Estudiante estudiante = estudianteOpt.get();
+        Facultad facultadEnum = estudiante.getCarrera();
+        if (!facultadEnum.name().equalsIgnoreCase(facultad)) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante + " en la facultad " + facultad);
+        }
+    }
+    
+    /**
+     * Valida que el semestre esté en el rango válido (1-10).
+     * @param semestre número de semestre
+     * @throws SirhaException si el semestre está fuera del rango válido
+     */
+    public void validarSemestre(int semestre) throws SirhaException {
+        if (semestre < 1 || semestre > 10) {
+            throw new SirhaException(SirhaException.SEMESTRE_FUERA_RANGO + " Recibido: " + semestre);
+        }
+    }
 }
+

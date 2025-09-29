@@ -4,42 +4,44 @@
  */
 package com.sirha.proyecto_sirha_dosw.model;
 
+import java.time.LocalTime;
+
 public class Horario {
     // Campos y métodos con documentación básica
-    private String HoraInicio;
-    private String HoraFin;
+    private LocalTime horaInicio;
+    private LocalTime horaFin;
     public Dia dia;
 
     /**
      * Obtiene la hora de fin del horario.
-     * @return Hora de fin en formato String
+     * @return Hora de fin como LocalTime
      */
-    public String getHoraFin() {
-        return HoraFin;
+    public LocalTime getHoraFin() {
+        return horaFin;
     }
 
     /**
      * Establece la hora de fin del horario.
-     * @param horaFin Hora de fin en formato String
+     * @param horaFin Hora de fin como LocalTime
      */
-    public void setHoraFin(String horaFin) {
-        HoraFin = horaFin;
+    public void setHoraFin(LocalTime horaFin) {
+        this.horaFin = horaFin;
     }
 
     /**
      * Obtiene la hora de inicio del horario.
-     * @return Hora de inicio en formato String
+     * @return Hora de inicio como LocalTime
      */
-    public String getHoraInicio() {
-        return HoraInicio;
+    public LocalTime getHoraInicio() {
+        return horaInicio;
     }
 
     /**
      * Establece la hora de inicio del horario.
-     * @param horaInicio Hora de inicio en formato String
+     * @param horaInicio Hora de inicio como LocalTime
      */
-    public void setHoraInicio(String horaInicio) {
-        HoraInicio = horaInicio;
+    public void setHoraInicio(LocalTime horaInicio) {
+        this.horaInicio = horaInicio;
     }
 
     /**
