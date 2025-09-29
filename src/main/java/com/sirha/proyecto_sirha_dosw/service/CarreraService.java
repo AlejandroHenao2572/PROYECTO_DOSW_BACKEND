@@ -89,7 +89,7 @@ public class CarreraService {
         }
 
         // Insert the materia first
-        Materia materia = new Materia(dto.getNombre(), dto.getAcronimo(), dto.getCreditos());
+        Materia materia = new Materia(dto.getNombre(), dto.getAcronimo(), dto.getCreditos(), dto.getFacultad());
         Materia savedMateria = materiaRepository.insert(materia);
 
         // Now update the carrera with the new materia

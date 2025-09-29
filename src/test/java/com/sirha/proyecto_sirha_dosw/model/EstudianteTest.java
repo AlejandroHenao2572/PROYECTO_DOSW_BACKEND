@@ -22,8 +22,8 @@ class EstudianteTest {
         );
 
         // Configurar materias
-        materia1 = new Materia("Programación I", "PROG1", 4);
-        materia2 = new Materia("Base de Datos", "BD1", 4);
+        materia1 = new Materia("Programación I", "PROG1", 4, Facultad.INGENIERIA_SISTEMAS);
+        materia2 = new Materia("Base de Datos", "BD1", 4, Facultad.INGENIERIA_SISTEMAS);
 
         // Configurar grupos
         grupo1 = new Grupo(materia1, 30, new ArrayList<>());

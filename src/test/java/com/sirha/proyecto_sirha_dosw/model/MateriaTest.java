@@ -7,7 +7,7 @@ class MateriaTest {
 
     @Test
     void testCreacionMateria() {
-        Materia materia = new Materia("Física", "FIS01", 4);
+        Materia materia = new Materia("Física", "FIS01", 4, Facultad.INGENIERIA_SISTEMAS);
 
         assertEquals("Física", materia.getNombre());
         assertEquals("FIS01", materia.getAcronimo());

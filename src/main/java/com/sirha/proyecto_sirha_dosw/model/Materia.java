@@ -29,6 +29,10 @@ public class Materia {
 	@NotBlank
 	private int creditos;
 
+	@NotNull
+	@NotBlank
+	private Facultad facultad;
+
 	/**
 	 * Constructor por defecto.
 	 */
@@ -40,11 +44,13 @@ public class Materia {
 	 * @param nombre Nombre de la materia
 	 * @param acronimo Acrónimo único de la materia
 	 * @param creditos Número de créditos de la materia
+	 * @param facultad Facultad a la que pertenece la materia
 	 */
-	public Materia(String nombre, String acronimo, int creditos) {
+	public Materia(String nombre, String acronimo, int creditos, Facultad facultad) {
 		this.nombre = nombre;
 		this.acronimo = acronimo;
 		this.creditos = creditos;
+		this.facultad = facultad;
 	}
 
 	// Getters y setters
@@ -56,4 +62,6 @@ public class Materia {
 	public void setAcronimo(String acronimo) { this.acronimo = acronimo; }
 	public int getCreditos() { return creditos; }
 	public void setCreditos(int creditos) { this.creditos = creditos; }
+	public Facultad getFacultad() { return facultad; }
+	public void setFacultad(Facultad facultad) { this.facultad = facultad; }
 }

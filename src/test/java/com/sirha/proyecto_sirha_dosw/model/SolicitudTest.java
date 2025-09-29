@@ -17,8 +17,8 @@ class SolicitudTest {
     void setUp() {
         solicitud = new Solicitud();
 
-        materiaProblema = new Materia("Programación I", "PROG1", 4);
-        materiaDestino = new Materia("Programación II", "PROG2", 4);
+        materiaProblema = new Materia("Programación I", "PROG1", 4, Facultad.INGENIERIA_SISTEMAS);
+        materiaDestino = new Materia("Programación II", "PROG2", 4, Facultad.INGENIERIA_SISTEMAS);
 
         grupoProblema = new Grupo(materiaProblema, 30, new ArrayList<>());
         grupoDestino = new Grupo(materiaDestino, 25, new ArrayList<>());

@@ -292,6 +292,7 @@ public class DecanoService {
         }
         
         Solicitud solicitud = solicitudOpt.get();
+        validarMateriaPerteneceFacultad(solicitud.getGrupoProblema().getMateria(), facultad);
         
         // Validar que la solicitud pertenece a la facultad del decano
         if (!solicitud.getFacultad().name().equals(facultad.toUpperCase())) {
@@ -423,9 +424,9 @@ public class DecanoService {
      * @throws SirhaException si la materia no pertenece a la facultad
      */
     private void validarMateriaPerteneceFacultad(Materia materia, String facultad) throws SirhaException {
-        // Por ahora asumimos que todas las materias pertenecen a la facultad
-        // Esta validación se puede mejorar agregando un campo facultad a Materia
-        // TODO: Implementar validación real de facultad en Materia
+        if (materia.getFacultad().equals(facultad)) {
+            throw new SirhaException("La materia " + materia.getAcronimo() + " no pertenece a la facultad: " + facultad);
+        }
     }
 }
 

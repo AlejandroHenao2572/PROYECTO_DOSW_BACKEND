@@ -134,7 +134,7 @@ public class DataSeed implements CommandLineRunner {
     }
 
     private Materia crearMateria(String nombre, String acronimo, int creditos) {
-        return new Materia(nombre, acronimo, creditos);
+        return new Materia(nombre, acronimo, creditos, Facultad.INGENIERIA_CIVIL);
     }
 
     private Profesor crearProfesor(String nombre, String apellido, String email, String password) {

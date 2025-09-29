@@ -14,9 +14,9 @@ class CarreraTest {
 
     @BeforeEach
     void setUp() {
-        materia1 = new Materia("Programación I", "PROG1", 4);
-        materia2 = new Materia("Base de Datos", "BD1", 4);
-        materia3 = new Materia("Matemáticas", "MATH1", 3);
+        materia1 = new Materia("Programación I", "PROG1", 4, Facultad.INGENIERIA_SISTEMAS);
+        materia2 = new Materia("Base de Datos", "BD1", 4, Facultad.INGENIERIA_SISTEMAS);
+        materia3 = new Materia("Matemáticas", "MATH1", 3, Facultad.INGENIERIA_SISTEMAS);
 
         materia1.setId("m1");
         materia2.setId("m2");

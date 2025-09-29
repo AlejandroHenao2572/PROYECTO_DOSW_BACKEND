@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.index.Indexed;
 
+import com.sirha.proyecto_sirha_dosw.model.Facultad;
+
 /**
  * DTO para la transferencia de datos relacionados con una Materia.
  * Se utiliza en los controladores para crear, actualizar o consultar materias,
@@ -27,6 +29,10 @@ public class MateriaDTO {
     @Min(value = 1, message = "Los créditos deben ser mínimo 1")
     @Max(value = 4, message = "Los créditos deben ser máximo 4")
     private int creditos;
+
+    @NotBlank(message = "La facultad no puede estar vacía")
+    @NotNull(message = "La facultad no puede ser nula")
+    private Facultad facultad;
 
     public String getNombre() {
         return nombre;
@@ -51,4 +57,6 @@ public class MateriaDTO {
     public void setCreditos(int creditos) {
         this.creditos = creditos;
     }
+    public Facultad getFacultad() { return facultad; }
+    public void setFacultad(Facultad facultad) { this.facultad = facultad; }
 }
