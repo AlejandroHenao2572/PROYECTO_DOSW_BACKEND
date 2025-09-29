@@ -34,6 +34,10 @@ public class SolicitudDTO {
     @Size(max = 500, message = "Las observaciones no pueden exceder los 500 caracteres")
     private String observaciones;
 
+    // Campo opcional para especificar la fecha de la solicitud (para pruebas o casos especiales)
+    // Si no se proporciona, se usará la fecha actual
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaSolicitud;
 
     // Getters and setters
     public String getEstudianteId() {
@@ -92,4 +96,11 @@ public class SolicitudDTO {
         this.observaciones = observaciones;
     }
 
+    public LocalDate getFechaSolicitud() {
+        return fechaSolicitud;
+    }
+
+    public void setFechaSolicitud(LocalDate fechaSolicitud) {
+        this.fechaSolicitud = fechaSolicitud;
+    }
 }

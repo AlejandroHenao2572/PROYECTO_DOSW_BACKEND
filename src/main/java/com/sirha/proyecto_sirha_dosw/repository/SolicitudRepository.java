@@ -1,6 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.repository;
 
 import com.sirha.proyecto_sirha_dosw.model.Solicitud;
+import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,14 +16,14 @@ public interface SolicitudRepository extends MongoRepository<Solicitud, String> 
     /**
      * Busca todas las solicitudes asociadas a un estudiante específico.
      * @param estudianteId identificador único del estudiante.
-     * @return lista de {@link Solicitud} realizadas pr el estudiante.
+     * @return lista de {@link Solicitud} realizadas por el estudiante.
      */
     List<Solicitud> findByEstudianteId(String estudianteId);
 
     /**
      * Busca todas las solicitudes que se encuentren en un estado específico.
-     * @param estado estado de la solicitud (ej. 'PENDIENTE', 'ACEPTADA', 'RECHAZADA')
+     * @param estado estado de la solicitud (ej. PENDIENTE, EN_REVISION, APROBADA, RECHAZADA)
      * @return lista de {@link Solicitud} en el estado indicado.
      */
-    List<Solicitud> findByEstado(String estado);
+    List<Solicitud> findByEstado(SolicitudEstado estado);
 }

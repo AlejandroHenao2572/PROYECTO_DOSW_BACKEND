@@ -36,9 +36,6 @@ class SolicitudTest {
 
         solicitud.setObservaciones("Necesito cambiar de grupo por horario");
         assertEquals("Necesito cambiar de grupo por horario", solicitud.getObservaciones());
-
-        solicitud.setComentariosAdmin("Solicitud aprobada por disponibilidad");
-        assertEquals("Solicitud aprobada por disponibilidad", solicitud.getComentariosAdmin());
     }
 
     @Test
@@ -70,8 +67,8 @@ class SolicitudTest {
 
     @Test
     void testSetterAndGetterEstado() {
-        solicitud.setEstado(SolicitudEstado.ACEPTADA);
-        assertEquals(SolicitudEstado.ACEPTADA, solicitud.getEstado());
+        solicitud.setEstado(SolicitudEstado.APROBADA);
+        assertEquals(SolicitudEstado.APROBADA, solicitud.getEstado());
 
         solicitud.setEstado(SolicitudEstado.RECHAZADA);
         assertEquals(SolicitudEstado.RECHAZADA, solicitud.getEstado());
@@ -107,7 +104,6 @@ class SolicitudTest {
         assertEquals(SolicitudEstado.PENDIENTE, solicitud.getEstado());
         assertNull(solicitud.getFechaCreacion());
         assertNull(solicitud.getFechaResolucion());
-        assertNull(solicitud.getComentariosAdmin());
     }
 
     // Pruebas para escenarios específicos de solicitudes
@@ -159,13 +155,12 @@ class SolicitudTest {
 
         // Aprobar solicitud
         LocalDateTime fechaResolucion = fechaCreacion.plusDays(1);
-        solicitud.setEstado(SolicitudEstado.ACEPTADA);
+        solicitud.setEstado(SolicitudEstado.APROBADA);
         solicitud.setFechaResolucion(fechaResolucion);
-        solicitud.setComentariosAdmin("Aprobado por disponibilidad");
 
-        assertEquals(SolicitudEstado.ACEPTADA, solicitud.getEstado());
+
+        assertEquals(SolicitudEstado.APROBADA, solicitud.getEstado());
         assertEquals(fechaResolucion, solicitud.getFechaResolucion());
-        assertEquals("Aprobado por disponibilidad", solicitud.getComentariosAdmin());
     }
 
     @Test
@@ -179,7 +174,5 @@ class SolicitudTest {
         solicitud.setObservaciones(null);
         assertNull(solicitud.getObservaciones());
 
-        solicitud.setComentariosAdmin(null);
-        assertNull(solicitud.getComentariosAdmin());
     }
 }

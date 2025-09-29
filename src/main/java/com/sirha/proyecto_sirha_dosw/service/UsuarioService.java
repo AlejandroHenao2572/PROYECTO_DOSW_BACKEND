@@ -4,6 +4,7 @@ import com.sirha.proyecto_sirha_dosw.dto.UsuarioDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.repository.CarreraRepository;
+import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
@@ -26,20 +27,25 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final CarreraRepository carreraRepository;
+    private final SolicitudRepository solicitudRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     /**
-     * Constructor para inyectar el repositorio de usuarios.
+     * Constructor para inyectar los repositorios necesarios.
      *
      * @param usuarioRepository repositorio que gestiona la persistencia de
      *                          {@link Usuario}
+     * @param carreraRepository repositorio que gestiona la persistencia de
+     *                          {@link Carrera}
+     * @param solicitudRepository repositorio que gestiona la persistencia de
+     *                          {@link Solicitud}
      */
 
-    @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository, CarreraRepository carreraRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, CarreraRepository carreraRepository, SolicitudRepository solicitudRepository) {
         this.usuarioRepository = usuarioRepository;
         this.carreraRepository = carreraRepository;
+        this.solicitudRepository = solicitudRepository;
     }
 
     /**
@@ -266,6 +272,29 @@ public class UsuarioService {
 
     public List<Usuario> obtenerPorNombreYApellido(String nombre, String apellido) {
         return usuarioRepository.findByNombreAndApellido(nombre, apellido);
+    }
+
+    /**
+     * Consulta todas las solicitudes que se encuentran en un estado específico.
+     * 
+     * @param estado el estado de las solicitudes a consultar (PENDIENTE, EN_REVISION, APROBADA, RECHAZADA)
+     * @return lista de {@link Solicitud} en el estado indicado
+     * @throws SirhaException si el estado no es válido
+     */
+    public List<Solicitud> consultarSolicitudesPorEstado(SolicitudEstado estado) throws SirhaException {
+        if (estado == null) {
+            throw new SirhaException("El estado de la solicitud no puede ser nulo");
+        }
+        return solicitudRepository.findByEstado(estado);
+    }
+
+    /**
+     * Consulta todas las solicitudes existentes en el sistema.
+     * 
+     * @return lista completa de {@link Solicitud}
+     */
+    public List<Solicitud> consultarTodasLasSolicitudes() {
+        return solicitudRepository.findAll();
     }
 
 }

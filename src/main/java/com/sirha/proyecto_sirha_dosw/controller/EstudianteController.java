@@ -171,4 +171,113 @@ public class EstudianteController {
         }
     }
 
+    /**
+     * Consulta todas las solicitudes que están en un estado específico.
+     * Estados disponibles: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA
+     * @param estado Estado de las solicitudes a consultar.
+     * @return Lista de solicitudes en el estado especificado.
+     */
+    @GetMapping("/solicitudes/estado/{estado}")
+    public ResponseEntity<?> consultarSolicitudesPorEstado(@PathVariable String estado) {
+        try {
+            SolicitudEstado solicitudEstado;
+            try {
+                solicitudEstado = SolicitudEstado.valueOf(estado.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Estado inválido. Estados válidos: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA");
+            }
+            
+            List<Solicitud> solicitudes = estudianteService.consultarSolicitudesPorEstado(solicitudEstado);
+            
+            if (solicitudes.isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("mensaje", "No se encontraron solicitudes en estado: " + estado);
+                response.put("estado", estado);
+                response.put("total", 0);
+                return ResponseEntity.ok(response);
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("solicitudes", solicitudes);
+            response.put("estado", estado);
+            response.put("total", solicitudes.size());
+            return ResponseEntity.ok(response);
+            
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    /**
+     * Consulta todas las solicitudes existentes en el sistema.
+     * @return Lista completa de todas las solicitudes.
+     */
+    @GetMapping("/solicitudes/todas")
+    public ResponseEntity<?> consultarTodasLasSolicitudes() {
+        try {
+            List<Solicitud> solicitudes = estudianteService.consultarTodasLasSolicitudes();
+            
+            if (solicitudes.isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("mensaje", "No se encontraron solicitudes en el sistema");
+                response.put("total", 0);
+                return ResponseEntity.ok(response);
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("solicitudes", solicitudes);
+            response.put("total", solicitudes.size());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error interno del servidor: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Consulta las solicitudes de un estudiante específico filtradas por estado.
+     * @param idEstudiante ID del estudiante.
+     * @param estado Estado de las solicitudes a consultar.
+     * @return Lista de solicitudes del estudiante en el estado especificado.
+     */
+    @GetMapping("/solicitudes/{idEstudiante}/estado/{estado}")
+    public ResponseEntity<?> consultarSolicitudesEstudiantePorEstado(
+            @PathVariable String idEstudiante, @PathVariable String estado) {
+        try {
+            SolicitudEstado solicitudEstado;
+            try {
+                solicitudEstado = SolicitudEstado.valueOf(estado.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Estado inválido. Estados válidos: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA");
+            }
+            
+            List<Solicitud> solicitudes = estudianteService.consultarSolicitudesEstudiantePorEstado(idEstudiante, solicitudEstado);
+            
+            if (solicitudes.isEmpty()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("mensaje", "No se encontraron solicitudes del estudiante en estado: " + estado);
+                response.put("idEstudiante", idEstudiante);
+                response.put("estado", estado);
+                response.put("total", 0);
+                return ResponseEntity.ok(response);
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("solicitudes", solicitudes);
+            response.put("idEstudiante", idEstudiante);
+            response.put("estado", estado);
+            response.put("total", solicitudes.size());
+            return ResponseEntity.ok(response);
+            
+        } catch (SirhaException e) {
+            Log.record(e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
 }

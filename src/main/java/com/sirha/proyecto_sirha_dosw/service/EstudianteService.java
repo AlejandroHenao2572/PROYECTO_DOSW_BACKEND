@@ -281,4 +281,56 @@ public class EstudianteService {
 
         return "La materia " + acronimoMateria + " ha sido cancelada exitosamente";
     }
+
+    /**
+     * Consulta todas las solicitudes que se encuentran en un estado específico.
+     * Este método es útil para que los estudiantes puedan filtrar sus consultas
+     * o para que los administradores gestionen las solicitudes por estado.
+     * 
+     * @param estado el estado de las solicitudes a consultar (PENDIENTE, EN_REVISION, APROBADA, RECHAZADA)
+     * @return lista de {@link Solicitud} en el estado indicado
+     * @throws SirhaException si el estado no es válido
+     */
+    public List<Solicitud> consultarSolicitudesPorEstado(SolicitudEstado estado) throws SirhaException {
+        if (estado == null) {
+            throw new SirhaException("El estado de la solicitud no puede ser nulo");
+        }
+        return solicitudRepository.findByEstado(estado);
+    }
+
+    /**
+     * Consulta todas las solicitudes existentes en el sistema.
+     * Este método es útil para obtener un panorama general de todas las solicitudes.
+     * 
+     * @return lista completa de {@link Solicitud}
+     */
+    public List<Solicitud> consultarTodasLasSolicitudes() {
+        return solicitudRepository.findAll();
+    }
+
+    /**
+     * Consulta las solicitudes de un estudiante específico filtradas por estado.
+     * 
+     * @param idEstudiante ID del estudiante
+     * @param estado estado de las solicitudes a consultar
+     * @return lista de {@link Solicitud} del estudiante en el estado indicado
+     * @throws SirhaException si el estudiante no existe o el estado es inválido
+     */
+    public List<Solicitud> consultarSolicitudesEstudiantePorEstado(String idEstudiante, SolicitudEstado estado) throws SirhaException {
+        // Verificar que el estudiante existe
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
+        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
+        }
+        
+        if (estado == null) {
+            throw new SirhaException("El estado de la solicitud no puede ser nulo");
+        }
+
+        // Obtener todas las solicitudes del estudiante y filtrar por estado
+        return solicitudRepository.findByEstudianteId(idEstudiante)
+                .stream()
+                .filter(solicitud -> solicitud.getEstado() == estado)
+                .toList();
+    }
 }
