@@ -1,13 +1,16 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.dto.CalendarioAcademicoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.PlazoSolicitudesDTO;
 import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.service.DecanoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -364,6 +367,141 @@ public class DecanoController {
                     "pendientes", pendientes,
                     "aprobadas", aprobadas,
                     "rechazadas", rechazadas
+            ));
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Configura el calendario académico estableciendo las fechas de inicio y fin del semestre.
+     * Solo los decanos pueden realizar esta configuración.
+     * @param facultad nombre de la facultad del decano
+     * @param calendarioDTO DTO con las nuevas fechas del calendario académico
+     * @return confirmación de la configuración realizada
+     */
+    @PostMapping(value = "/{facultad}/configuracion/calendario-academico")
+    public ResponseEntity<Object> configurarCalendarioAcademico(
+            @PathVariable String facultad,
+            @RequestBody CalendarioAcademicoDTO calendarioDTO) {
+        try {
+     
+            decanoService.configurarCalendarioAcademico(calendarioDTO, facultad);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("mensaje", "Calendario académico configurado exitosamente");
+            response.put("facultad", facultad);
+            response.put("fechaInicio", calendarioDTO.getFechaInicio());
+            response.put("fechaFin", calendarioDTO.getFechaFin());
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Configura el plazo de solicitudes estableciendo las fechas de inicio y fin para recibir solicitudes.
+     * Solo los decanos pueden realizar esta configuración.
+     * @param facultad nombre de la facultad del decano
+     * @param plazoDTO DTO con las nuevas fechas del plazo de solicitudes
+     * @return confirmación de la configuración realizada
+     */
+    @PostMapping(value = "/{facultad}/configuracion/plazo-solicitudes")
+    public ResponseEntity<Object> configurarPlazoSolicitudes(
+            @PathVariable String facultad,
+            @RequestBody PlazoSolicitudesDTO plazoDTO) {
+        try {
+            decanoService.configurarPlazoSolicitudes(plazoDTO, facultad);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("mensaje", "Plazo de solicitudes configurado exitosamente");
+            response.put("facultad", facultad);
+            response.put("fechaInicio", plazoDTO.getFechaInicio());
+            response.put("fechaFin", plazoDTO.getFechaFin());
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Obtiene la configuración actual del calendario académico.
+     * @param facultad nombre de la facultad del decano
+     * @return configuración actual del calendario académico
+     */
+    @GetMapping("/{facultad}/configuracion/calendario-academico")
+    public ResponseEntity<Object> obtenerCalendarioAcademico(@PathVariable String facultad) {
+        try {
+            CalendarioAcademicoDTO calendario = decanoService.obtenerCalendarioAcademico(facultad);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("calendarioAcademico", calendario);
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Obtiene la configuración actual del plazo de solicitudes.
+     * @param facultad nombre de la facultad del decano
+     * @return configuración actual del plazo de solicitudes
+     */
+    @GetMapping("/{facultad}/configuracion/plazo-solicitudes")
+    public ResponseEntity<Object> obtenerPlazoSolicitudes(@PathVariable String facultad) {
+        try {
+            PlazoSolicitudesDTO plazo = decanoService.obtenerPlazoSolicitudes(facultad);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("plazoSolicitudes", plazo);
+            
+            return ResponseEntity.ok(response);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * Obtiene un resumen completo de todas las configuraciones actuales.
+     * @param facultad nombre de la facultad del decano
+     * @return resumen de configuraciones del calendario académico y plazo de solicitudes
+     */
+    @GetMapping("/{facultad}/configuracion/resumen")
+    public ResponseEntity<Object> obtenerResumenConfiguraciones(@PathVariable String facultad) {
+        try {
+            CalendarioAcademicoDTO calendario = decanoService.obtenerCalendarioAcademico(facultad);
+            PlazoSolicitudesDTO plazo = decanoService.obtenerPlazoSolicitudes(facultad);
+            boolean plazoActivo = decanoService.esPlazoSolicitudesActivo(facultad);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("facultad", facultad);
+            response.put("calendarioAcademico", Map.of(
+                "fechaInicio", calendario.getFechaInicio(),
+                "fechaFin", calendario.getFechaFin()
+            ));
+            response.put("plazoSolicitudes", Map.of(
+                "fechaInicio", plazo.getFechaInicio(),
+                "fechaFin", plazo.getFechaFin(),
+                "activo", plazoActivo
             ));
             
             return ResponseEntity.ok(response);

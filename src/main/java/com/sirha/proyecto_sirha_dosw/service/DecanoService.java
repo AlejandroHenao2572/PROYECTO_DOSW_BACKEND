@@ -1,8 +1,10 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 
+import com.sirha.proyecto_sirha_dosw.dto.CalendarioAcademicoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.PlazoSolicitudesDTO;
 import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
@@ -427,6 +429,101 @@ public class DecanoService {
         if (materia.getFacultad().equals(facultad)) {
             throw new SirhaException("La materia " + materia.getAcronimo() + " no pertenece a la facultad: " + facultad);
         }
+    }
+
+
+    /**
+     * Configura el calendario académico estableciendo las fechas de inicio y fin del semestre.
+     * Solo los decanos pueden realizar esta configuración.
+     * @param calendarioDTO DTO con las nuevas fechas del calendario académico
+     * @param facultad facultad del decano que realiza la configuración
+     * @throws SirhaException si las fechas no son válidas
+     */
+    public void configurarCalendarioAcademico(CalendarioAcademicoDTO calendarioDTO, String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        // Validar que las fechas sean consistentes
+        if (!calendarioDTO.esFechasValidas()) {
+            throw new SirhaException("Las fechas del calendario académico no son válidas. La fecha de inicio debe ser anterior o igual a la fecha de fin.");
+        }
+        // Configurar el calendario académico
+        CalendarioAcademico calendario = CalendarioAcademico.INSTANCIA;
+        calendario.setFechaInicio(calendarioDTO.getFechaInicio());
+        calendario.setFechaFin(calendarioDTO.getFechaFin());
+    }
+
+    /**
+     * Configura el plazo de solicitudes estableciendo las fechas de inicio y fin para recibir solicitudes.
+     * Solo los decanos pueden realizar esta configuración.
+     * @param plazoDTO DTO con las nuevas fechas del plazo de solicitudes
+     * @param facultad facultad del decano que realiza la configuración
+     * @throws SirhaException si las fechas no son válidas
+     */
+    public void configurarPlazoSolicitudes(PlazoSolicitudesDTO plazoDTO, String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        // Validar que las fechas sean consistentes
+        if (!plazoDTO.esFechasValidas()) {
+            throw new SirhaException("Las fechas del plazo de solicitudes no son válidas. La fecha de inicio debe ser anterior o igual a la fecha de fin.");
+        }
+        
+        // Validar que el plazo esté dentro del calendario académico
+        CalendarioAcademico calendario = CalendarioAcademico.INSTANCIA;
+        if (plazoDTO.getFechaInicio().isBefore(calendario.getFechaInicio()) || 
+            plazoDTO.getFechaFin().isAfter(calendario.getFechaFin())) {
+            throw new SirhaException("El plazo de solicitudes debe estar dentro del calendario académico (" + 
+                                   calendario.getFechaInicio() + " - " + calendario.getFechaFin() + ").");
+        }
+        
+        // Configurar el plazo de solicitudes
+        PlazoSolicitudes plazo = PlazoSolicitudes.INSTANCIA;
+        plazo.setFechaInicio(plazoDTO.getFechaInicio());
+        plazo.setFechaFin(plazoDTO.getFechaFin());
+    }
+
+    /**
+     * Obtiene la configuración actual del calendario académico.
+     * @param facultad facultad del decano que consulta
+     * @return DTO con las fechas actuales del calendario académico
+     * @throws SirhaException si la facultad no es válida
+     */
+    public CalendarioAcademicoDTO obtenerCalendarioAcademico(String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        CalendarioAcademico calendario = CalendarioAcademico.INSTANCIA;
+        return new CalendarioAcademicoDTO(calendario.getFechaInicio(), calendario.getFechaFin());
+    }
+
+    /**
+     * Obtiene la configuración actual del plazo de solicitudes.
+     * @param facultad facultad del decano que consulta
+     * @return DTO con las fechas actuales del plazo de solicitudes
+     * @throws SirhaException si la facultad no es válida
+     */
+    public PlazoSolicitudesDTO obtenerPlazoSolicitudes(String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        PlazoSolicitudes plazo = PlazoSolicitudes.INSTANCIA;
+        return new PlazoSolicitudesDTO(plazo.getFechaInicio(), plazo.getFechaFin());
+    }
+
+    /**
+     * Verifica si actualmente se pueden recibir solicitudes.
+     * @param facultad facultad del decano que consulta
+     * @return true si el plazo de solicitudes está activo, false en caso contrario
+     * @throws SirhaException si la facultad no es válida
+     */
+    public boolean esPlazoSolicitudesActivo(String facultad) throws SirhaException {
+        // Validar facultad
+        validarFacultad(facultad);
+        
+        PlazoSolicitudes plazo = PlazoSolicitudes.INSTANCIA;
+        LocalDate fechaActual = LocalDate.now();
+        return plazo.estaEnPlazo(fechaActual);
     }
 }
 

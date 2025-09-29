@@ -15,7 +15,7 @@ public class GrupoTest {
 
     @BeforeEach
     void setUp() {
-        materia = new Materia("Matemáticas", "MATH01", 3);
+        materia = new Materia("Matemáticas", "MATH01", 3, Facultad.INGENIERIA_SISTEMAS);
         horario = new Horario();
         horario.setDia(Dia.LUNES);
         horario.setHoraInicio(LocalTime.parse("08:00"));

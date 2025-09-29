@@ -88,6 +88,13 @@ public class CarreraService {
             throw new SirhaException(SirhaException.MATERIA_YA_EXISTE + dto.getNombre());
         }
 
+        // Validate the faculty
+        try {
+            Facultad.valueOf(dto.getFacultad().toString().toUpperCase());
+        } catch (Exception e) {
+            throw new SirhaException(SirhaException.FACULTAD_ERROR + dto.getFacultad());
+        }
+
         // Insert the materia first
         Materia materia = new Materia(dto.getNombre(), dto.getAcronimo(), dto.getCreditos(), dto.getFacultad());
         Materia savedMateria = materiaRepository.insert(materia);
