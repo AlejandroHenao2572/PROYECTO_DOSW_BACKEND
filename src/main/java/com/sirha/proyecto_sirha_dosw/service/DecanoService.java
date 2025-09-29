@@ -366,6 +366,26 @@ public class DecanoService {
         if (LocalDateTime.now().isAfter(fechaLimite)) {
             throw new SirhaException("El plazo para responder la solicitud ha vencido");
         }
+
+        // Validar que no haya cruce de horarios con el grupo destino
+        Grupo grupoDestino = solicitud.getGrupoDestino();
+        if (grupoDestino != null) {
+            Estudiante estudiante = usuarioRepository.findById(solicitud.getEstudianteId())
+                        .filter(Estudiante.class::isInstance)
+                        .map(Estudiante.class::cast)
+                        .orElseThrow(() -> new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + solicitud.getEstudianteId()));
+            
+            // Obtener los grupos del estudiante excluyendo el grupo problema
+            List<Grupo> gruposActuales = estudiante.getGruposExcluyendo(solicitud.getGrupoProblema());
+            
+            // Verificar cruces de horario con cada grupo actual
+            for (Grupo grupoActual : gruposActuales) {
+                if (grupoDestino.tieneCruceDeHorario(grupoActual)) {
+                    throw new SirhaException("El grupo destino tiene cruce de horarios con el grupo de la materia: " 
+                        + grupoActual.getMateria().getNombre());
+                }
+            }
+        }
     }
 
     /**

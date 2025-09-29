@@ -104,4 +104,27 @@ public class Grupo {
 			this.estaCompleto = false;
 		}
 	}
+
+	/**
+	 * Verifica si este grupo tiene cruce de horarios con otro grupo.
+	 * Compara todos los horarios de ambos grupos para detectar superposiciones.
+	 * @param otroGrupo Grupo a comparar
+	 * @return true si hay cruce de horarios, false en caso contrario
+	 */
+	public boolean tieneCruceDeHorario(Grupo otroGrupo) {
+		if (otroGrupo == null || this.horarios == null || otroGrupo.getHorarios() == null) {
+			return false;
+		}
+
+		// Comparar cada horario de este grupo con cada horario del otro grupo
+		for (Horario horario1 : this.horarios) {
+			for (Horario horario2 : otroGrupo.getHorarios()) {
+				if (horario1.tieneCruceConHorario(horario2)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
 }

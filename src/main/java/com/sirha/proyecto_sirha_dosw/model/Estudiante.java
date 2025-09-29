@@ -131,4 +131,39 @@ public class Estudiante extends Usuario {
 		}
 	}
 
+	/**
+	 * Obtiene todos los grupos en los que está inscrito el estudiante en el semestre actual.
+	 * @return Lista de grupos del semestre actual
+	 */
+	public List<Grupo> getGrupos() {
+		List<Grupo> grupos = new ArrayList<>();
+		if (!semestres.isEmpty()) {
+			Semestre semestreActual = semestres.get(semestres.size() - 1);
+			for (RegistroMaterias registro : semestreActual.getRegistros()) {
+				grupos.add(registro.getGrupo());
+			}
+		}
+		return grupos;
+	}
+
+	/**
+	 * Obtiene todos los grupos en los que está inscrito el estudiante en el semestre actual,
+	 * excluyendo un grupo específico para validaciones de cambio de grupo.
+	 * @param grupoAExcluir Grupo que no debe incluirse en la lista
+	 * @return Lista de grupos del semestre actual excluyendo el grupo especificado
+	 */
+	public List<Grupo> getGruposExcluyendo(Grupo grupoAExcluir) {
+		List<Grupo> grupos = new ArrayList<>();
+		if (!semestres.isEmpty()) {
+			Semestre semestreActual = semestres.get(semestres.size() - 1);
+			for (RegistroMaterias registro : semestreActual.getRegistros()) {
+				Grupo grupo = registro.getGrupo();
+				if (grupoAExcluir == null || !grupo.getId().equals(grupoAExcluir.getId())) {
+					grupos.add(grupo);
+				}
+			}
+		}
+		return grupos;
+	}
+
 }

@@ -170,6 +170,7 @@ public class EstudianteService {
         solicitud.setMateriaProblema(materiaProblema);
         solicitud.setFacultad(materiaProblema.getFacultad());
         solicitud.setFechaCreacion(LocalDateTime.now());
+        solicitud.setEstado(SolicitudEstado.PENDIENTE);
 
         // 8. Generar número de radicado automático
         solicitud.setNumeroRadicado(solicitudUtil.generarNumeroRadicado());

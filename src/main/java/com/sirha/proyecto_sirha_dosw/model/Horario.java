@@ -59,4 +59,21 @@ public class Horario {
     public void setDia(Dia dia) {
         this.dia = dia;
     }
+
+    /**
+     * Verifica si este horario se cruza con otro horario.
+     * Dos horarios se cruzan si son el mismo día y sus franjas de tiempo se superponen.
+     * @param otroHorario Horario a comparar
+     * @return true si hay cruce de horarios, false en caso contrario
+     */
+    public boolean tieneCruceConHorario(Horario otroHorario) {
+        if (otroHorario == null || this.dia != otroHorario.getDia()) {
+            return false;
+        }
+
+        // Verificar si las franjas de tiempo se superponen
+        // Hay superposición si: inicio1 < fin2 && inicio2 < fin1
+        return this.horaInicio.isBefore(otroHorario.getHoraFin()) && 
+               otroHorario.getHoraInicio().isBefore(this.horaFin);
+    }
 }

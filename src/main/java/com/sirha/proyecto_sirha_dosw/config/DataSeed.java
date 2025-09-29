@@ -53,7 +53,7 @@ public class DataSeed implements CommandLineRunner {
         materiaRepository.deleteAll();
         usuarioRepository.deleteAll();
         carreraRepository.deleteAll();
-        System.out.println("🧹 Datos existentes eliminados");
+        System.out.println("Datos existentes eliminados");
     }
 
     private void crearDatosDePrueba() {
@@ -89,7 +89,7 @@ public class DataSeed implements CommandLineRunner {
         grupoODSC1.setId("03");
 
         Grupo grupoODSC2 = crearGrupo(sistemasOperativos, 25, profesorGerardo,
-            crearHorarios(Dia.MARTES, "16:00", "18:00", Dia.VIERNES, "16:00", "18:00"));
+            crearHorarios(Dia.MARTES, "14:00", "16:00", Dia.JUEVES, "14:00", "16:00"));
         grupoODSC2.setId("04");
 
         // 4. Crear estudiantes
