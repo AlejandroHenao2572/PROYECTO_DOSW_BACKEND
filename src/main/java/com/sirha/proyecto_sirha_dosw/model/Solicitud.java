@@ -33,7 +33,8 @@ public class Solicitud {
 	private LocalDateTime fechaResolucion;
 
 	private SolicitudEstado estado; // PENDIENTE, APROBADA, RECHAZADA
-	private String comentariosAdmin;
+
+	private Facultad facultad;
 
 	/**
 	 * Constructor por defecto. Inicializa el estado como PENDIENTE.
@@ -65,8 +66,6 @@ public class Solicitud {
 	public void setFechaResolucion(LocalDateTime fechaResolucion) { this.fechaResolucion = fechaResolucion; }
 	public SolicitudEstado getEstado() { return estado; }
 	public void setEstado(SolicitudEstado estado) { this.estado = estado; }
-	public String getComentariosAdmin() { return comentariosAdmin; }
-	public void setComentariosAdmin(String comentariosAdmin) { this.comentariosAdmin = comentariosAdmin; }
 	public String getRespuesta() {return respuesta;}
 	public void setRespuesta(String respuesta) {this.respuesta = respuesta;}
 	
@@ -75,4 +74,6 @@ public class Solicitud {
 	public void setNumeroRadicado(String numeroRadicado) { this.numeroRadicado = numeroRadicado; }
 	public Integer getPrioridad() { return prioridad; }
 	public void setPrioridad(Integer prioridad) { this.prioridad = prioridad; }
+	public Facultad getFacultad() { return facultad; }
+	public void setFacultad(Facultad facultad) { this.facultad = facultad; }
 }

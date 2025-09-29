@@ -167,6 +167,7 @@ public class EstudianteService {
         solicitud.setTipoSolicitud(solicitudDTO.getTipoSolicitud());
         solicitud.setGrupoProblema(grupoProblema);
         solicitud.setMateriaProblema(materiaProblema);
+        solicitud.setFacultad(estudiante.getCarrera());
 
         // 8. Generar número de radicado automático
         solicitud.setNumeroRadicado(solicitudUtil.generarNumeroRadicado());

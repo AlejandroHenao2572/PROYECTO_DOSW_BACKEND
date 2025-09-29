@@ -1,8 +1,10 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.model.Facultad;
+import com.sirha.proyecto_sirha_dosw.model.Solicitud;
+import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 import com.sirha.proyecto_sirha_dosw.service.DecanoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +20,6 @@ public class DecanoController {
 
     private final DecanoService decanoService;
 
-
-    @Autowired
     public DecanoController(DecanoService decanoService) {
         this.decanoService = decanoService;
     }
@@ -64,5 +64,55 @@ public class DecanoController {
     public ResponseEntity<List<Usuario>> obtenerPorNombreYApellido(@PathVariable String facutal, @PathVariable String nombre, @PathVariable String apellido) {
         List<Usuario> estudiantes = decanoService.findEstudiantesByNombreApellidoAndFacultad(nombre, apellido, facutal);
         return new ResponseEntity<>(estudiantes, HttpStatus.OK);
+    }
+
+    /**
+     * Consulta todas las solicitudes recibidas en el área de una facultad específica.
+     * @param facultad nombre de la facultad 
+     * @return lista de solicitudes asociadas a la facultad
+     */
+    @GetMapping("/{facultad}/solicitudes")
+    public ResponseEntity<List<Solicitud>> consultarSolicitudesPorFacultad(@PathVariable String facultad) {
+        try {
+            Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+            List<Solicitud> solicitudes = decanoService.consultarSolicitudesPorFacultad(facultadEnum);
+            return new ResponseEntity<>(solicitudes, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Consulta las solicitudes pendientes recibidas en el área de una facultad específica.
+     * @param facultad nombre de la facultad 
+     * @return lista de solicitudes pendientes asociadas a la facultad
+     */
+    @GetMapping("/{facultad}/solicitudes/pendientes")
+    public ResponseEntity<List<Solicitud>> consultarSolicitudesPendientesPorFacultad(@PathVariable String facultad) {
+        try {
+            Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+            List<Solicitud> solicitudes = decanoService.consultarSolicitudesPendientesPorFacultad(facultadEnum);
+            return new ResponseEntity<>(solicitudes, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Consulta las solicitudes por facultad filtradas por estado específico.
+     * @param facultad nombre de la facultad 
+     * @param estado estado de la solicitud 
+     * @return lista de solicitudes filtradas por facultad y estado
+     */
+    @GetMapping("/{facultad}/solicitudes/estado/{estado}")
+    public ResponseEntity<List<Solicitud>> consultarSolicitudesPorFacultadYEstado(@PathVariable String facultad, @PathVariable String estado) {
+        try {
+            Facultad facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+            SolicitudEstado estadoEnum = SolicitudEstado.valueOf(estado.toUpperCase());
+            List<Solicitud> solicitudes = decanoService.consultarSolicitudesPorFacultadYEstado(facultadEnum, estadoEnum);
+            return new ResponseEntity<>(solicitudes, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }
