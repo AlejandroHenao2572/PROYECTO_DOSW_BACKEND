@@ -66,4 +66,42 @@ public interface SolicitudRepository extends MongoRepository<Solicitud, String> 
      * @return lista de solicitudes hacia ese grupo
      */
     List<Solicitud> findByGrupoDestino_IdAndTipoSolicitud(String grupoId, TipoSolicitud tipoSolicitud);
+
+    /**
+     * Cuenta la cantidad total de solicitudes en un estado específico.
+     * @param estado estado de la solicitud
+     * @return cantidad de solicitudes en ese estado
+     */
+    long countByEstado(SolicitudEstado estado);
+
+    /**
+     * Cuenta la cantidad de solicitudes por facultad y estado.
+     * @param facultad facultad específica
+     * @param estado estado de la solicitud
+     * @return cantidad de solicitudes que cumplen ambos criterios
+     */
+    long countByFacultadAndEstado(Facultad facultad, SolicitudEstado estado);
+
+    /**
+     * Cuenta la cantidad de solicitudes por tipo de solicitud.
+     * @param tipoSolicitud tipo específico de solicitud
+     * @return cantidad de solicitudes de ese tipo
+     */
+    long countByTipoSolicitud(TipoSolicitud tipoSolicitud);
+
+    /**
+     * Cuenta la cantidad de solicitudes por facultad, estado y tipo.
+     * @param facultad facultad específica
+     * @param estado estado de la solicitud
+     * @param tipoSolicitud tipo de solicitud
+     * @return cantidad de solicitudes que cumplen todos los criterios
+     */
+    long countByFacultadAndEstadoAndTipoSolicitud(Facultad facultad, SolicitudEstado estado, TipoSolicitud tipoSolicitud);
+
+    /**
+     * Cuenta la cantidad total de solicitudes por facultad.
+     * @param facultad facultad específica
+     * @return cantidad total de solicitudes de esa facultad
+     */
+    long countByFacultad(Facultad facultad);
 }

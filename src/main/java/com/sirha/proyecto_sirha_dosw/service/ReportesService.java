@@ -6,8 +6,11 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.EstadisticasGrupoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.TasaAprobacionDTO;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
+import com.sirha.proyecto_sirha_dosw.model.Solicitud;
+import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
 import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
@@ -138,5 +141,93 @@ public class ReportesService {
      */
     public List<EstadisticasGrupoDTO> obtenerGruposMasSolicitadosPorFacultad(Facultad facultad) {
         return obtenerGruposMasSolicitados(facultad, 5); // Top 5 por facultad
+    }
+
+    /**
+     * Obtiene las tasas de aprobación vs rechazo de todas las solicitudes del sistema.
+     * @return TasaAprobacionDTO con las métricas globales
+     */
+    public TasaAprobacionDTO obtenerTasasAprobacionGlobal() {
+        long totalSolicitudes = solicitudRepository.count();
+        long aprobadas = solicitudRepository.countByEstado(SolicitudEstado.APROBADA);
+        long rechazadas = solicitudRepository.countByEstado(SolicitudEstado.RECHAZADA);
+        long pendientes = solicitudRepository.countByEstado(SolicitudEstado.PENDIENTE);
+        long enRevision = solicitudRepository.countByEstado(SolicitudEstado.EN_REVISION);
+
+        TasaAprobacionDTO tasas = new TasaAprobacionDTO(totalSolicitudes, aprobadas, rechazadas, pendientes, enRevision);
+        tasas.setTipoSolicitud("TODAS");
+        
+        return tasas;
+    }
+
+    /**
+     * Obtiene las tasas de aprobación vs rechazo por facultad.
+     * @param facultad Facultad específica
+     * @return TasaAprobacionDTO con las métricas de la facultad
+     */
+    public TasaAprobacionDTO obtenerTasasAprobacionPorFacultad(Facultad facultad) {
+        long totalSolicitudes = solicitudRepository.countByFacultad(facultad);
+        long aprobadas = solicitudRepository.countByFacultadAndEstado(facultad, SolicitudEstado.APROBADA);
+        long rechazadas = solicitudRepository.countByFacultadAndEstado(facultad, SolicitudEstado.RECHAZADA);
+        long pendientes = solicitudRepository.countByFacultadAndEstado(facultad, SolicitudEstado.PENDIENTE);
+        long enRevision = solicitudRepository.countByFacultadAndEstado(facultad, SolicitudEstado.EN_REVISION);
+
+        TasaAprobacionDTO tasas = new TasaAprobacionDTO(totalSolicitudes, aprobadas, rechazadas, pendientes, enRevision);
+        tasas.setFacultad(facultad.name());
+        tasas.setTipoSolicitud("TODAS");
+        
+        return tasas;
+    }
+
+    /**
+     * Obtiene las tasas de aprobación vs rechazo por tipo de solicitud.
+     * @param tipoSolicitud Tipo específico de solicitud
+     * @return TasaAprobacionDTO con las métricas del tipo de solicitud
+     */
+    public TasaAprobacionDTO obtenerTasasAprobacionPorTipo(TipoSolicitud tipoSolicitud) {
+        // Contar total por tipo de solicitud
+        long totalSolicitudes = solicitudRepository.countByTipoSolicitud(tipoSolicitud);
+        
+        // Para obtener las cantidades por estado y tipo, necesitamos usar las solicitudes y filtrar
+        List<Solicitud> solicitudesTipo = solicitudRepository.findByTipoSolicitud(tipoSolicitud);
+        
+        long aprobadas = solicitudesTipo.stream()
+                .mapToLong(s -> s.getEstado() == SolicitudEstado.APROBADA ? 1 : 0)
+                .sum();
+        long rechazadas = solicitudesTipo.stream()
+                .mapToLong(s -> s.getEstado() == SolicitudEstado.RECHAZADA ? 1 : 0)
+                .sum();
+        long pendientes = solicitudesTipo.stream()
+                .mapToLong(s -> s.getEstado() == SolicitudEstado.PENDIENTE ? 1 : 0)
+                .sum();
+        long enRevision = solicitudesTipo.stream()
+                .mapToLong(s -> s.getEstado() == SolicitudEstado.EN_REVISION ? 1 : 0)
+                .sum();
+
+        TasaAprobacionDTO tasas = new TasaAprobacionDTO(totalSolicitudes, aprobadas, rechazadas, pendientes, enRevision);
+        tasas.setTipoSolicitud(tipoSolicitud.name());
+        
+        return tasas;
+    }
+
+    /**
+     * Obtiene las tasas de aprobación vs rechazo por facultad y tipo de solicitud.
+     * @param facultad Facultad específica
+     * @param tipoSolicitud Tipo específico de solicitud
+     * @return TasaAprobacionDTO con las métricas combinadas
+     */
+    public TasaAprobacionDTO obtenerTasasAprobacionPorFacultadYTipo(Facultad facultad, TipoSolicitud tipoSolicitud) {
+        long aprobadas = solicitudRepository.countByFacultadAndEstadoAndTipoSolicitud(facultad, SolicitudEstado.APROBADA, tipoSolicitud);
+        long rechazadas = solicitudRepository.countByFacultadAndEstadoAndTipoSolicitud(facultad, SolicitudEstado.RECHAZADA, tipoSolicitud);
+        long pendientes = solicitudRepository.countByFacultadAndEstadoAndTipoSolicitud(facultad, SolicitudEstado.PENDIENTE, tipoSolicitud);
+        long enRevision = solicitudRepository.countByFacultadAndEstadoAndTipoSolicitud(facultad, SolicitudEstado.EN_REVISION, tipoSolicitud);
+        
+        long totalSolicitudes = aprobadas + rechazadas + pendientes + enRevision;
+
+        TasaAprobacionDTO tasas = new TasaAprobacionDTO(totalSolicitudes, aprobadas, rechazadas, pendientes, enRevision);
+        tasas.setFacultad(facultad.name());
+        tasas.setTipoSolicitud(tipoSolicitud.name());
+        
+        return tasas;
     }
 }
