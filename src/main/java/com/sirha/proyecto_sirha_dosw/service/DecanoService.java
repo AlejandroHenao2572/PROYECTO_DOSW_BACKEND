@@ -1,6 +1,7 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 
+import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
@@ -171,7 +172,7 @@ public class DecanoService {
             throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante + " en la facultad " + facultad);
         }
     }
-    
+
     /**
      * Valida que el semestre esté en el rango válido (1-10).
      * @param semestre número de semestre
@@ -181,6 +182,41 @@ public class DecanoService {
         if (semestre < 1 || semestre > 10) {
             throw new SirhaException(SirhaException.SEMESTRE_FUERA_RANGO + " Recibido: " + semestre);
         }
+    }
+
+    /**
+     * Obtiene la información básica de un estudiante (código, nombre, carrera, semestre).
+     * @param idEstudiante ID del estudiante
+     * @param facultad facultad del decano
+     * @return EstudianteBasicoDTO con la información básica del estudiante
+     * @throws SirhaException si ocurre algún error
+     */
+    public EstudianteBasicoDTO obtenerInformacionBasicaEstudiante(String idEstudiante, String facultad) throws SirhaException {
+        // Validar que el estudiante existe y pertenece a la facultad
+        validarEstudianteFacultad(idEstudiante, facultad);
+        
+        // Obtener el estudiante
+        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast);
+        
+        if (estudianteOpt.isEmpty()) {
+            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante);
+        }
+        
+        Estudiante estudiante = estudianteOpt.get();
+        
+        // Calcular el semestre actual (número de semestres cursados)
+        int semestreActual = estudiante.getSemestres().size();
+        
+        // Crear y retornar el DTO con la información básica
+        return new EstudianteBasicoDTO(
+                estudiante.getId(),
+                estudiante.getNombre(),
+                estudiante.getApellido(),
+                estudiante.getCarrera(),
+                semestreActual
+        );
     }
 }
 

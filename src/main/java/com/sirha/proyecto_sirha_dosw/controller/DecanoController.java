@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.service.DecanoService;
@@ -213,6 +214,30 @@ public class DecanoController {
             
             Map<String, Semaforo> semaforo = decanoService.consultarSemaforoAcademicoEstudiante(idEstudiante);
             return new ResponseEntity<>(semaforo, HttpStatus.OK);
+        } catch (SirhaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(ERROR_INTERNO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Consulta la información básica de un estudiante (código, nombre, carrera, semestre).
+     * Permite al decano ver información esencial del estudiante de su facultad.
+     * @param facultad nombre de la facultad del decano
+     * @param idEstudiante ID del estudiante
+     * @return EstudianteBasicoDTO con código, nombre, apellido, carrera y semestre actual
+     */
+    @GetMapping("/{facultad}/estudiante/{idEstudiante}/informacion-basica")
+    public ResponseEntity<Object> consultarInformacionBasicaEstudiante(
+            @PathVariable String facultad, 
+            @PathVariable String idEstudiante) {
+        try {
+            // Validar facultad
+            decanoService.validarFacultad(facultad);
+            
+            EstudianteBasicoDTO informacionBasica = decanoService.obtenerInformacionBasicaEstudiante(idEstudiante, facultad);
+            return new ResponseEntity<>(informacionBasica, HttpStatus.OK);
         } catch (SirhaException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
