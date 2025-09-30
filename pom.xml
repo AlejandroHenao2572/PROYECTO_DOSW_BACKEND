@@ -31,6 +31,7 @@
         <sonar.projectKey>proyecto-sirha-dosw</sonar.projectKey>
         <sonar.projectName>proyecto-sirha-dosw</sonar.projectName>
         <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.login>sqp_5b716f512d06948dcef28e82d4249b58dbd4516c</sonar.login>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
     <dependencies>

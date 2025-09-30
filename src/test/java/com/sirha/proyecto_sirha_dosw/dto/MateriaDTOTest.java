@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
+import com.sirha.proyecto_sirha_dosw.model.Facultad;
 
 class MateriaDTOTest {
 
@@ -24,7 +26,8 @@ class MateriaDTOTest {
         dto.setNombre("Programación I");
         dto.setAcronimo("PROG1");
         dto.setCreditos(4);
-        Set violations = validator.validate(dto);
+        dto.setFacultad(Facultad.INGENIERIA_SISTEMAS);
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
         assertTrue(violations.isEmpty());
     }
 
@@ -34,7 +37,8 @@ class MateriaDTOTest {
         dto.setNombre("Programación I");
         dto.setAcronimo("PRO");
         dto.setCreditos(4);
-        Set violations = validator.validate(dto);
+        dto.setFacultad(Facultad.INGENIERIA_SISTEMAS);
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().toString().contains("El acronimo debe tener entre 4 y 10 caracteres"));
     }
@@ -45,7 +49,8 @@ class MateriaDTOTest {
         dto.setNombre("Programación I");
         dto.setAcronimo("PROGRAMACION1");
         dto.setCreditos(4);
-        Set violations = validator.validate(dto);
+        dto.setFacultad(Facultad.INGENIERIA_SISTEMAS); // Agregar facultad para evitar violación adicional
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().toString().contains("El acronimo debe tener entre 4 y 10 caracteres"));
     }
@@ -56,7 +61,8 @@ class MateriaDTOTest {
         dto.setNombre("Programación I");
         dto.setAcronimo("PROG1");
         dto.setCreditos(0);
-        Set violations = validator.validate(dto);
+        dto.setFacultad(Facultad.INGENIERIA_SISTEMAS); // Agregar facultad para evitar violación adicional
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().toString().contains("Los créditos deben ser mínimo 1"));
     }
@@ -67,7 +73,8 @@ class MateriaDTOTest {
         dto.setNombre("Programación I");
         dto.setAcronimo("PROG1");
         dto.setCreditos(5);
-        Set violations = validator.validate(dto);
+        dto.setFacultad(Facultad.INGENIERIA_SISTEMAS); // Agregar facultad para evitar violación adicional
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().toString().contains("Los créditos deben ser máximo 4"));
     }
@@ -78,8 +85,9 @@ class MateriaDTOTest {
         dto.setNombre("");
         dto.setAcronimo("");
         dto.setCreditos(1);
-        Set violations = validator.validate(dto);
-        assertEquals(3, violations.size());
+        // No establecer facultad para que genere una violación adicional por @NotNull
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
+        assertEquals(4, violations.size()); // nombre vacío, acronimo vacío, acronimo tamaño, facultad nula
     }
 
     @Test
@@ -99,8 +107,10 @@ class MateriaDTOTest {
         dto.setNombre("Matemáticas");
         dto.setAcronimo("MATH");
         dto.setCreditos(1);
-        Set violations = validator.validate(dto);
+        dto.setFacultad(Facultad.INGENIERIA_SISTEMAS); // Agregar facultad
+        Set<ConstraintViolation<MateriaDTO>> violations = validator.validate(dto);
         assertTrue(violations.isEmpty());
+        
         dto.setAcronimo("MATEMATICA");
         dto.setCreditos(4);
         violations = validator.validate(dto);

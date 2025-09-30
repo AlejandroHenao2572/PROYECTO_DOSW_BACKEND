@@ -30,7 +30,6 @@ public class MateriaDTO {
     @Max(value = 4, message = "Los créditos deben ser máximo 4")
     private int creditos;
 
-    @NotBlank(message = "La facultad no puede estar vacía")
     @NotNull(message = "La facultad no puede ser nula")
     private Facultad facultad;
 
