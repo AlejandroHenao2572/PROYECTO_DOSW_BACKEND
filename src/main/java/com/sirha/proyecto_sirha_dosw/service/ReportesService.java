@@ -6,34 +6,51 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.EstadisticasGrupoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.IndicadoresAvanceDTO;
 import com.sirha.proyecto_sirha_dosw.dto.TasaAprobacionDTO;
+import com.sirha.proyecto_sirha_dosw.model.Carrera;
+import com.sirha.proyecto_sirha_dosw.model.Estudiante;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
+import com.sirha.proyecto_sirha_dosw.model.RegistroMaterias;
+import com.sirha.proyecto_sirha_dosw.model.Semaforo;
+import com.sirha.proyecto_sirha_dosw.model.Semestre;
 import com.sirha.proyecto_sirha_dosw.model.Solicitud;
 import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
+import com.sirha.proyecto_sirha_dosw.repository.CarreraRepository;
 import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
+import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReportesService {
     
     private final SolicitudRepository solicitudRepository;
     private final GrupoRepository grupoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final CarreraRepository carreraRepository;
     
     /**
      * Constructor para inyección de dependencias.
      * @param solicitudRepository Repositorio de solicitudes
      * @param grupoRepository Repositorio de grupos
+     * @param usuarioRepository Repositorio de usuarios (estudiantes)
+     * @param carreraRepository Repositorio de carreras
      */
-    public ReportesService(SolicitudRepository solicitudRepository, GrupoRepository grupoRepository) {
+    public ReportesService(SolicitudRepository solicitudRepository, GrupoRepository grupoRepository,
+                          UsuarioRepository usuarioRepository, CarreraRepository carreraRepository) {
         this.solicitudRepository = solicitudRepository;
         this.grupoRepository = grupoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.carreraRepository = carreraRepository;
     }
     
     /**
@@ -230,4 +247,189 @@ public class ReportesService {
         
         return tasas;
     }
+
+    /**
+     * Calcula los indicadores de avance académico para un estudiante específico.
+     * @param estudianteId ID del estudiante
+     * @return IndicadoresAvanceDTO con métricas individuales del estudiante
+     */
+    public IndicadoresAvanceDTO calcularIndicadoresAvanceEstudiante(String estudianteId) {
+        // Obtener el estudiante
+        Estudiante estudiante = usuarioRepository.findById(estudianteId)
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast)
+                .orElse(null);
+        
+        if (estudiante == null) {
+            return null;
+        }
+
+        // Crear DTO base
+        IndicadoresAvanceDTO indicadores = new IndicadoresAvanceDTO(
+                estudiante.getId(),
+                estudiante.getNombre(),
+                estudiante.getApellido(),
+                estudiante.getCarrera()
+        );
+
+        // Obtener carrera para calcular total de materias y créditos
+        Carrera carrera = carreraRepository.findByNombre(estudiante.getCarrera()).orElse(null);
+        if (carrera != null) {
+            indicadores.setCreditosTotales(carrera.getCreditosTotales());
+            indicadores.setTotalMaterias(carrera.getTotalMaterias());
+        }
+
+        // Contadores para los estados de semáforo
+        int materiasAprobadas = 0;
+        int materiasEnProgreso = 0;
+        int materiasConProblemas = 0;
+        int materiasCanceladas = 0;
+        int creditosAprobados = 0;
+        double sumaNotas = 0.0;
+        int materiasTotales = 0;
+
+        // Calcular el semestre actual
+        int semestreActual = estudiante.getSemestres().size();
+        indicadores.setSemestreActual(semestreActual);
+
+        // Recorrer todos los semestres y registros
+        for (Semestre semestre : estudiante.getSemestres()) {
+            for (RegistroMaterias registro : semestre.getRegistros()) {
+                materiasTotales++;
+                Semaforo estado = registro.getEstado();
+                int creditos = registro.getGrupo().getMateria().getCreditos();
+
+                switch (estado) {
+                    case VERDE:
+                        materiasAprobadas++;
+                        creditosAprobados += creditos;
+                        // Asumimos una nota promedio para materias aprobadas (se puede mejorar)
+                        sumaNotas += 4.0; // Nota promedio aprobatoria
+                        break;
+                    case AZUL:
+                        materiasEnProgreso++;
+                        break;
+                    case ROJO:
+                        materiasConProblemas++;
+                        sumaNotas += 2.0; // Nota promedio para materias con problemas
+                        break;
+                    case CANCELADO:
+                        materiasCanceladas++;
+                        break;
+                }
+            }
+        }
+
+        // Establecer métricas
+        indicadores.setMateriasAprobadas(materiasAprobadas);
+        indicadores.setMateriasEnProgreso(materiasEnProgreso);
+        indicadores.setMateriasConProblemas(materiasConProblemas);
+        indicadores.setMateriasCanceladas(materiasCanceladas);
+        indicadores.setCreditosAprobados(creditosAprobados);
+
+        // Calcular promedio general
+        if (materiasTotales > 0) {
+            double promedioGeneral = sumaNotas / materiasTotales;
+            indicadores.setPromedioGeneral(promedioGeneral);
+        }
+
+        // Los porcentajes y estado global se calculan automáticamente en el DTO
+        indicadores.calcularPorcentajes();
+
+        return indicadores;
+    }
+
+    /**
+     * Calcula estadísticas globales de indicadores de avance académico.
+     * @param facultad Facultad específica (null para todas las facultades)
+     * @return IndicadoresAvanceDTO con estadísticas globales
+     */
+    public IndicadoresAvanceDTO calcularIndicadoresAvanceGlobales(Facultad facultad) {
+        // Crear DTO para estadísticas globales
+        IndicadoresAvanceDTO estadisticasGlobales = new IndicadoresAvanceDTO();
+        estadisticasGlobales.setTipoReporte("ESTADISTICAS_GLOBALES");
+        estadisticasGlobales.setFacultad(facultad);
+
+        // Obtener todos los estudiantes (filtrado por facultad si se especifica)
+        List<Estudiante> estudiantes = usuarioRepository.findAll().stream()
+                .filter(Estudiante.class::isInstance)
+                .map(Estudiante.class::cast)
+                .filter(estudiante -> facultad == null || estudiante.getCarrera().equals(facultad))
+                .toList();
+
+        // Contadores globales
+        Map<Semaforo, Long> distribucionEstados = new HashMap<>();
+        Map<Facultad, Double> avancePorFacultad = new HashMap<>();
+        
+        int totalMateriasGlobal = 0;
+        int materiasAprobadasGlobal = 0;
+        int materiasEnProgresoGlobal = 0;
+        int materiasConProblemasGlobal = 0;
+        int materiasCanceladasGlobal = 0;
+        int creditosAprobadasGlobal = 0;
+        int creditosTotalesGlobal = 0;
+        double sumaPromediosGlobal = 0.0;
+
+        // Inicializar distribución de estados
+        distribucionEstados.put(Semaforo.AZUL, 0L);
+        distribucionEstados.put(Semaforo.VERDE, 0L);
+        distribucionEstados.put(Semaforo.ROJO, 0L);
+        distribucionEstados.put(Semaforo.CANCELADO, 0L);
+
+        // Procesar cada estudiante
+        for (Estudiante estudiante : estudiantes) {
+            IndicadoresAvanceDTO indicadoresEstudiante = calcularIndicadoresAvanceEstudiante(estudiante.getId());
+            
+            if (indicadoresEstudiante != null) {
+                totalMateriasGlobal += indicadoresEstudiante.getTotalMaterias();
+                materiasAprobadasGlobal += indicadoresEstudiante.getMateriasAprobadas();
+                materiasEnProgresoGlobal += indicadoresEstudiante.getMateriasEnProgreso();
+                materiasConProblemasGlobal += indicadoresEstudiante.getMateriasConProblemas();
+                materiasCanceladasGlobal += indicadoresEstudiante.getMateriasCanceladas();
+                creditosAprobadasGlobal += indicadoresEstudiante.getCreditosAprobados();
+                creditosTotalesGlobal += indicadoresEstudiante.getCreditosTotales();
+                sumaPromediosGlobal += indicadoresEstudiante.getPromedioGeneral();
+
+                // Actualizar distribución de estados
+                distribucionEstados.put(Semaforo.AZUL, 
+                    distribucionEstados.get(Semaforo.AZUL) + indicadoresEstudiante.getMateriasEnProgreso());
+                distribucionEstados.put(Semaforo.VERDE, 
+                    distribucionEstados.get(Semaforo.VERDE) + indicadoresEstudiante.getMateriasAprobadas());
+                distribucionEstados.put(Semaforo.ROJO, 
+                    distribucionEstados.get(Semaforo.ROJO) + indicadoresEstudiante.getMateriasConProblemas());
+                distribucionEstados.put(Semaforo.CANCELADO, 
+                    distribucionEstados.get(Semaforo.CANCELADO) + indicadoresEstudiante.getMateriasCanceladas());
+
+                // Actualizar avance por facultad
+                Facultad facultadEstudiante = indicadoresEstudiante.getFacultad();
+                double avanceEstudiante = indicadoresEstudiante.getPorcentajeAvanceGeneral();
+                avancePorFacultad.merge(facultadEstudiante, avanceEstudiante, 
+                    (existente, nuevo) -> (existente + nuevo) / 2);
+            }
+        }
+
+        // Establecer estadísticas globales
+        estadisticasGlobales.setTotalMaterias(totalMateriasGlobal);
+        estadisticasGlobales.setMateriasAprobadas(materiasAprobadasGlobal);
+        estadisticasGlobales.setMateriasEnProgreso(materiasEnProgresoGlobal);
+        estadisticasGlobales.setMateriasConProblemas(materiasConProblemasGlobal);
+        estadisticasGlobales.setMateriasCanceladas(materiasCanceladasGlobal);
+        estadisticasGlobales.setCreditosAprobados(creditosAprobadasGlobal);
+        estadisticasGlobales.setCreditosTotales(creditosTotalesGlobal);
+        
+        // Calcular promedio global
+        if (!estudiantes.isEmpty()) {
+            estadisticasGlobales.setPromedioGeneral(sumaPromediosGlobal / estudiantes.size());
+        }
+
+        // Establecer distribuciones
+        estadisticasGlobales.setDistribucionEstados(distribucionEstados);
+        estadisticasGlobales.setAvancePorFacultad(avancePorFacultad);
+
+        // Calcular porcentajes y estado global
+        estadisticasGlobales.calcularPorcentajes();
+
+        return estadisticasGlobales;
+    }
+
 }

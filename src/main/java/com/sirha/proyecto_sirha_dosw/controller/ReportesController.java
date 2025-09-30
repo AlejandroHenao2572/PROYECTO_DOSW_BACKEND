@@ -6,6 +6,7 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.EstadisticasGrupoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.IndicadoresAvanceDTO;
 import com.sirha.proyecto_sirha_dosw.dto.TasaAprobacionDTO;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
@@ -188,5 +189,50 @@ public class ReportesController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
+
+    // =================== INDICADORES DE AVANCE ACADÉMICO ===================
+
+    /**
+     * Obtiene los indicadores de avance académico para un estudiante específico.
+     * @param estudianteId ID del estudiante
+     * @return IndicadoresAvanceDTO con métricas del estudiante
+     */
+    @GetMapping("/indicadores-avance/estudiante/{estudianteId}")
+    public ResponseEntity<IndicadoresAvanceDTO> obtenerIndicadoresAvanceEstudiante(
+            @PathVariable String estudianteId) {
+        try {
+            IndicadoresAvanceDTO indicadores = reportesService.calcularIndicadoresAvanceEstudiante(estudianteId);
+            if (indicadores == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(indicadores);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Obtiene estadísticas globales de indicadores de avance académico.
+     * @param facultad Facultad específica (opcional)
+     * @return IndicadoresAvanceDTO con estadísticas globales
+     */
+    @GetMapping("/indicadores-avance/global")
+    public ResponseEntity<IndicadoresAvanceDTO> obtenerIndicadoresAvanceGlobales(
+            @RequestParam(required = false) String facultad) {
+        try {
+            Facultad facultadEnum = null;
+            if (facultad != null && !facultad.trim().isEmpty()) {
+                try {
+                    facultadEnum = Facultad.valueOf(facultad.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest().build();
+                }
+            }
+            
+            IndicadoresAvanceDTO estadisticas = reportesService.calcularIndicadoresAvanceGlobales(facultadEnum);
+            return ResponseEntity.ok(estadisticas);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
