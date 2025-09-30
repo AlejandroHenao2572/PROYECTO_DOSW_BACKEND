@@ -350,12 +350,10 @@ Ver documentacion API REST en SWAGGER/OPENAI:
 'http://localhost:8080/swagger-ui/index.html'  
 
 Pruebas unitaras:  
-'./mvnw test jacoco:report'
+mvn test
 
 Anilisis con Sonar:  
-[^nota] Se debe de cambiar el token al ejecutar en otra maquina:
-
-'mvn clean verify sonar:sonar "-Dsonar.projectKey=proyecto-sirha-dosw" "-Dsonar.projectName=proyecto-sirha-dosw" "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=sqp_07717f1d20be7eb614a7dbfaabfe693787cfa4dd"'
+mvn clean verify sonar:sonar
 
 ---
 
