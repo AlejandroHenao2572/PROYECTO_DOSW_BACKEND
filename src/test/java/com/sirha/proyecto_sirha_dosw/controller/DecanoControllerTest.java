@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -520,5 +521,221 @@ class DecanoControllerTest {
         ResponseEntity<Object> response = decanoController.configurarPlazoSolicitudes(facultad, plazo);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Error de configuración", response.getBody());
+    }
+
+    // Tests para métodos faltantes con 0% cobertura
+    @Test
+    void testObtenerEstadisticasGrupos_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        Map<String, Long> estadisticas = new HashMap<>();
+        estadisticas.put("NORMAL", 5L);
+        estadisticas.put("ADVERTENCIA", 2L);
+        estadisticas.put("CRITICO", 1L);
+        
+        List<MonitoreoGrupoDTO> grupos = Arrays.asList(
+            new MonitoreoGrupoDTO(), new MonitoreoGrupoDTO(), new MonitoreoGrupoDTO()
+        );
+        
+        when(decanoService.obtenerEstadisticasAlertas(facultad)).thenReturn(estadisticas);
+        when(decanoService.monitorearGruposPorFacultad(facultad)).thenReturn(grupos);
+
+        ResponseEntity<Object> response = decanoController.obtenerEstadisticasGrupos(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testObtenerEstadisticasGrupos_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        when(decanoService.obtenerEstadisticasAlertas(facultad))
+                .thenThrow(new SirhaException("Facultad inválida"));
+
+        ResponseEntity<Object> response = decanoController.obtenerEstadisticasGrupos(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
+    }
+
+    @Test
+    void testConsultarResumenSolicitudesPorFacultad_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        List<Solicitud> solicitudes = Arrays.asList(
+            new Solicitud(), new Solicitud(), new Solicitud()
+        );
+        
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenReturn(solicitudes);
+
+        ResponseEntity<Object> response = decanoController.consultarResumenSolicitudesPorFacultad(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testConsultarResumenSolicitudesPorFacultad_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        doThrow(new SirhaException("Facultad inválida")).when(decanoService).validarFacultad(facultad);
+
+        ResponseEntity<Object> response = decanoController.consultarResumenSolicitudesPorFacultad(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
+    }
+
+    @Test
+    void testObtenerResumenConfiguraciones_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        CalendarioAcademicoDTO calendario = new CalendarioAcademicoDTO();
+        calendario.setFechaInicio(LocalDate.of(2024, 1, 1));
+        calendario.setFechaFin(LocalDate.of(2024, 12, 31));
+        
+        PlazoSolicitudesDTO plazo = new PlazoSolicitudesDTO();
+        plazo.setFechaInicio(LocalDate.of(2024, 1, 1));
+        plazo.setFechaFin(LocalDate.of(2024, 3, 31));
+        
+        when(decanoService.obtenerCalendarioAcademico(facultad)).thenReturn(calendario);
+        when(decanoService.obtenerPlazoSolicitudes(facultad)).thenReturn(plazo);
+        when(decanoService.esPlazoSolicitudesActivo(facultad)).thenReturn(true);
+
+        ResponseEntity<Object> response = decanoController.obtenerResumenConfiguraciones(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testObtenerResumenConfiguraciones_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        when(decanoService.obtenerCalendarioAcademico(facultad))
+                .thenThrow(new SirhaException("Facultad inválida"));
+
+        ResponseEntity<Object> response = decanoController.obtenerResumenConfiguraciones(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
+    }
+
+    @Test
+    void testObtenerGruposConAlerta_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        List<MonitoreoGrupoDTO> grupos = Arrays.asList(
+            new MonitoreoGrupoDTO(), new MonitoreoGrupoDTO()
+        );
+        
+        when(decanoService.obtenerGruposConAlerta(facultad)).thenReturn(grupos);
+
+        ResponseEntity<Object> response = decanoController.obtenerGruposConAlerta(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testObtenerGruposConAlerta_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        when(decanoService.obtenerGruposConAlerta(facultad))
+                .thenThrow(new SirhaException("Facultad inválida"));
+
+        ResponseEntity<Object> response = decanoController.obtenerGruposConAlerta(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
+    }
+
+    @Test
+    void testConsultarDetalleSolicitud_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String solicitudId = "SOL123";
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId(solicitudId);
+        
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenReturn(Arrays.asList(solicitud));
+
+        ResponseEntity<Object> response = decanoController.consultarDetalleSolicitud(facultad, solicitudId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(solicitud, response.getBody());
+    }
+
+    @Test
+    void testConsultarDetalleSolicitud_NotFound() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String solicitudId = "SOL999";
+        
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenReturn(Arrays.asList());
+
+        ResponseEntity<Object> response = decanoController.consultarDetalleSolicitud(facultad, solicitudId);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        Object body = response.getBody();
+        assertTrue(body != null && body.toString().contains("Solicitud no encontrada"));
+    }
+
+    @Test
+    void testMonitorearGrupos_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        List<MonitoreoGrupoDTO> grupos = Arrays.asList(
+            new MonitoreoGrupoDTO(), new MonitoreoGrupoDTO()
+        );
+        
+        when(decanoService.monitorearGruposPorFacultad(facultad)).thenReturn(grupos);
+
+        ResponseEntity<Object> response = decanoController.monitorearGrupos(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testMonitorearGrupos_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        when(decanoService.monitorearGruposPorFacultad(facultad))
+                .thenThrow(new SirhaException("Facultad inválida"));
+
+        ResponseEntity<Object> response = decanoController.monitorearGrupos(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
+    }
+
+    @Test
+    void testObtenerCalendarioAcademico_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        CalendarioAcademicoDTO calendario = new CalendarioAcademicoDTO();
+        
+        when(decanoService.obtenerCalendarioAcademico(facultad)).thenReturn(calendario);
+
+        ResponseEntity<Object> response = decanoController.obtenerCalendarioAcademico(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testObtenerCalendarioAcademico_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        when(decanoService.obtenerCalendarioAcademico(facultad))
+                .thenThrow(new SirhaException("Facultad inválida"));
+
+        ResponseEntity<Object> response = decanoController.obtenerCalendarioAcademico(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
+    }
+
+    @Test
+    void testObtenerPlazoSolicitudes_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        PlazoSolicitudesDTO plazo = new PlazoSolicitudesDTO();
+        
+        when(decanoService.obtenerPlazoSolicitudes(facultad)).thenReturn(plazo);
+
+        ResponseEntity<Object> response = decanoController.obtenerPlazoSolicitudes(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testObtenerPlazoSolicitudes_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        when(decanoService.obtenerPlazoSolicitudes(facultad))
+                .thenThrow(new SirhaException("Facultad inválida"));
+
+        ResponseEntity<Object> response = decanoController.obtenerPlazoSolicitudes(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Facultad inválida", response.getBody());
     }
 }
