@@ -55,6 +55,16 @@ class CarreraServiceTest {
 		assertTrue(ex.getMessage().contains(SirhaException.CARRERA_YA_EXISTE));
 	}
 
+	@Test
+	void testRegistrarCarreraFacultadInvalida() {
+		CarreraDTO dto = new CarreraDTO();
+		dto.setCodigo("CARR02");
+		dto.setNombre("FACULTAD_INVALIDA");
+		when(carreraRepository.findByCodigo("CARR02")).thenReturn(Optional.empty());
+		SirhaException ex = assertThrows(SirhaException.class, () -> carreraService.registrar(dto));
+		assertTrue(ex.getMessage().contains(SirhaException.FACULTAD_ERROR));
+	}
+
 
 	@Test
 	void testAddMateriaExitoso() throws SirhaException {

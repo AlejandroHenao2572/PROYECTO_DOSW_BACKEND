@@ -11,10 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -33,6 +34,11 @@ class UsuarioServiceTest {
 	@InjectMocks
 	private UsuarioService usuarioService;
 
+	@BeforeEach
+	void injectEncoder() {
+		ReflectionTestUtils.setField(usuarioService, "passwordEncoder", passwordEncoder);
+	}
+
 	private UsuarioDTO getUsuarioDTO() {
 		UsuarioDTO dto = new UsuarioDTO();
 		dto.setNombre("Juan");
@@ -42,6 +48,31 @@ class UsuarioServiceTest {
 		dto.setRol(Rol.ESTUDIANTE.name());
 		dto.setFacultad(Facultad.values()[0].name());
 		return dto;
+	}
+
+	@Test
+	void testRegistrarExitoso() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals("hashed", registrado.getPassword());
+		assertEquals(dto.getEmail(), registrado.getEmail());
+	}
+
+	@Test
+	void testRegistrarDecanoDuplicado() {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("DECANO");
+		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
+		Decano decanoExistente = new Decano();
+		decanoExistente.setFacultad(Facultad.valueOf(dto.getFacultad()));
+		when(usuarioRepository.findByRol(Rol.DECANO)).thenReturn(List.of(decanoExistente));
+		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
+		assertTrue(ex.getMessage().contains(SirhaException.DECANO_YA_EXISTE));
 	}
 
 	@Test
@@ -90,6 +121,24 @@ class UsuarioServiceTest {
 	}
 
 	@Test
+	void testActualizarUsuarioExitoso() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setNombre("Carlos");
+		dto.setApellido("Lopez");
+		dto.setEmail("nuevo@example.com");
+		dto.setPassword("5678");
+		dto.setRol(Rol.PROFESOR.name());
+		Estudiante usuario = new Estudiante("Juan", "Perez", "juan@example.com", "1234", Rol.ESTUDIANTE, Facultad.INGENIERIA_SISTEMAS);
+		usuario.setId("1");
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.findByEmail("nuevo@example.com")).thenReturn(Optional.empty());
+		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		Usuario actualizado = usuarioService.actualizarUsuario("1", dto);
+		assertEquals("Carlos", actualizado.getNombre());
+		assertEquals(Rol.PROFESOR, actualizado.getRol());
+	}
+
+	@Test
 	void testEliminarUsuarioExitoso() throws SirhaException {
 		when(usuarioRepository.existsById("1")).thenReturn(true);
 		doNothing().when(usuarioRepository).deleteById("1");
@@ -109,6 +158,14 @@ class UsuarioServiceTest {
 		when(usuarioRepository.findByEmail("juan@example.com")).thenReturn(Optional.empty());
 		boolean result = usuarioService.autenticar("juan@example.com", "1234");
 		assertFalse(result);
+	}
+
+	@Test
+	void testAutenticarUsuarioExitoso() {
+		Usuario usuario = new Estudiante("Juan", "Perez", "juan@example.com", "hash", Rol.ESTUDIANTE, Facultad.INGENIERIA_SISTEMAS);
+		when(usuarioRepository.findByEmail("juan@example.com")).thenReturn(Optional.of(usuario));
+		when(passwordEncoder.matches("1234", "hash")).thenReturn(true);
+		assertTrue(usuarioService.autenticar("juan@example.com", "1234"));
 	}
 
 	@Test
