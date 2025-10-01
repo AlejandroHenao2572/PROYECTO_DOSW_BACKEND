@@ -1,15 +1,21 @@
 package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.EstadisticasGrupoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.IndicadoresAvanceDTO;
 import com.sirha.proyecto_sirha_dosw.dto.TasaAprobacionDTO;
+import com.sirha.proyecto_sirha_dosw.model.Carrera;
+import com.sirha.proyecto_sirha_dosw.model.Estudiante;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
 import com.sirha.proyecto_sirha_dosw.model.Solicitud;
 import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
+import com.sirha.proyecto_sirha_dosw.model.Usuario;
+import com.sirha.proyecto_sirha_dosw.repository.CarreraRepository;
 import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
+import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +37,10 @@ class ReportesServiceTest {
 	SolicitudRepository solicitudRepository;
 	@Mock
 	GrupoRepository grupoRepository;
+	@Mock
+	UsuarioRepository usuarioRepository;
+	@Mock
+	CarreraRepository carreraRepository;
 	@InjectMocks
 	ReportesService reportesService;
 
@@ -168,6 +178,180 @@ class ReportesServiceTest {
 		TasaAprobacionDTO dto = reportesService.obtenerTasasAprobacionPorFacultadYTipo(Facultad.INGENIERIA_SISTEMAS, TipoSolicitud.CAMBIO_GRUPO);
 		assertEquals(4L, dto.getTotalSolicitudes());
 		assertEquals("CAMBIO_GRUPO", dto.getTipoSolicitud());
+	}
+
+	// Tests para los métodos con 0% de cobertura
+	@Test
+	void testCalcularIndicadoresAvanceEstudiante() {
+		// Crear estudiante mock
+		Estudiante estudiante = new Estudiante();
+		estudiante.setNombre("Juan");
+		estudiante.setApellido("Pérez");
+		estudiante.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		// Crear carrera mock
+		Carrera carrera = new Carrera();
+		carrera.setCreditosTotales(160);
+		// No podemos usar setTotalMaterias porque no existe, se calcula automáticamente
+
+		// Mock del repository
+		when(usuarioRepository.findById("EST123")).thenReturn(Optional.of(estudiante));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_SISTEMAS)).thenReturn(Optional.of(carrera));
+
+		// Ejecutar método
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceEstudiante("EST123");
+
+		// Verificar resultado
+		assertNotNull(resultado);
+		assertEquals(estudiante.getId(), resultado.getEstudianteId());
+		assertEquals("Juan", resultado.getEstudianteNombre());
+		assertEquals("Pérez", resultado.getEstudianteApellido());
+		assertEquals(Facultad.INGENIERIA_SISTEMAS, resultado.getFacultad());
+		assertEquals(160, resultado.getCreditosTotales());
+		assertEquals(0, resultado.getTotalMaterias()); // Carrera sin materias
+		
+		verify(usuarioRepository).findById("EST123");
+		verify(carreraRepository).findByNombre(Facultad.INGENIERIA_SISTEMAS);
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceEstudianteNoEncontrado() {
+		when(usuarioRepository.findById("EST999")).thenReturn(Optional.empty());
+
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceEstudiante("EST999");
+
+		assertNull(resultado);
+		verify(usuarioRepository).findById("EST999");
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceGlobales() {
+		// Crear estudiantes mock con datos completos para ejecutar el método interno
+		Estudiante est1 = new Estudiante();
+		est1.setId("EST001");
+		est1.setNombre("Juan");
+		est1.setApellido("Pérez");
+		est1.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		Estudiante est2 = new Estudiante();
+		est2.setId("EST002");
+		est2.setNombre("María");
+		est2.setApellido("González");
+		est2.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		// Usar una lista de Usuario ya que Estudiante extiende Usuario
+		List<Usuario> usuarios = new ArrayList<>();
+		usuarios.add(est1);
+		usuarios.add(est2);
+
+		// Crear carrera mock para que el método interno funcione
+		Carrera carrera = new Carrera();
+		carrera.setCreditosTotales(160);
+
+		// Mock de repositorios
+		when(usuarioRepository.findAll()).thenReturn(usuarios);
+		// Mock para cada llamada individual del método calcularIndicadoresAvanceEstudiante
+		when(usuarioRepository.findById("EST001")).thenReturn(Optional.of(est1));
+		when(usuarioRepository.findById("EST002")).thenReturn(Optional.of(est2));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_SISTEMAS)).thenReturn(Optional.of(carrera));
+
+		// Ejecutar método
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceGlobales(Facultad.INGENIERIA_SISTEMAS);
+
+		// Verificar resultado
+		assertNotNull(resultado);
+		assertEquals("ESTADISTICAS_GLOBALES", resultado.getTipoReporte());
+		assertEquals(Facultad.INGENIERIA_SISTEMAS, resultado.getFacultad());
+		
+		// Verificar que se llamaron los métodos necesarios
+		verify(usuarioRepository).findAll();
+		verify(usuarioRepository).findById("EST001");
+		verify(usuarioRepository).findById("EST002");
+		verify(carreraRepository, times(2)).findByNombre(Facultad.INGENIERIA_SISTEMAS);
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceGlobalesSinFiltro() {
+		// Crear estudiantes de diferentes facultades
+		Estudiante est1 = new Estudiante();
+		est1.setId("EST003");
+		est1.setNombre("Juan");
+		est1.setApellido("Pérez");
+		est1.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		Estudiante est2 = new Estudiante();
+		est2.setId("EST004");
+		est2.setNombre("María");
+		est2.setApellido("González");
+		est2.setCarrera(Facultad.INGENIERIA_CIVIL);
+
+		// Usar una lista de Usuario
+		List<Usuario> usuarios = new ArrayList<>();
+		usuarios.add(est1);
+		usuarios.add(est2);
+
+		// Crear carreras mock
+		Carrera carreraSistemas = new Carrera();
+		carreraSistemas.setCreditosTotales(160);
+		
+		Carrera carreraCivil = new Carrera();
+		carreraCivil.setCreditosTotales(180);
+
+		when(usuarioRepository.findAll()).thenReturn(usuarios);
+		when(usuarioRepository.findById("EST003")).thenReturn(Optional.of(est1));
+		when(usuarioRepository.findById("EST004")).thenReturn(Optional.of(est2));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_SISTEMAS)).thenReturn(Optional.of(carreraSistemas));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_CIVIL)).thenReturn(Optional.of(carreraCivil));
+
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceGlobales(null);
+
+		assertNotNull(resultado);
+		assertEquals("ESTADISTICAS_GLOBALES", resultado.getTipoReporte());
+		assertNull(resultado.getFacultad());
+		
+		verify(usuarioRepository).findAll();
+		verify(usuarioRepository).findById("EST003");
+		verify(usuarioRepository).findById("EST004");
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceGlobalesConEstudiantesCompletos() {
+		// Test adicional para cubrir más líneas del método calcularIndicadoresAvanceGlobales
+		// Crear estudiantes con más información para activar el cálculo de distribución de estados
+		Estudiante est1 = new Estudiante();
+		est1.setId("EST005");
+		est1.setNombre("Carlos");
+		est1.setApellido("Mendoza");
+		est1.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		Estudiante est2 = new Estudiante();
+		est2.setId("EST006");
+		est2.setNombre("Ana");
+		est2.setApellido("Rodríguez");
+		est2.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		List<Usuario> usuarios = new ArrayList<>();
+		usuarios.add(est1);
+		usuarios.add(est2);
+
+		Carrera carrera = new Carrera();
+		carrera.setCreditosTotales(160);
+
+		when(usuarioRepository.findAll()).thenReturn(usuarios);
+		when(usuarioRepository.findById("EST005")).thenReturn(Optional.of(est1));
+		when(usuarioRepository.findById("EST006")).thenReturn(Optional.of(est2));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_SISTEMAS)).thenReturn(Optional.of(carrera));
+
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceGlobales(Facultad.INGENIERIA_SISTEMAS);
+
+		assertNotNull(resultado);
+		assertEquals("ESTADISTICAS_GLOBALES", resultado.getTipoReporte());
+		assertEquals(Facultad.INGENIERIA_SISTEMAS, resultado.getFacultad());
+		
+		verify(usuarioRepository).findAll();
+		verify(usuarioRepository).findById("EST005");
+		verify(usuarioRepository).findById("EST006");
+		verify(carreraRepository, times(2)).findByNombre(Facultad.INGENIERIA_SISTEMAS);
 	}
 
 }
