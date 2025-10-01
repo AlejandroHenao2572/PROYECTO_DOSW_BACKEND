@@ -7,6 +7,8 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.util.Set;
+import java.time.LocalDate;
+import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SolicitudDTOTest {
@@ -43,6 +45,17 @@ class SolicitudDTOTest {
         Set violations = validator.validate(dto);
         assertEquals(1, violations.size());
         assertTrue(violations.iterator().next().toString().contains("El ID del estudiante no puede estar vacío"));
+    }
+    
+    @Test
+    void testGetSetFechaSolicitud() {
+        SolicitudDTO dto = new SolicitudDTO();
+        assertNull(dto.getFechaSolicitud());
+        LocalDate fecha = LocalDate.of(2025, 9, 30);
+        dto.setFechaSolicitud(fecha);
+        assertEquals(fecha, dto.getFechaSolicitud());
+        dto.setFechaSolicitud(null);
+        assertNull(dto.getFechaSolicitud());
     }
 
     @Test

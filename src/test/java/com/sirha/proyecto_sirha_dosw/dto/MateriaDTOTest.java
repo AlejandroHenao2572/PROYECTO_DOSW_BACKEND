@@ -11,6 +11,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 
 class MateriaDTOTest {
+    @Test
+    void testGetFacultad() {
+        MateriaDTO dto = new MateriaDTO();
+        dto.setFacultad(Facultad.ADMINISTRACION);
+        assertEquals(Facultad.ADMINISTRACION, dto.getFacultad());
+    }
 
     private static Validator validator;
 
