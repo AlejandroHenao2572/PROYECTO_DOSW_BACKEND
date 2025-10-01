@@ -20,8 +20,11 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.sirha.proyecto_sirha_dosw.dto.CalendarioAcademicoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.MonitoreoGrupoDTO;
+import com.sirha.proyecto_sirha_dosw.dto.PlazoSolicitudesDTO;
 import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Estudiante;
@@ -350,5 +353,172 @@ class DecanoControllerTest {
 
         ResponseEntity<Object> response = decanoController.responderSolicitud(facultad, solicitudId, respuesta);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    // Tests para métodos con 0% cobertura
+    @Test
+    void testListarUsuarios_OK() {
+        String facultad = "INGENIERIA_SISTEMAS";
+        Usuario usuario = new Estudiante();
+        when(decanoService.findEstudiantesByFacultad(facultad))
+                .thenReturn(Arrays.asList(usuario));
+
+        ResponseEntity<Object> response = decanoController.listarUsuarios(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(((List<?>) response.getBody()).contains(usuario));
+    }
+
+    @Test
+    void testListarUsuarios_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        doThrow(new SirhaException("Facultad inválida")).when(decanoService).validarFacultad(facultad);
+
+        ResponseEntity<Object> response = decanoController.listarUsuarios(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerPorId_OK() {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String id = "EST123";
+        Usuario usuario = new Estudiante();
+        when(decanoService.findEstudianteByIdAndFacultad(id, facultad))
+                .thenReturn(usuario);
+
+        ResponseEntity<Object> response = decanoController.obtenerPorId(facultad, id);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(usuario, response.getBody());
+    }
+
+    @Test
+    void testObtenerPorId_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        String id = "EST123";
+        doThrow(new SirhaException("Facultad inválida")).when(decanoService).validarFacultad(facultad);
+
+        ResponseEntity<Object> response = decanoController.obtenerPorId(facultad, id);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerPorEmail_OK() {
+        String facultad = "ingenieria_sistemas";
+        String email = "test@test.com";
+        Usuario usuario = new Estudiante();
+        when(decanoService.findEstudianteByEmailAndFacultad(email, facultad))
+                .thenReturn(usuario);
+
+        ResponseEntity<Object> response = decanoController.obtenerPorEmail(facultad, email);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(usuario, response.getBody());
+    }
+
+    @Test
+    void testObtenerPorEmail_BadRequest() throws SirhaException {
+        String facultad = "invalida";
+        String email = "test@test.com";
+        doThrow(new SirhaException("Facultad inválida")).when(decanoService).validarFacultad(facultad);
+
+        ResponseEntity<Object> response = decanoController.obtenerPorEmail(facultad, email);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerPorNombre_OK() {
+        String facultad = "ingenieria_sistemas";
+        String nombre = "Juan";
+        Usuario usuario = new Estudiante();
+        when(decanoService.findEstudiantesByNombreAndFacultad(nombre, facultad))
+                .thenReturn(Arrays.asList(usuario));
+
+        ResponseEntity<List<Usuario>> response = decanoController.obtenerPorNombre(facultad, nombre);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() != null && response.getBody().contains(usuario));
+    }
+
+    @Test
+    void testObtenerPorApellido_OK() {
+        String facultad = "ingenieria_sistemas";
+        String apellido = "Pérez";
+        Usuario usuario = new Estudiante();
+        when(decanoService.findEstudiantesByApellidoAndFacultad(apellido, facultad))
+                .thenReturn(Arrays.asList(usuario));
+
+        ResponseEntity<List<Usuario>> response = decanoController.obtenerPorApellido(facultad, apellido);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody() != null && response.getBody().contains(usuario));
+    }
+
+    @Test
+    void testObtenerInformacionBasicaEstudiante_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String idEstudiante = "EST123";
+        EstudianteBasicoDTO estudianteDTO = new EstudianteBasicoDTO();
+        when(decanoService.obtenerInformacionBasicaEstudiante(idEstudiante, facultad))
+                .thenReturn(estudianteDTO);
+
+        ResponseEntity<Object> response = decanoController.consultarInformacionBasicaEstudiante(facultad, idEstudiante);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(estudianteDTO, response.getBody());
+    }
+
+    @Test
+    void testObtenerInformacionBasicaEstudiante_BadRequest() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String idEstudiante = "INVALID";
+        when(decanoService.obtenerInformacionBasicaEstudiante(idEstudiante, facultad))
+                .thenThrow(new SirhaException("Estudiante no encontrado"));
+
+        ResponseEntity<Object> response = decanoController.consultarInformacionBasicaEstudiante(facultad, idEstudiante);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Estudiante no encontrado", response.getBody());
+    }
+
+    @Test
+    void testConfigurarCalendarioAcademico_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        CalendarioAcademicoDTO calendario = new CalendarioAcademicoDTO();
+        doNothing().when(decanoService).configurarCalendarioAcademico(calendario, facultad);
+
+        ResponseEntity<Object> response = decanoController.configurarCalendarioAcademico(facultad, calendario);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // La respuesta del controlador incluye más información que solo el mensaje
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testConfigurarCalendarioAcademico_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        CalendarioAcademicoDTO calendario = new CalendarioAcademicoDTO();
+        doThrow(new SirhaException("Error de configuración")).when(decanoService)
+                .configurarCalendarioAcademico(calendario, facultad);
+
+        ResponseEntity<Object> response = decanoController.configurarCalendarioAcademico(facultad, calendario);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Error de configuración", response.getBody());
+    }
+
+    @Test
+    void testConfigurarPlazoSolicitudes_OK() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        PlazoSolicitudesDTO plazo = new PlazoSolicitudesDTO();
+        doNothing().when(decanoService).configurarPlazoSolicitudes(plazo, facultad);
+
+        ResponseEntity<Object> response = decanoController.configurarPlazoSolicitudes(facultad, plazo);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // La respuesta del controlador incluye más información que solo el mensaje
+        assertTrue(response.getBody() instanceof Map);
+    }
+
+    @Test
+    void testConfigurarPlazoSolicitudes_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        PlazoSolicitudesDTO plazo = new PlazoSolicitudesDTO();
+        doThrow(new SirhaException("Error de configuración")).when(decanoService)
+                .configurarPlazoSolicitudes(plazo, facultad);
+
+        ResponseEntity<Object> response = decanoController.configurarPlazoSolicitudes(facultad, plazo);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Error de configuración", response.getBody());
     }
 }
