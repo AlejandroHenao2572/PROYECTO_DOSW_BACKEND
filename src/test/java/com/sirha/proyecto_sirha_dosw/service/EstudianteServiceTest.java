@@ -14,7 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import java.util.Map;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,6 +79,255 @@ class EstudianteServiceTest {
         solicitudDTO.setGrupoProblemaId("grupo123");
         solicitudDTO.setMateriaProblemaAcronimo("DOSW");
         solicitudDTO.setObservaciones("Solicitud de prueba");
+    }
+
+    @Test
+    void testGetRegistrosBySemestreRetornaLista() throws SirhaException {
+        // Configura un semestre con un registro
+        RegistroMaterias registro = mock(RegistroMaterias.class);
+        Semestre semestre = new Semestre();
+        semestre.setRegistros(List.of(registro));
+        estudiante.setSemestres(List.of(semestre));
+        List<RegistroMaterias> result = estudiante.getRegistrosBySemestre(1);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void testGetRegistrosBySemestreListaVaciaLanzaExcepcion() {
+        // Configura un semestre vacío
+        Semestre semestre = new Semestre();
+        semestre.setRegistros(Collections.emptyList());
+        estudiante.setSemestres(List.of(semestre));
+        SirhaException ex = assertThrows(SirhaException.class, () -> {
+            List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(1);
+            if (registroMaterias.isEmpty()) {
+                throw new SirhaException(SirhaException.NO_HORARIO_ENCONTRADO);
+            }
+        });
+        assertTrue(ex.getMessage().contains(SirhaException.NO_HORARIO_ENCONTRADO));
+    }
+
+    @Test
+        void testCancelarMateria_Exitoso() throws SirhaException {
+        Estudiante estudianteMock = new Estudiante();
+        estudianteMock.setId("est123");
+        Semestre semestre = new Semestre();
+        RegistroMaterias registro = new RegistroMaterias();
+        Materia materia = new Materia();
+        materia.setAcronimo("MAT101");
+        Grupo grupo = new Grupo();
+        grupo.setMateria(materia);
+        registro.setGrupo(grupo);
+        registro.setEstado(Semaforo.ROJO);
+        semestre.setRegistros(List.of(registro));
+        estudianteMock.setSemestres(List.of(semestre));
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+        String result = estudianteService.cancelarMateria("est123", "MAT101");
+        assertTrue(result.contains("ha sido cancelada exitosamente"));
+        verify(usuarioRepository).save(estudianteMock);
+        assertEquals(Semaforo.CANCELADO, registro.getEstado());
+    }
+
+    @Test
+    void testCancelarMateria_EstudianteNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.cancelarMateria("est123", "MAT101"));
+        assertEquals(SirhaException.ESTUDIANTE_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testCancelarMateria_SinSemestres() {
+    Estudiante estudianteMock = new Estudiante();
+    estudianteMock.setSemestres(List.of());
+    when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+    SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.cancelarMateria("est123", "MAT101"));
+    assertTrue(ex.getMessage().contains("no tiene semestres registrados"));
+    }
+
+    @Test
+    void testCancelarMateria_MateriaNoInscrita() {
+    Estudiante estudianteMock = new Estudiante();
+    Semestre semestre = new Semestre();
+    semestre.setRegistros(List.of());
+    estudianteMock.setSemestres(List.of(semestre));
+    when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+    SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.cancelarMateria("est123", "MAT101"));
+    assertTrue(ex.getMessage().contains("no está inscrito en la materia"));
+    }
+
+    @Test
+    void testCancelarMateria_MateriaYaCancelada() {
+    Estudiante estudianteMock = new Estudiante();
+    Semestre semestre = new Semestre();
+    RegistroMaterias registro = new RegistroMaterias();
+    Materia materia = new Materia();
+    materia.setAcronimo("MAT101");
+    Grupo grupo = new Grupo();
+    grupo.setMateria(materia);
+    registro.setGrupo(grupo);
+    registro.setEstado(Semaforo.CANCELADO);
+    semestre.setRegistros(List.of(registro));
+    estudianteMock.setSemestres(List.of(semestre));
+    when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+    SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.cancelarMateria("est123", "MAT101"));
+    assertTrue(ex.getMessage().contains("ya está cancelada"));
+    }
+
+    @Test
+    void testCancelarMateria_MateriaAprobada() {
+    Estudiante estudianteMock = new Estudiante();
+    Semestre semestre = new Semestre();
+    RegistroMaterias registro = new RegistroMaterias();
+    Materia materia = new Materia();
+    materia.setAcronimo("MAT101");
+    Grupo grupo = new Grupo();
+    grupo.setMateria(materia);
+    registro.setGrupo(grupo);
+    registro.setEstado(Semaforo.VERDE);
+    semestre.setRegistros(List.of(registro));
+    estudianteMock.setSemestres(List.of(semestre));
+    when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+    SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.cancelarMateria("est123", "MAT101"));
+    assertTrue(ex.getMessage().contains("ya está aprobada"));
+    }
+
+    @Test
+    void testConsultarHorarioBySemester_EstudianteNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarHorarioBySemester("est123", 1));
+        assertEquals(SirhaException.ESTUDIANTE_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarHorarioBySemester_SemestreInvalido() {
+        Estudiante estudianteMock = mock(Estudiante.class);
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+        when(estudianteMock.getRegistrosBySemestre(anyInt())).thenThrow(new RuntimeException("Error"));
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarHorarioBySemester("est123", 1));
+        assertEquals(SirhaException.SEMESTRE_INVALIDO, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSemaforoAcademico_Exitoso() throws SirhaException {
+        Estudiante estudianteMock = mock(Estudiante.class);
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
+        when(estudianteMock.getSemaforo()).thenReturn(Map.of("MAT101", Semaforo.ROJO));
+        Map<String, Semaforo> result = estudianteService.consultarSemaforoAcademico("est123");
+        assertEquals(1, result.size());
+        assertEquals(Semaforo.ROJO, result.get("MAT101"));
+    }
+
+    @Test
+    void testConsultarSemaforoAcademico_EstudianteNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSemaforoAcademico("est123"));
+        assertEquals(SirhaException.ESTUDIANTE_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSolicitudes_Exitoso() throws SirhaException {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstudianteId("est123");
+        when(solicitudRepository.findByEstudianteId("est123")).thenReturn(List.of(solicitud));
+        List<Solicitud> result = estudianteService.consultarSolicitudes("est123");
+        assertEquals(1, result.size());
+        assertEquals("est123", result.get(0).getEstudianteId());
+    }
+
+    @Test
+    void testConsultarSolicitudes_EstudianteNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudes("est123"));
+        assertEquals(SirhaException.ESTUDIANTE_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSolicitudesById_Exitoso() throws SirhaException {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId("sol1");
+        solicitud.setEstudianteId("est123");
+        when(solicitudRepository.findById("sol1")).thenReturn(Optional.of(solicitud));
+        Solicitud result = estudianteService.consultarSolicitudesById("est123", "sol1");
+        assertEquals("sol1", result.getId());
+        assertEquals("est123", result.getEstudianteId());
+    }
+
+    @Test
+    void testConsultarSolicitudesById_EstudianteNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudesById("est123", "sol1"));
+        assertEquals(SirhaException.ESTUDIANTE_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSolicitudesById_SolicitudNoEncontrada() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(solicitudRepository.findById("sol1")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudesById("est123", "sol1"));
+        assertEquals(SirhaException.SOLICITUD_NO_ENCONTRADA, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSolicitudesById_SolicitudNoPerteneceAEstudiante() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        Solicitud solicitud = new Solicitud();
+        solicitud.setId("sol1");
+        solicitud.setEstudianteId("otroEst");
+        when(solicitudRepository.findById("sol1")).thenReturn(Optional.of(solicitud));
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudesById("est123", "sol1"));
+        assertEquals(SirhaException.SOLICITUD_NO_ENCONTRADA, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSolicitudesPorEstado_Exitoso() throws SirhaException {
+        SolicitudEstado estado = SolicitudEstado.PENDIENTE;
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstado(estado);
+        when(solicitudRepository.findByEstado(estado)).thenReturn(List.of(solicitud));
+        List<Solicitud> result = estudianteService.consultarSolicitudesPorEstado(estado);
+        assertEquals(1, result.size());
+        assertEquals(estado, result.get(0).getEstado());
+    }
+
+    @Test
+    void testConsultarSolicitudesPorEstado_EstadoNulo() {
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudesPorEstado(null));
+        assertEquals("El estado de la solicitud no puede ser nulo", ex.getMessage());
+    }
+
+    @Test
+    void testConsultarTodasLasSolicitudes() {
+        Solicitud solicitud = new Solicitud();
+        when(solicitudRepository.findAll()).thenReturn(List.of(solicitud));
+        List<Solicitud> result = estudianteService.consultarTodasLasSolicitudes();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void testConsultarSolicitudesEstudiantePorEstado_Exitoso() throws SirhaException {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstado(SolicitudEstado.PENDIENTE);
+        when(solicitudRepository.findByEstudianteId("est123")).thenReturn(List.of(solicitud));
+        List<Solicitud> result = estudianteService.consultarSolicitudesEstudiantePorEstado("est123", SolicitudEstado.PENDIENTE);
+        assertEquals(1, result.size());
+        assertEquals(SolicitudEstado.PENDIENTE, result.get(0).getEstado());
+    }
+
+    @Test
+    void testConsultarSolicitudesEstudiantePorEstado_EstudianteNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.empty());
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudesEstudiantePorEstado("est123", SolicitudEstado.PENDIENTE));
+        assertEquals(SirhaException.ESTUDIANTE_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testConsultarSolicitudesEstudiantePorEstado_EstadoNulo() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarSolicitudesEstudiantePorEstado("est123", null));
+        assertEquals("El estado de la solicitud no puede ser nulo", ex.getMessage());
     }
 
     @Test
