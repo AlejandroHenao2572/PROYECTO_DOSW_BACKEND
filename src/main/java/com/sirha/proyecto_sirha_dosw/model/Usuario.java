@@ -13,7 +13,14 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Document(collection = "usuarios")
+@Getter
+@Setter
+@NoArgsConstructor
 public abstract class Usuario {
 	// Campos
 	@Id
@@ -48,12 +55,6 @@ public abstract class Usuario {
 	private LocalDateTime fechaActualizacion;
 
 	/**
-	 * Constructor por defecto.
-	 */
-	public Usuario() {
-	}
-
-	/**
 	 * Constructor con parámetros básicos.
 	 * @param nombre Nombre del usuario
 	 * @param apellido Apellido del usuario
@@ -82,18 +83,4 @@ public abstract class Usuario {
 		this.password = contraseña;
 		this.rol = rol;
 	}
-
-	// Getters y setters con documentación básica
-	public String getId() { return id; }
-	public void setId(String id) { this.id = id; }
-	public String getNombre() { return nombre; }
-	public void setNombre(String nombre) { this.nombre = nombre; }
-	public String getApellido() { return apellido; }
-	public void setApellido(String apellido) { this.apellido = apellido; }
-	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
-	public String getPassword() { return password; }
-	public void setPassword(String password) { this.password = password; }
-	public Rol getRol() { return rol; }
-	public void setRol(Rol rol) { this.rol = rol; }
 }

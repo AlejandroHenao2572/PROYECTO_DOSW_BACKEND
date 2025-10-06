@@ -9,9 +9,9 @@ import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.service.DecanoService;
+import com.sirha.proyecto_sirha_dosw.util.HorarioResponseUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -180,15 +180,7 @@ public class DecanoController {
                 return new ResponseEntity<>(SirhaException.NO_HORARIO_ENCONTRADO, HttpStatus.NOT_FOUND);
             }
 
-            Map<String, List<Horario>> horariosPorMateria = new HashMap<>();
-            for (RegistroMaterias registro : registroMaterias) {
-                Grupo grupo = registro.getGrupo();
-                if (grupo != null && grupo.getHorarios() != null && !grupo.getHorarios().isEmpty()) {
-                    String nombreMateria = grupo.getMateria().getNombre();
-                    List<Horario> horarios = grupo.getHorarios();
-                    horariosPorMateria.put(nombreMateria, horarios);
-                }
-            }
+            Map<String, List<Horario>> horariosPorMateria = HorarioResponseUtil.mapearHorariosPorMateria(registroMaterias);
             return ResponseEntity.ok(horariosPorMateria);
         } catch (SirhaException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

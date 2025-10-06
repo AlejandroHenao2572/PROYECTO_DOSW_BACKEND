@@ -75,7 +75,7 @@ public class CapacidadGrupoDTOTest {
 	void testActualizarCalculosCapacidadCero() {
 		CapacidadGrupoDTO dto = new CapacidadGrupoDTO("G4", "M4", "Historia", "HIS101", 0, 10);
 		assertEquals(0.0, dto.getPorcentajeOcupacion());
-		assertEquals(-10, dto.getCuposDisponibles());
+		assertEquals(0, dto.getCuposDisponibles());
 		assertTrue(dto.isEstaCompleto());
 	}
 

@@ -7,6 +7,7 @@ import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
+import com.sirha.proyecto_sirha_dosw.util.EstudianteValidationUtil;
 import com.sirha.proyecto_sirha_dosw.util.SolicitudUtil;
 import org.springframework.stereotype.Service;
 
@@ -56,22 +57,8 @@ public class EstudianteService {
      * @throws IllegalArgumentException si esl estudiante no existe o no tiene registros.
      */
     public List<RegistroMaterias> consultarHorarioBySemester(String idEstudiante, int semestre) throws SirhaException {
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        try {
-            Estudiante estudiante = estudianteOpt.get();
-            List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(semestre);
-            if (registroMaterias.isEmpty()) {
-                throw new SirhaException(SirhaException.NO_HORARIO_ENCONTRADO);
-            }
-            return registroMaterias;
-        }catch (Exception e) {
-            throw new SirhaException(SirhaException.SEMESTRE_INVALIDO);
-        }
+        Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+        return EstudianteValidationUtil.obtenerRegistrosPorSemestre(estudiante, semestre);
     }
 
     /**
@@ -82,14 +69,8 @@ public class EstudianteService {
      * @throws IllegalArgumentException si el estudiante no existe.
      */
     public Map<String, Semaforo> consultarSemaforoAcademico(String idEstudiante) throws SirhaException {
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        Estudiante estudiante = estudianteOpt.get();
-        return estudiante.getSemaforo();
+    Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+    return EstudianteValidationUtil.obtenerSemaforo(estudiante);
     }
 
     /**
@@ -100,11 +81,7 @@ public class EstudianteService {
      */
     public Solicitud crearSolicitud(SolicitudDTO solicitudDTO) throws SirhaException {
         // 1. Verificar que el estudiante existe
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(solicitudDTO.getEstudianteId());
-        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        Estudiante estudiante = (Estudiante) usuarioOpt.get();
+        Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, solicitudDTO.getEstudianteId());
         
         // 2. Verificar que la materia no este cancelada en el semestre actual
         if (estudiante.tieneMateriaCandeladaEnSemestreActual(solicitudDTO.getMateriaProblemaAcronimo())) {
@@ -195,10 +172,7 @@ public class EstudianteService {
      * @throws IllegalArgumentException si el estudiante no existe o no es un estudiante.
      */
     public List<Solicitud> consultarSolicitudes(String idEstudiante) throws SirhaException {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
-        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
+        EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
         return solicitudRepository.findByEstudianteId(idEstudiante);
     }
 
@@ -210,10 +184,7 @@ public class EstudianteService {
      * @throws IllegalArgumentException si el estudiante no existe, si la solicitud no existe.
      */
     public Solicitud consultarSolicitudesById(String idEstudiante, String solicitudId) throws SirhaException{
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
-        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
+        EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
         Optional<Solicitud> solicitudOpt = solicitudRepository.findById(solicitudId);
         if (solicitudOpt.isEmpty()) {
             throw new SirhaException(SirhaException.SOLICITUD_NO_ENCONTRADA);
@@ -234,13 +205,7 @@ public class EstudianteService {
      */
     public String cancelarMateria(String idEstudiante, String acronimoMateria) throws SirhaException {
         // 1. Verificar que el estudiante existe
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        Estudiante estudiante = estudianteOpt.get();
+    Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
 
         // 2. Verificar que el estudiante tiene semestres
         if (estudiante.getSemestres().isEmpty()) {
@@ -322,11 +287,8 @@ public class EstudianteService {
      */
     public List<Solicitud> consultarSolicitudesEstudiantePorEstado(String idEstudiante, SolicitudEstado estado) throws SirhaException {
         // Verificar que el estudiante existe
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(idEstudiante);
-        if (usuarioOpt.isEmpty() || !(usuarioOpt.get() instanceof Estudiante)) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        
+        EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+
         if (estado == null) {
             throw new SirhaException("El estado de la solicitud no puede ser nulo");
         }

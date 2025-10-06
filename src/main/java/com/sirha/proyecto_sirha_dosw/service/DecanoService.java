@@ -13,6 +13,7 @@ import com.sirha.proyecto_sirha_dosw.repository.GrupoRepository;
 import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
+import com.sirha.proyecto_sirha_dosw.util.EstudianteValidationUtil;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -106,25 +107,8 @@ public class DecanoService {
      * @throws SirhaException si el estudiante no existe o no tiene registros
      */
     public List<RegistroMaterias> consultarHorarioEstudiante(String idEstudiante, int semestre) throws SirhaException {
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        
-        System.out.println(estudianteOpt.isEmpty());
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        
-        try {
-            Estudiante estudiante = estudianteOpt.get();
-            List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(semestre);
-            if (registroMaterias.isEmpty()) {
-                throw new SirhaException(SirhaException.NO_HORARIO_ENCONTRADO);
-            }
-            return registroMaterias;
-        } catch (Exception e) {
-            throw new SirhaException(SirhaException.SEMESTRE_INVALIDO);
-        }
+        Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+        return EstudianteValidationUtil.obtenerRegistrosPorSemestre(estudiante, semestre);
     }
 
     /**
@@ -135,16 +119,8 @@ public class DecanoService {
      * @throws SirhaException si el estudiante no existe
      */
     public Map<String, Semaforo> consultarSemaforoAcademicoEstudiante(String idEstudiante) throws SirhaException {
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO);
-        }
-        
-        Estudiante estudiante = estudianteOpt.get();
-        return estudiante.getSemaforo();
+    Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+    return EstudianteValidationUtil.obtenerSemaforo(estudiante);
     }
 
     /**
@@ -176,13 +152,7 @@ public class DecanoService {
             throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + "ID vacío");
         }
         
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante);
-        }
-        Estudiante estudiante = estudianteOpt.get();
+        Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
         Facultad facultadEnum = estudiante.getCarrera();
         if (!facultadEnum.name().equalsIgnoreCase(facultad)) {
             throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante + " en la facultad " + facultad);
@@ -212,15 +182,7 @@ public class DecanoService {
         validarEstudianteFacultad(idEstudiante, facultad);
         
         // Obtener el estudiante
-        Optional<Estudiante> estudianteOpt = usuarioRepository.findById(idEstudiante)
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
-        
-        if (estudianteOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO + idEstudiante);
-        }
-        
-        Estudiante estudiante = estudianteOpt.get();
+    Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
         
         // Calcular el semestre actual (número de semestres cursados)
         int semestreActual = estudiante.getSemestres().size();

@@ -9,7 +9,14 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Document(collection = "materias")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Materia {
 
 	@Id
@@ -34,12 +41,6 @@ public class Materia {
 	private Facultad facultad;
 
 	/**
-	 * Constructor por defecto.
-	 */
-	public Materia() {
-	}
-
-	/**
 	 * Constructor con parámetros básicos.
 	 * @param nombre Nombre de la materia
 	 * @param acronimo Acrónimo único de la materia
@@ -52,16 +53,4 @@ public class Materia {
 		this.creditos = creditos;
 		this.facultad = facultad;
 	}
-
-	// Getters y setters
-	public String getId() { return id; }
-	public void setId(String id) { this.id = id; }
-	public String getNombre() { return nombre; }
-	public void setNombre(String nombre) { this.nombre = nombre; }
-	public String getAcronimo() { return acronimo; }
-	public void setAcronimo(String acronimo) { this.acronimo = acronimo; }
-	public int getCreditos() { return creditos; }
-	public void setCreditos(int creditos) { this.creditos = creditos; }
-	public Facultad getFacultad() { return facultad; }
-	public void setFacultad(Facultad facultad) { this.facultad = facultad; }
 }

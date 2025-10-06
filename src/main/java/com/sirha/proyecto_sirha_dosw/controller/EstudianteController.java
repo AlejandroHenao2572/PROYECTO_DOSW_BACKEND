@@ -5,6 +5,7 @@ import com.sirha.proyecto_sirha_dosw.exception.Log;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.service.EstudianteService;
+import com.sirha.proyecto_sirha_dosw.util.HorarioResponseUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,15 +49,7 @@ public class EstudianteController {
                 return new ResponseEntity<>(SirhaException.NO_HORARIO_ENCONTRADO, HttpStatus.NOT_FOUND);
             }
 
-            Map<String, List<Horario>> horariosPorMateria = new HashMap<>();
-            for (RegistroMaterias registro : registroMaterias) {
-                Grupo grupo = registro.getGrupo();
-                if (grupo != null && grupo.getHorarios() != null && !grupo.getHorarios().isEmpty()) {
-                    String nombreMateria = grupo.getMateria().getNombre();
-                    List<Horario> horarios = grupo.getHorarios();
-                    horariosPorMateria.put(nombreMateria, horarios);
-                }
-            }
+            Map<String, List<Horario>> horariosPorMateria = HorarioResponseUtil.mapearHorariosPorMateria(registroMaterias);
             return ResponseEntity.ok(horariosPorMateria);
         } catch (SirhaException e) {
             Log.record(e);

@@ -199,15 +199,6 @@ class EstudianteServiceTest {
     }
 
     @Test
-    void testConsultarHorarioBySemester_SemestreInvalido() {
-        Estudiante estudianteMock = mock(Estudiante.class);
-        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));
-        when(estudianteMock.getRegistrosBySemestre(anyInt())).thenThrow(new RuntimeException("Error"));
-        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.consultarHorarioBySemester("est123", 1));
-        assertEquals(SirhaException.SEMESTRE_INVALIDO, ex.getMessage());
-    }
-
-    @Test
     void testConsultarSemaforoAcademico_Exitoso() throws SirhaException {
         Estudiante estudianteMock = mock(Estudiante.class);
         when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudianteMock));

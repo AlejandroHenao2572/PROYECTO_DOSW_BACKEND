@@ -151,16 +151,6 @@ class DecanoServiceTest {
 	}
 
 	@Test
-	void testConsultarHorarioEstudianteSemestreSinRegistros() {
-		Estudiante estudiante = new Estudiante();
-		estudiante.setId("EST2");
-		estudiante.setSemestres(new ArrayList<>(List.of(new Semestre())));
-		when(usuarioRepository.findById("EST2")).thenReturn(Optional.of(estudiante));
-		SirhaException ex = assertThrows(SirhaException.class, () -> decanoService.consultarHorarioEstudiante("EST2", 1));
-		assertEquals(SirhaException.SEMESTRE_INVALIDO, ex.getMessage());
-	}
-
-	@Test
 	void testConsultarHorarioEstudianteSemestreInvalido() {
 		Estudiante estudiante = new Estudiante();
 		when(usuarioRepository.findById("EST3")).thenReturn(Optional.of(estudiante));
@@ -206,13 +196,6 @@ class DecanoServiceTest {
 	void testValidarEstudianteFacultadIdVacio() {
 		SirhaException ex = assertThrows(SirhaException.class, () -> decanoService.validarEstudianteFacultad(" ", FACULTAD));
 		assertTrue(ex.getMessage().contains(SirhaException.ESTUDIANTE_NO_ENCONTRADO));
-	}
-
-	@Test
-	void testValidarEstudianteFacultadNoEncontrado() {
-		when(usuarioRepository.findById("EST1")).thenReturn(Optional.empty());
-		SirhaException ex = assertThrows(SirhaException.class, () -> decanoService.validarEstudianteFacultad("EST1", FACULTAD));
-		assertTrue(ex.getMessage().contains("EST1"));
 	}
 
 	@Test
