@@ -356,8 +356,12 @@ public class DecanoService {
      */
     private void procesarAprobacionSolicitud(Solicitud solicitud) {
         Optional<Estudiante> estudianteOpt = usuarioRepository.findById(solicitud.getEstudianteId())
-                .filter(Estudiante.class::isInstance)
-                .map(Estudiante.class::cast);
+            .filter(Estudiante.class::isInstance)
+            .map(Estudiante.class::cast);
+        if (!estudianteOpt.isPresent()) {
+            // Manejo de error: estudiante no encontrado
+            throw new IllegalStateException("No se encontró el estudiante con id: " + solicitud.getEstudianteId());
+        }
         Estudiante estudiante = estudianteOpt.get();
 
         // Remover estudiante del grupo problema si existe
