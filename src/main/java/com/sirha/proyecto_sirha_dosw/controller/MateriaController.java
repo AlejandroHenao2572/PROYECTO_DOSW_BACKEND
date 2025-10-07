@@ -19,28 +19,28 @@ public class MateriaController {
 
     @Autowired
     public MateriaController(MateriaService materiaService) {
-        this.materiaService = materiaService;
+        this.materiaService = java.util.Objects.requireNonNull(materiaService);
     }
 
     @PostMapping
-    public ResponseEntity<?> createMateria(@Valid @RequestBody MateriaDTO materiaDTO) {
+    public ResponseEntity<Materia> createMateria(@Valid @RequestBody MateriaDTO materiaDTO) {
         try {
             Materia created = materiaService.createMateria(materiaDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_CREACION_MATERIA+e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAllMaterias(@PathVariable String id) {
+    public ResponseEntity<String> deleteAllMaterias(@PathVariable String id) {
         try {
             materiaService.deleteMateria(id);
             return ResponseEntity.noContent().build();
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_ELIMINACION_MATERIA+e.getMessage());
+            Log.logException(e);
+            return new ResponseEntity<>(SirhaException.ERROR_ELIMINACION_MATERIA+e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 }

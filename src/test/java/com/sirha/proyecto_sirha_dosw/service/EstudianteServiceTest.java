@@ -82,7 +82,7 @@ class EstudianteServiceTest {
     }
 
     @Test
-    void testGetRegistrosBySemestreRetornaLista() throws SirhaException {
+    void testGetRegistrosBySemestreRetornaLista(){
         // Configura un semestre con un registro
         RegistroMaterias registro = mock(RegistroMaterias.class);
         Semestre semestre = new Semestre();

@@ -220,19 +220,29 @@ public class ReportesController {
     public ResponseEntity<IndicadoresAvanceDTO> obtenerIndicadoresAvanceGlobales(
             @RequestParam(required = false) String facultad) {
         try {
-            Facultad facultadEnum = null;
-            if (facultad != null && !facultad.trim().isEmpty()) {
-                try {
-                    facultadEnum = Facultad.valueOf(facultad.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    return ResponseEntity.badRequest().build();
-                }
+
+            Facultad facultadEnum = parseFacultad(facultad);
+            // Solo retorna 400 si el parámetro no es vacío y no coincide con ningún enum
+            if (facultad != null && !facultad.trim().isEmpty() && facultadEnum == null) {
+                return ResponseEntity.badRequest().build();
             }
-            
+
             IndicadoresAvanceDTO estadisticas = reportesService.calcularIndicadoresAvanceGlobales(facultadEnum);
             return ResponseEntity.ok(estadisticas);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // Método privado para convertir el string facultad en enum Facultad
+    private Facultad parseFacultad(String facultad) {
+        if (facultad == null || facultad.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Facultad.valueOf(facultad.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 }

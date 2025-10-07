@@ -6,7 +6,6 @@ import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.repository.CarreraRepository;
 import com.sirha.proyecto_sirha_dosw.repository.SolicitudRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
@@ -24,12 +23,49 @@ import java.util.Optional;
 
 @Service
 public class UsuarioService {
+    // Métodos privados para validaciones
+    private void validarNombre(Usuario usuario, String nombre) {
+        if (nombre != null && !nombre.trim().isEmpty()) {
+            usuario.setNombre(nombre);
+        }
+    }
+
+    private void validarApellido(Usuario usuario, String apellido) {
+        if (apellido != null && !apellido.trim().isEmpty()) {
+            usuario.setApellido(apellido);
+        }
+    }
+
+    private void validarEmail(Usuario usuario, String email, String usuarioId) throws SirhaException {
+        if (email != null && !email.trim().isEmpty()) {
+            Optional<Usuario> existente = usuarioRepository.findByEmail(email);
+            if (existente.isPresent() && !existente.get().getId().equals(usuarioId)) {
+                throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
+            }
+            usuario.setEmail(email);
+        }
+    }
+
+    private void validarPassword(Usuario usuario, String password) {
+        if (password != null && !password.trim().isEmpty()) {
+            usuario.setPassword(password);
+        }
+    }
+
+    private void validarRol(Usuario usuario, String rol) throws SirhaException {
+        if (rol != null && !rol.trim().isEmpty()) {
+            try {
+                usuario.setRol(Rol.valueOf(rol.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new SirhaException(SirhaException.ROL_INVALIDO);
+            }
+        }
+    }
 
     private final UsuarioRepository usuarioRepository;
     private final CarreraRepository carreraRepository;
     private final SolicitudRepository solicitudRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Constructor para inyectar los repositorios necesarios.
@@ -40,12 +76,14 @@ public class UsuarioService {
      *                          {@link Carrera}
      * @param solicitudRepository repositorio que gestiona la persistencia de
      *                          {@link Solicitud}
+     * @param passwordEncoder codificador de contraseñas
      */
 
-    public UsuarioService(UsuarioRepository usuarioRepository, CarreraRepository carreraRepository, SolicitudRepository solicitudRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, CarreraRepository carreraRepository, SolicitudRepository solicitudRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.carreraRepository = carreraRepository;
         this.solicitudRepository = solicitudRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -96,18 +134,15 @@ public class UsuarioService {
     }
 
     private void verificarFacultad(UsuarioDTO dto) throws SirhaException{
-        if(dto.getRol().toUpperCase().equals("DECANO") || dto.getRol().toUpperCase().equals("ESTUDIANTE")) {
+    if(dto.getRol().equalsIgnoreCase("DECANO") || dto.getRol().equalsIgnoreCase("ESTUDIANTE")) {
             if (carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad())).isEmpty()) {
                 throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + dto.getFacultad());
             }
-            if(dto.getRol().toUpperCase().equals("DECANO")){
+            if(dto.getRol().equalsIgnoreCase("DECANO")){
                 List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
                 for (Usuario decano : decanos) {
-                    if (decano instanceof Decano) {
-                        Decano decanoObj = (Decano) decano;
-                        if (decanoObj.getFacultad().equals(Facultad.valueOf(dto.getFacultad()))) {
-                            throw new SirhaException(SirhaException.DECANO_YA_EXISTE + dto.getFacultad());
-                        }
+                    if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(Facultad.valueOf(dto.getFacultad()))) {
+                        throw new SirhaException(SirhaException.DECANO_YA_EXISTE + dto.getFacultad());
                     }
                 }
             }
@@ -128,30 +163,11 @@ public class UsuarioService {
             throw new SirhaException(SirhaException.USUARIO_NO_ENCONTRADO + usuarioId);
         }
         Usuario usuario = usuarioOpt.get();
-        if (dto.getNombre() != null && !dto.getNombre().trim().isEmpty()) {
-            usuario.setNombre(dto.getNombre());
-        }
-        if (dto.getApellido() != null && !dto.getApellido().trim().isEmpty()) {
-            usuario.setApellido(dto.getApellido());
-        }
-        if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
-            // Verificar que el nuevo email no esté ya en uso por otro usuario
-            Optional<Usuario> existente = usuarioRepository.findByEmail(dto.getEmail());
-            if (existente.isPresent() && !existente.get().getId().equals(usuarioId)) {
-                throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
-            }
-            usuario.setEmail(dto.getEmail());
-        }
-        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
-            usuario.setPassword(dto.getPassword());
-        }
-        if (dto.getRol() != null && !dto.getRol().trim().isEmpty()) {
-            try {
-                usuario.setRol(Rol.valueOf(dto.getRol().toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                throw new SirhaException(SirhaException.ROL_INVALIDO);
-            }
-        }
+        validarNombre(usuario, dto.getNombre());
+        validarApellido(usuario, dto.getApellido());
+        validarEmail(usuario, dto.getEmail(), usuarioId);
+        validarPassword(usuario, dto.getPassword());
+        validarRol(usuario, dto.getRol());
         return usuarioRepository.save(usuario);
     }
 

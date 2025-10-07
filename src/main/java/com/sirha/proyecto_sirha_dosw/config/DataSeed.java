@@ -1,11 +1,13 @@
+
 package com.sirha.proyecto_sirha_dosw.config;
 
 import com.sirha.proyecto_sirha_dosw.model.*;
 import com.sirha.proyecto_sirha_dosw.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -19,22 +21,29 @@ import java.util.List;
  */
 @Component
 @Profile("dev")
+
 public class DataSeed implements CommandLineRunner {
+    private static final Logger logger = LoggerFactory.getLogger(DataSeed.class);
+    private final MateriaRepository materiaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final GrupoRepository grupoRepository;
+    private final CarreraRepository carreraRepository;
+    private final SolicitudRepository solicitudRepository;
+    private static final String HORA_DIEZ = "10:00";
+    private static final String HORA_CATORCE = "14:00";
+    private static final String HORA_DIECISIES = "16:00";
 
-    @Autowired
-    private MateriaRepository materiaRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private GrupoRepository grupoRepository;
-
-    @Autowired
-    private CarreraRepository carreraRepository;
-
-    @Autowired
-    private SolicitudRepository solicitudRepository;
+    public DataSeed(MateriaRepository materiaRepository,
+                    UsuarioRepository usuarioRepository,
+                    GrupoRepository grupoRepository,
+                    CarreraRepository carreraRepository,
+                    SolicitudRepository solicitudRepository) {
+        this.materiaRepository = materiaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.grupoRepository = grupoRepository;
+        this.carreraRepository = carreraRepository;
+        this.solicitudRepository = solicitudRepository;
+    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -44,7 +53,7 @@ public class DataSeed implements CommandLineRunner {
         // Crear datos de prueba
         crearDatosDePrueba();
         
-        System.out.println("DataSeed ejecutado exitosamente - Datos de prueba creados");
+        logger.info("DataSeed ejecutado exitosamente - Datos de prueba creados");
     }
 
     private void limpiarDatos() {
@@ -53,7 +62,7 @@ public class DataSeed implements CommandLineRunner {
         materiaRepository.deleteAll();
         usuarioRepository.deleteAll();
         carreraRepository.deleteAll();
-        System.out.println("Datos existentes eliminados");
+        logger.info("Datos existentes eliminados");
     }
 
     private void crearDatosDePrueba() {
@@ -77,19 +86,19 @@ public class DataSeed implements CommandLineRunner {
 
         // 3. Crear grupos con horarios diferentes
         Grupo grupoDOSW1 = crearGrupo(desarrolloSoftware, 25, profesorPablo, 
-            crearHorarios(Dia.LUNES, "08:00", "10:00", Dia.MIERCOLES, "08:00", "10:00"));
+            crearHorarios(Dia.LUNES, "08:00", HORA_DIEZ, Dia.MIERCOLES, "08:00", HORA_DIEZ));
         grupoDOSW1.setId("01");
 
         Grupo grupoDOSW2 = crearGrupo(desarrolloSoftware, 30, profesorPablo,
-            crearHorarios(Dia.MARTES, "14:00", "16:00", Dia.JUEVES, "14:00", "16:00"));
+            crearHorarios(Dia.MARTES, HORA_CATORCE, HORA_DIECISIES, Dia.JUEVES, HORA_CATORCE, HORA_DIECISIES));
         grupoDOSW2.setId("02");
 
         Grupo grupoODSC1 = crearGrupo(sistemasOperativos, 28, profesorGerardo,
-            crearHorarios(Dia.LUNES, "10:00", "12:00", Dia.MIERCOLES, "10:00", "12:00"));
+            crearHorarios(Dia.LUNES, HORA_DIEZ, "12:00", Dia.MIERCOLES, HORA_DIEZ, "12:00"));
         grupoODSC1.setId("03");
 
         Grupo grupoODSC2 = crearGrupo(sistemasOperativos, 25, profesorGerardo,
-            crearHorarios(Dia.MARTES, "14:00", "16:00", Dia.JUEVES, "14:00", "16:00"));
+            crearHorarios(Dia.MARTES, HORA_CATORCE, HORA_DIECISIES, Dia.JUEVES, HORA_CATORCE, HORA_DIECISIES));
         grupoODSC2.setId("04");
 
         // 4. Crear estudiantes
@@ -118,8 +127,12 @@ public class DataSeed implements CommandLineRunner {
         grupoRepository.saveAll(Arrays.asList(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2));
 
         // 9. Crear solicitudes de prueba
-        crearSolicitudesDePrueba(estudiante1, estudiante2, grupoDOSW1, grupoDOSW2, 
-                               grupoODSC1, grupoODSC2, desarrolloSoftware, sistemasOperativos);
+        SolicitudesPruebaContext ctx = new SolicitudesPruebaContext(
+            List.of(estudiante1, estudiante2),
+            List.of(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2),
+            List.of(desarrolloSoftware, sistemasOperativos)
+        );
+        crearSolicitudesDePrueba(ctx);
 
     }
 
@@ -194,22 +207,28 @@ public class DataSeed implements CommandLineRunner {
     /**
      * Crea solicitudes de prueba para validar las funcionalidades del decano.
      */
-    private void crearSolicitudesDePrueba(Estudiante estudiante1, Estudiante estudiante2, 
-                                         Grupo grupoDOSW1, Grupo grupoDOSW2, 
-                                         Grupo grupoODSC1, Grupo grupoODSC2,
-                                         Materia desarrolloSoftware, Materia sistemasOperativos) {
+    private void crearSolicitudesDePrueba(SolicitudesPruebaContext ctx) {
         
-        // Solicitud 1: Estudiante1 quiere cambiar de grupoDOSW1 a grupoDOSW2 (Desarrollo de Software)
-        Solicitud solicitud1 = new Solicitud();
-        solicitud1.setId("SOL001");
-        solicitud1.setEstudianteId(estudiante1.getId());
-        solicitud1.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
-        solicitud1.setGrupoProblema(grupoDOSW1);
-        solicitud1.setMateriaProblema(desarrolloSoftware);
-        solicitud1.setGrupoDestino(grupoDOSW2);
-        solicitud1.setMateriaDestino(desarrolloSoftware);
-        solicitud1.setObservaciones("Solicito cambio de grupo debido a conflicto de horarios con trabajo de medio tiempo");
-        solicitud1.setEstado(SolicitudEstado.PENDIENTE);
+    // Solicitud 1: Estudiante1 quiere cambiar de grupoDOSW1 a grupoDOSW2 (Desarrollo de Software)
+    Estudiante estudiante1 = ctx.estudiantes.get(0);
+    Estudiante estudiante2 = ctx.estudiantes.get(1);
+    Grupo grupoDOSW1 = ctx.grupos.get(0);
+    Grupo grupoDOSW2 = ctx.grupos.get(1);
+    Grupo grupoODSC1 = ctx.grupos.get(2);
+    Grupo grupoODSC2 = ctx.grupos.get(3);
+    Materia desarrolloSoftware = ctx.materias.get(0);
+    Materia sistemasOperativos = ctx.materias.get(1);
+
+    Solicitud solicitud1 = new Solicitud();
+    solicitud1.setId("SOL001");
+    solicitud1.setEstudianteId(estudiante1.getId());
+    solicitud1.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
+    solicitud1.setGrupoProblema(grupoDOSW1);
+    solicitud1.setMateriaProblema(desarrolloSoftware);
+    solicitud1.setGrupoDestino(grupoDOSW2);
+    solicitud1.setMateriaDestino(desarrolloSoftware);
+    solicitud1.setObservaciones("Solicito cambio de grupo debido a conflicto de horarios con trabajo de medio tiempo");
+    solicitud1.setEstado(SolicitudEstado.PENDIENTE);
         solicitud1.setFacultad(Facultad.INGENIERIA_SISTEMAS);
         solicitud1.setNumeroRadicado("RAD-2025-001");
         solicitud1.setPrioridad(1);
@@ -233,5 +252,20 @@ public class DataSeed implements CommandLineRunner {
         
         // Guardar las solicitudes
         solicitudRepository.saveAll(Arrays.asList(solicitud1, solicitud2));
+    }
+}
+
+/**
+ * Contexto para agrupar los datos necesarios para crear solicitudes de prueba.
+ */
+class SolicitudesPruebaContext {
+    final List<Estudiante> estudiantes;
+    final List<Grupo> grupos;
+    final List<Materia> materias;
+
+    SolicitudesPruebaContext(List<Estudiante> estudiantes, List<Grupo> grupos, List<Materia> materias) {
+        this.estudiantes = estudiantes;
+        this.grupos = grupos;
+        this.materias = materias;
     }
 }

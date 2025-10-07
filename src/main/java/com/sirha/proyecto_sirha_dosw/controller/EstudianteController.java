@@ -23,6 +23,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/Estudiantes")
 public class EstudianteController {
+    private static final String SOLICITUDES_KEY = "solicitudes";
+    private static final String TOTAL_KEY = "total";
+    private static final String ESTADO_KEY = "estado";
+    private static final String MENSAJE_KEY = "mensaje";
+    private static final String ERROR_KEY = "error";
 
     private final EstudianteService estudianteService;
 
@@ -32,7 +37,7 @@ public class EstudianteController {
      */
     @Autowired
     public EstudianteController(EstudianteService estudianteService) {
-        this.estudianteService = estudianteService;
+        this.estudianteService = java.util.Objects.requireNonNull(estudianteService);
     }
 
     /**
@@ -42,18 +47,22 @@ public class EstudianteController {
      * @return Map con el nombre de la materia y la lista de horarios asociados.
      */
     @GetMapping("/horario/{idEstudiante}/{semestre}")
-    public ResponseEntity<?> consultarHorarioPorSemestre(@PathVariable String idEstudiante, @PathVariable int semestre) {
+    public ResponseEntity<Map<String, List<Horario>>> consultarHorarioPorSemestre(@PathVariable String idEstudiante, @PathVariable int semestre) {
         try {
             List<RegistroMaterias> registroMaterias = estudianteService.consultarHorarioBySemester(idEstudiante, semestre);
             if (registroMaterias.isEmpty()) {
-                return new ResponseEntity<>(SirhaException.NO_HORARIO_ENCONTRADO, HttpStatus.NOT_FOUND);
+                Map<String, List<Horario>> errorMap = new HashMap<>();
+                errorMap.put(ERROR_KEY, List.of());
+                return new ResponseEntity<>(errorMap, HttpStatus.NOT_FOUND);
             }
 
             Map<String, List<Horario>> horariosPorMateria = HorarioResponseUtil.mapearHorariosPorMateria(registroMaterias);
             return ResponseEntity.ok(horariosPorMateria);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            Log.logException(e);
+            Map<String, List<Horario>> errorMap = new HashMap<>();
+            errorMap.put(ERROR_KEY, List.of());
+            return new ResponseEntity<>(errorMap, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -63,17 +72,19 @@ public class EstudianteController {
      * @return Mapa con el estado del semáforo académico (ej. verde, azul, rojo).
      */
     @GetMapping("/semaforo/{idEstudiante}")
-    public ResponseEntity<?> consultarSemaforoAcademico(@PathVariable String idEstudiante) {
+    public ResponseEntity<Map<String, Semaforo>> consultarSemaforoAcademico(@PathVariable String idEstudiante) {
         try {
             Map<String, Semaforo> semaforo = estudianteService.consultarSemaforoAcademico(idEstudiante);
             if (!semaforo.isEmpty()) {
-                return ResponseEntity.ok(estudianteService.consultarSemaforoAcademico(idEstudiante));
+                return ResponseEntity.ok(semaforo);
             } else {
-                return new ResponseEntity<>(SirhaException.NO_HORARIO_ENCONTRADO, HttpStatus.NO_CONTENT);
+                Map<String, Semaforo> errorMap = new HashMap<>();
+                return new ResponseEntity<>(errorMap, HttpStatus.NO_CONTENT);
             }
         }catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            Log.logException(e);
+            Map<String, Semaforo> errorMap = new HashMap<>();
+            return new ResponseEntity<>(errorMap, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -85,7 +96,7 @@ public class EstudianteController {
      * @return La solicitud creada si el proceso es exitoso.
      */
     @PostMapping("/solicitudes")
-    public ResponseEntity<?> crearSolicitud(@Valid @RequestBody SolicitudDTO solicitudDTO) {
+    public ResponseEntity<Object> crearSolicitud(@Valid @RequestBody SolicitudDTO solicitudDTO) {
         try {
             // Determinar que fecha usar para la validación
             java.time.LocalDate fechaValidacion = solicitudDTO.getFechaSolicitud() != null 
@@ -104,9 +115,9 @@ public class EstudianteController {
             Solicitud solicitudCreada = estudianteService.crearSolicitud(solicitudDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(solicitudCreada);
         }catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+            Log.logException(e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(e.getMessage());
         }
     }
 
@@ -116,17 +127,17 @@ public class EstudianteController {
      * @return Lista de solicitudes asociadas al estudiante.
      */
     @GetMapping("/solicitudes/{idEstudiante}")
-    public ResponseEntity<?> consultarSolicitudes(@PathVariable String idEstudiante) {
+    public ResponseEntity<List<Solicitud>> consultarSolicitudes(@PathVariable String idEstudiante) {
         try {
             List<Solicitud> solicitudes = estudianteService.consultarSolicitudes(idEstudiante);
             if (!solicitudes.isEmpty()) {
                 return ResponseEntity.ok(solicitudes);
             } else {
-                return new ResponseEntity<>(SirhaException.SOLICITUD_NO_ENCONTRADA, HttpStatus.NO_CONTENT);
+                return new ResponseEntity<>(List.of(), HttpStatus.NO_CONTENT);
             }
         }catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            Log.logException(e);
+            return new ResponseEntity<>(List.of(), HttpStatus.NOT_FOUND);
         }
     }
 
@@ -137,13 +148,13 @@ public class EstudianteController {
      * @return La solicitud encontrada.
      */
     @GetMapping("/solicitudes/{idEstudiante}/{solicitudId}")
-    public ResponseEntity<?> consultarSolicitudesPorId(@PathVariable String idEstudiante, @PathVariable String solicitudId) {
+    public ResponseEntity<Solicitud> consultarSolicitudesPorId(@PathVariable String idEstudiante, @PathVariable String solicitudId) {
         try {
             Solicitud solicitud = estudianteService.consultarSolicitudesById(idEstudiante, solicitudId);
             return ResponseEntity.ok(solicitud);
         }catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -154,13 +165,13 @@ public class EstudianteController {
      * @return Mensaje de confirmación de la cancelación.
      */
     @PutMapping("/materias/{idEstudiante}/{acronimoMateria}/cancelar")
-    public ResponseEntity<?> cancelarMateria(@PathVariable String idEstudiante, @PathVariable String acronimoMateria) {
+    public ResponseEntity<String> cancelarMateria(@PathVariable String idEstudiante, @PathVariable String acronimoMateria) {
         try {
             String resultado = estudianteService.cancelarMateria(idEstudiante, acronimoMateria);
             return ResponseEntity.ok(resultado);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            Log.logException(e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -171,35 +182,45 @@ public class EstudianteController {
      * @return Lista de solicitudes en el estado especificado.
      */
     @GetMapping("/solicitudes/estado/{estado}")
-    public ResponseEntity<?> consultarSolicitudesPorEstado(@PathVariable String estado) {
+    public ResponseEntity<Map<String, Object>> consultarSolicitudesPorEstado(@PathVariable String estado) {
         try {
-            SolicitudEstado solicitudEstado;
-            try {
-                solicitudEstado = SolicitudEstado.valueOf(estado.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Estado inválido. Estados válidos: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA");
+            SolicitudEstado solicitudEstado = parseSolicitudEstado(estado);
+            if (solicitudEstado == null) {
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put(ERROR_KEY, "Estado inválido. Estados válidos: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA");
+                return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
             }
-            
+
             List<Solicitud> solicitudes = estudianteService.consultarSolicitudesPorEstado(solicitudEstado);
-            
+
             if (solicitudes.isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
-                response.put("mensaje", "No se encontraron solicitudes en estado: " + estado);
-                response.put("estado", estado);
-                response.put("total", 0);
+            response.put(MENSAJE_KEY, "No se encontraron solicitudes en estado: " + estado);
+            response.put(ESTADO_KEY, estado);
+            response.put(TOTAL_KEY, 0);
                 return ResponseEntity.ok(response);
             }
-            
+
             Map<String, Object> response = new HashMap<>();
-            response.put("solicitudes", solicitudes);
-            response.put("estado", estado);
-            response.put("total", solicitudes.size());
+            response.put(SOLICITUDES_KEY, solicitudes);
+            response.put(ESTADO_KEY, estado);
+            response.put(TOTAL_KEY, solicitudes.size());
             return ResponseEntity.ok(response);
-            
+
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            Log.logException(e);
+            Map<String, Object> errorMap = new HashMap<>();
+        errorMap.put(ERROR_KEY, e.getMessage());
+            return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // Método privado para convertir el estado a SolicitudEstado
+    private SolicitudEstado parseSolicitudEstado(String estado) {
+        try {
+            return SolicitudEstado.valueOf(estado.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
         }
     }
 
@@ -208,26 +229,27 @@ public class EstudianteController {
      * @return Lista completa de todas las solicitudes.
      */
     @GetMapping("/solicitudes/todas")
-    public ResponseEntity<?> consultarTodasLasSolicitudes() {
+    public ResponseEntity<Map<String, Object>> consultarTodasLasSolicitudes() {
         try {
             List<Solicitud> solicitudes = estudianteService.consultarTodasLasSolicitudes();
             
             if (solicitudes.isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
-                response.put("mensaje", "No se encontraron solicitudes en el sistema");
-                response.put("total", 0);
+                response.put(MENSAJE_KEY, "No se encontraron solicitudes en el sistema");
+                response.put(TOTAL_KEY, 0);
                 return ResponseEntity.ok(response);
             }
             
             Map<String, Object> response = new HashMap<>();
-            response.put("solicitudes", solicitudes);
-            response.put("total", solicitudes.size());
+            response.put(SOLICITUDES_KEY, solicitudes);
+            response.put(TOTAL_KEY, solicitudes.size());
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error interno del servidor: " + e.getMessage());
+            Log.logException(e);
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put(ERROR_KEY, "Error interno del servidor: " + e.getMessage());
+            return new ResponseEntity<>(errorMap, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -238,38 +260,39 @@ public class EstudianteController {
      * @return Lista de solicitudes del estudiante en el estado especificado.
      */
     @GetMapping("/solicitudes/{idEstudiante}/estado/{estado}")
-    public ResponseEntity<?> consultarSolicitudesEstudiantePorEstado(
-            @PathVariable String idEstudiante, @PathVariable String estado) {
+    public ResponseEntity<Map<String, Object>> consultarSolicitudesEstudiantePorEstado(
+        @PathVariable String idEstudiante, @PathVariable String estado) {
         try {
-            SolicitudEstado solicitudEstado;
-            try {
-                solicitudEstado = SolicitudEstado.valueOf(estado.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Estado inválido. Estados válidos: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA");
+            SolicitudEstado solicitudEstado = parseSolicitudEstado(estado);
+            if (solicitudEstado == null) {
+                Map<String, Object> errorMap = new HashMap<>();
+                errorMap.put(ERROR_KEY, "Estado inválido. Estados válidos: PENDIENTE, EN_REVISION, APROBADA, RECHAZADA");
+                return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
             }
-            
+
             List<Solicitud> solicitudes = estudianteService.consultarSolicitudesEstudiantePorEstado(idEstudiante, solicitudEstado);
-            
+
             if (solicitudes.isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
-                response.put("mensaje", "No se encontraron solicitudes del estudiante en estado: " + estado);
+                response.put(MENSAJE_KEY, "No se encontraron solicitudes del estudiante en estado: " + estado);
                 response.put("idEstudiante", idEstudiante);
-                response.put("estado", estado);
-                response.put("total", 0);
+                // ...existing code...
+                response.put(TOTAL_KEY, 0);
                 return ResponseEntity.ok(response);
             }
-            
+
             Map<String, Object> response = new HashMap<>();
-            response.put("solicitudes", solicitudes);
-            response.put("idEstudiante", idEstudiante);
-            response.put("estado", estado);
-            response.put("total", solicitudes.size());
+            response.put(SOLICITUDES_KEY, solicitudes);
+                response.put("idEstudiante", idEstudiante);
+                response.put(ESTADO_KEY, estado);
+            response.put(TOTAL_KEY, solicitudes.size());
             return ResponseEntity.ok(response);
             
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            Log.logException(e);
+            Map<String, Object> errorMap = new HashMap<>();
+            errorMap.put(ERROR_KEY, e.getMessage());
+            return new ResponseEntity<>(errorMap, HttpStatus.NOT_FOUND);
         }
     }
 

@@ -21,9 +21,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/Decanos")
 public class DecanoController {
+    private static final String KEY_PORCENTAJE = "porcentaje";
+    private static final String KEY_CANTIDAD = "cantidad";
+    private static final String KEY_FECHA_FIN = "fechaFin";
+    private static final String KEY_FECHA_INICIO = "fechaInicio";
+    private static final String KEY_FACULTAD = "facultad";
 
     private static final String ERROR_INTERNO = "Error interno del servidor";
     private final DecanoService decanoService;
+    private static final String KEY_MENSAJE = "mensaje";
 
     public DecanoController(DecanoService decanoService) {
         this.decanoService = decanoService;
@@ -270,9 +276,9 @@ public class DecanoController {
      */
     @PostMapping("/{facultad}/solicitud/{solicitudId}/responder")
     public ResponseEntity<Object> responderSolicitud(
-            @PathVariable String facultad,
-            @PathVariable String solicitudId,
-            @RequestBody RespuestaSolicitudDTO respuesta) {
+        @PathVariable(KEY_FACULTAD) String facultad,
+        @PathVariable String solicitudId,
+        @RequestBody RespuestaSolicitudDTO respuesta) {
         try {
 
             respuesta.setSolicitudId(solicitudId);
@@ -280,7 +286,7 @@ public class DecanoController {
             decanoService.responderSolicitud(respuesta, facultad);
             
             return ResponseEntity.ok(Map.of(
-                "mensaje", "Solicitud respondida",
+                KEY_MENSAJE, "Solicitud respondida",
                 "solicitudId", solicitudId,
                 "estado", respuesta.getNuevoEstado().name()
             ));
@@ -354,7 +360,7 @@ public class DecanoController {
                     .count();
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("totalSolicitudes", todasLasSolicitudes.size());
             response.put("resumen", Map.of(
                     "pendientes", pendientes,
@@ -386,10 +392,10 @@ public class DecanoController {
             decanoService.configurarCalendarioAcademico(calendarioDTO, facultad);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("mensaje", "Calendario académico configurado exitosamente");
-            response.put("facultad", facultad);
-            response.put("fechaInicio", calendarioDTO.getFechaInicio());
-            response.put("fechaFin", calendarioDTO.getFechaFin());
+            response.put(KEY_MENSAJE, "Calendario académico configurado exitosamente");
+            response.put(KEY_FACULTAD, facultad);
+            response.put(KEY_FECHA_INICIO, calendarioDTO.getFechaInicio());
+            response.put(KEY_FECHA_FIN, calendarioDTO.getFechaFin());
             
             return ResponseEntity.ok(response);
         } catch (SirhaException e) {
@@ -415,10 +421,10 @@ public class DecanoController {
             decanoService.configurarPlazoSolicitudes(plazoDTO, facultad);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("mensaje", "Plazo de solicitudes configurado exitosamente");
-            response.put("facultad", facultad);
-            response.put("fechaInicio", plazoDTO.getFechaInicio());
-            response.put("fechaFin", plazoDTO.getFechaFin());
+            response.put(KEY_MENSAJE, "Plazo de solicitudes configurado exitosamente");
+            response.put(KEY_FACULTAD, facultad);
+            response.put(KEY_FECHA_INICIO, plazoDTO.getFechaInicio());
+            response.put(KEY_FECHA_FIN, plazoDTO.getFechaFin());
             
             return ResponseEntity.ok(response);
         } catch (SirhaException e) {
@@ -439,7 +445,7 @@ public class DecanoController {
             CalendarioAcademicoDTO calendario = decanoService.obtenerCalendarioAcademico(facultad);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("calendarioAcademico", calendario);
             
             return ResponseEntity.ok(response);
@@ -461,7 +467,7 @@ public class DecanoController {
             PlazoSolicitudesDTO plazo = decanoService.obtenerPlazoSolicitudes(facultad);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("plazoSolicitudes", plazo);
             
             return ResponseEntity.ok(response);
@@ -486,14 +492,14 @@ public class DecanoController {
             boolean plazoActivo = decanoService.esPlazoSolicitudesActivo(facultad);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("calendarioAcademico", Map.of(
-                "fechaInicio", calendario.getFechaInicio(),
-                "fechaFin", calendario.getFechaFin()
+                KEY_FECHA_INICIO, calendario.getFechaInicio(),
+                KEY_FECHA_FIN, calendario.getFechaFin()
             ));
             response.put("plazoSolicitudes", Map.of(
-                "fechaInicio", plazo.getFechaInicio(),
-                "fechaFin", plazo.getFechaFin(),
+                KEY_FECHA_INICIO, plazo.getFechaInicio(),
+                KEY_FECHA_FIN, plazo.getFechaFin(),
                 "activo", plazoActivo
             ));
             
@@ -516,7 +522,7 @@ public class DecanoController {
             List<MonitoreoGrupoDTO> grupos = decanoService.monitorearGruposPorFacultad(facultad);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("totalGrupos", grupos.size());
             response.put("grupos", grupos);
             
@@ -539,10 +545,10 @@ public class DecanoController {
             List<MonitoreoGrupoDTO> gruposConAlerta = decanoService.obtenerGruposConAlerta(facultad);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("totalGruposConAlerta", gruposConAlerta.size());
             response.put("gruposConAlerta", gruposConAlerta);
-            response.put("mensaje", gruposConAlerta.isEmpty() ? 
+            response.put(KEY_MENSAJE, gruposConAlerta.isEmpty() ? 
                 "No hay grupos con alerta de capacidad en esta facultad." :
                 "Se encontraron " + gruposConAlerta.size() + " grupos con alerta de capacidad."
             );
@@ -573,20 +579,20 @@ public class DecanoController {
             long gruposCriticos = estadisticas.getOrDefault("CRITICO", 0L);
             
             Map<String, Object> response = new HashMap<>();
-            response.put("facultad", facultad);
+            response.put(KEY_FACULTAD, facultad);
             response.put("totalGrupos", totalGrupos);
             response.put("estadisticasPorNivel", Map.of(
                 "NORMAL", Map.of(
-                    "cantidad", gruposNormales,
-                    "porcentaje", totalGrupos > 0 ? Math.round((gruposNormales * 100.0) / totalGrupos) : 0
+                    KEY_CANTIDAD, gruposNormales,
+                    KEY_PORCENTAJE, totalGrupos > 0 ? Math.round((gruposNormales * 100.0) / totalGrupos) : 0
                 ),
                 "ADVERTENCIA", Map.of(
-                    "cantidad", gruposAdvertencia,
-                    "porcentaje", totalGrupos > 0 ? Math.round((gruposAdvertencia * 100.0) / totalGrupos) : 0
+                    KEY_CANTIDAD, gruposAdvertencia,
+                    KEY_PORCENTAJE, totalGrupos > 0 ? Math.round((gruposAdvertencia * 100.0) / totalGrupos) : 0
                 ),
                 "CRITICO", Map.of(
-                    "cantidad", gruposCriticos,
-                    "porcentaje", totalGrupos > 0 ? Math.round((gruposCriticos * 100.0) / totalGrupos) : 0
+                    KEY_CANTIDAD, gruposCriticos,
+                    KEY_PORCENTAJE, totalGrupos > 0 ? Math.round((gruposCriticos * 100.0) / totalGrupos) : 0
                 )
             ));
             response.put("alertaGeneral", (gruposAdvertencia + gruposCriticos) > 0 ? 

@@ -2,10 +2,9 @@ package com.sirha.proyecto_sirha_dosw.dto;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.RespuestaSolicitudDTO;
 import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 
-public class RespuestaSolicitudDTOTest {
+class RespuestaSolicitudDTOTest {
 
 	@Test
 	void testConstructorPorDefecto() {

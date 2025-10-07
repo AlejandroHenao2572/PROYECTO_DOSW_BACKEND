@@ -1,14 +1,15 @@
+
+
 package com.sirha.proyecto_sirha_dosw.dto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.IndicadoresAvanceDTO;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Semaforo;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
-public class IndicadoresAvanceDTOTest {
+class IndicadoresAvanceDTOTest {
 	@Test
 	void testGetSetPorcentajesYEstado() {
 		IndicadoresAvanceDTO dto = new IndicadoresAvanceDTO();
@@ -67,10 +68,10 @@ public class IndicadoresAvanceDTOTest {
 		LocalDateTime fecha = LocalDateTime.of(2025, 9, 30, 10, 0);
 		dto.setFechaCalculo(fecha);
 		dto.setTipoReporte("ESTADISTICAS_GLOBALES");
-		Map<Semaforo, Long> distEstados = new HashMap<>();
+		Map<Semaforo, Long> distEstados = new EnumMap<>(Semaforo.class);
 		distEstados.put(Semaforo.VERDE, 5L);
 		dto.setDistribucionEstados(distEstados);
-		Map<Facultad, Double> avanceFac = new HashMap<>();
+		Map<Facultad, Double> avanceFac = new EnumMap<>(Facultad.class);
 		avanceFac.put(Facultad.ADMINISTRACION, 75.0);
 		dto.setAvancePorFacultad(avanceFac);
 
@@ -93,41 +94,24 @@ public class IndicadoresAvanceDTOTest {
 		assertEquals(avanceFac, dto.getAvancePorFacultad());
 	}
 
-	@Test
-	void testCalcularPorcentajesYEstadoGlobalVerde() {
+	@org.junit.jupiter.params.ParameterizedTest
+	@org.junit.jupiter.params.provider.CsvSource({
+		"10,9,0,0,VERDE,Excelente progreso académico,90.0",
+		"10,5,4,0,ROJO,crítica,-1",
+		"10,5,0,3,ROJO,crítica,-1"
+	})
+	void testCalcularPorcentajesYEstadoGlobal(int total, int aprobadas, int problemas, int canceladas, String estadoEsperado, String descripcionEsperada, double porcentajeEsperado) {
 		IndicadoresAvanceDTO dto = new IndicadoresAvanceDTO();
-		dto.setTotalMaterias(10);
-		dto.setMateriasAprobadas(9);
-		dto.setMateriasConProblemas(0);
-		dto.setMateriasCanceladas(0);
-		// Estado global debe ser VERDE
-		assertEquals(Semaforo.VERDE, dto.getEstadoGlobal());
-		assertEquals("Excelente progreso académico", dto.getDescripcionEstado());
-		assertEquals(90.0, dto.getPorcentajeAprobacion());
-	}
-
-	@Test
-	void testCalcularPorcentajesYEstadoGlobalRojoPorProblemas() {
-		IndicadoresAvanceDTO dto = new IndicadoresAvanceDTO();
-		dto.setTotalMaterias(10);
-		dto.setMateriasAprobadas(5);
-		dto.setMateriasConProblemas(4);
-		dto.setMateriasCanceladas(0);
-		// Estado global debe ser ROJO por problemas
-		assertEquals(Semaforo.ROJO, dto.getEstadoGlobal());
-		assertTrue(dto.getDescripcionEstado().contains("crítica"));
-	}
-
-	@Test
-	void testCalcularPorcentajesYEstadoGlobalRojoPorCancelaciones() {
-		IndicadoresAvanceDTO dto = new IndicadoresAvanceDTO();
-		dto.setTotalMaterias(10);
-		dto.setMateriasAprobadas(5);
-		dto.setMateriasConProblemas(0);
-		dto.setMateriasCanceladas(3);
-		// Estado global debe ser ROJO por cancelaciones
-		assertEquals(Semaforo.ROJO, dto.getEstadoGlobal());
-		assertTrue(dto.getDescripcionEstado().contains("crítica"));
+		dto.setTotalMaterias(total);
+		dto.setMateriasAprobadas(aprobadas);
+		dto.setMateriasConProblemas(problemas);
+		dto.setMateriasCanceladas(canceladas);
+		assertEquals(Semaforo.valueOf(estadoEsperado), dto.getEstadoGlobal());
+		if (porcentajeEsperado != -1) {
+			assertEquals(descripcionEsperada, dto.getDescripcionEstado());
+		} else {
+			assertTrue(dto.getDescripcionEstado().contains(descripcionEsperada));
+		}
 	}
 
 	@Test

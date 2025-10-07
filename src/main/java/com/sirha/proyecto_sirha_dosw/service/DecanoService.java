@@ -276,11 +276,11 @@ public class DecanoService {
         }
 
         else if (respuesta.getNuevoEstado() == SolicitudEstado.RECHAZADA) {
-            RechazoSolicitud(solicitud);
+            rechazoSolicitud(solicitud);
         }
 
         else if (respuesta.getNuevoEstado() == SolicitudEstado.EN_REVISION) {
-            SolicitudEnRevision(solicitud);
+            solicitudEnRevision(solicitud);
         }
         else {
             throw new SirhaException("Estado de respuesta inválido: " + respuesta.getNuevoEstado());
@@ -387,7 +387,7 @@ public class DecanoService {
      * Procesa el rechazo de una solicitud.
      * @param solicitud solicitud rechazada
      */ 
-    private void RechazoSolicitud(Solicitud solicitud) {
+    private void rechazoSolicitud(Solicitud solicitud) {
         solicitud.setEstado(SolicitudEstado.RECHAZADA);
         solicitud.setRespuesta("Solicitud rechazada.");
         solicitudRepository.save(solicitud);
@@ -397,7 +397,7 @@ public class DecanoService {
      * Procesa la puesta en revisión de una solicitud.
      * @param solicitud solicitud en revisión
      */
-    private void SolicitudEnRevision(Solicitud solicitud) {
+    private void solicitudEnRevision(Solicitud solicitud) {
         solicitud.setEstado(SolicitudEstado.EN_REVISION);
         solicitud.setRespuesta("Solicitud en revisión, se necesita información adicional.");
         solicitudRepository.save(solicitud);

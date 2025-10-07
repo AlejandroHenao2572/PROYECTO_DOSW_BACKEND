@@ -61,7 +61,7 @@ class MateriaServiceTest {
 	}
 
 	@Test
-	void testDeleteMateriaExitoso() throws SirhaException {
+	void testDeleteMateriaExitoso(){
 		when(materiaRepository.existsById("MAT101")).thenReturn(true);
 		doNothing().when(materiaRepository).deleteById("MAT101");
 		assertDoesNotThrow(() -> materiaService.deleteMateria("MAT101"));

@@ -38,6 +38,7 @@ public class GrupoDTO {
 
     // Default constructor
     public GrupoDTO() {
+        // Constructor vacío requerido por frameworks de serialización/deserialización (Jackson, JPA, etc.)
     }
 
     // Getters and Setters

@@ -85,8 +85,8 @@ public class GrupoService {
         Grupo grupo = new Grupo(materia, grupoDTO.getCapacidad(), grupoDTO.getHorarios());
         if (grupoDTO.getProfesorId() != null) {
             Optional<Usuario> profesorOpt = usuarioRepository.findById(grupoDTO.getProfesorId());
-            if (profesorOpt.isPresent() && profesorOpt.get() instanceof Profesor) {
-                grupo.setProfesor((Profesor) profesorOpt.get());
+            if (profesorOpt.isPresent() && profesorOpt.get() instanceof Profesor profesor) {
+                grupo.setProfesor(profesor);
             } else {
                 throw new SirhaException(SirhaException.PROFESOR_NO_ENCONTRADO);
             }

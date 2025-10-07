@@ -1,10 +1,10 @@
+
 /**
  * Servicio para la generación de reportes y estadísticas del sistema.
  * Proporciona métodos para obtener estadísticas de grupos más solicitados,
  * reportes de solicitudes y otras métricas del sistema.
  */
 package com.sirha.proyecto_sirha_dosw.service;
-
 import com.sirha.proyecto_sirha_dosw.dto.EstadisticasGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.IndicadoresAvanceDTO;
 import com.sirha.proyecto_sirha_dosw.dto.TasaAprobacionDTO;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -358,8 +358,8 @@ public class ReportesService {
                 .toList();
 
         // Contadores globales
-        Map<Semaforo, Long> distribucionEstados = new HashMap<>();
-        Map<Facultad, Double> avancePorFacultad = new HashMap<>();
+        Map<Semaforo, Long> distribucionEstados = new EnumMap<>(Semaforo.class);
+        Map<Facultad, Double> avancePorFacultad = new EnumMap<>(Facultad.class);
         
         int totalMateriasGlobal = 0;
         int materiasAprobadasGlobal = 0;

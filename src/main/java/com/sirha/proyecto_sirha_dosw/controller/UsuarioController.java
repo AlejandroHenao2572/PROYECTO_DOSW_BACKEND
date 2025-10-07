@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Controlador REST para gestionar operaciones relacionadas con los usuarios.
@@ -30,7 +29,7 @@ public class UsuarioController {
 
     @Autowired
     public UsuarioController(UsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
+        this.usuarioService = java.util.Objects.requireNonNull(usuarioService);
     }
 
     /**
@@ -40,12 +39,11 @@ public class UsuarioController {
      *         409 Conflict si el email ya está en uso.
      */
     @PostMapping("/register")
-    public ResponseEntity register(@Valid @RequestBody UsuarioDTO dto) {
+    public ResponseEntity<String> register(@Valid @RequestBody UsuarioDTO dto) {
         try {
-            Usuario nuevo = usuarioService.registrar(dto);
-            return new ResponseEntity(HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (Exception e) {
-            Log.record(e);
+            Log.logException(e);
             return ResponseEntity.status(409).body(e.getMessage());
         }
     }
@@ -78,13 +76,13 @@ public class UsuarioController {
      * @return usuario actualizado o 404 si no existe.
      */
     @PutMapping("/{usuarioId}")
-    public ResponseEntity updateUsuario(@PathVariable String usuarioId, @RequestBody UsuarioDTO dto) {
+    public ResponseEntity<Usuario> updateUsuario(@PathVariable String usuarioId, @RequestBody UsuarioDTO dto) {
         try {
             Usuario actualizado = usuarioService.actualizarUsuario(usuarioId, dto);
             return ResponseEntity.ok(actualizado);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(404).body(SirhaException.ERROR_ACTUALIZACION_USUARIO+e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -94,12 +92,12 @@ public class UsuarioController {
      * @return 204 No Content si se eliminó, 404 si no existe.
      */
     @DeleteMapping("/{usuarioId}")
-    public ResponseEntity deleteUsuario(@PathVariable String usuarioId) {
+    public ResponseEntity<String> deleteUsuario(@PathVariable String usuarioId) {
         try {
             usuarioService.eliminarUsuario(usuarioId);
             return ResponseEntity.noContent().build();
         } catch (SirhaException e) {
-            Log.record(e);
+            Log.logException(e);
             return ResponseEntity.status(404).body(SirhaException.ERROR_ELIMINACION_USUARIO+e.getMessage());
         }
     }
@@ -109,12 +107,12 @@ public class UsuarioController {
      * @return lista de {@link Usuario}
      */
     @GetMapping("/")
-    public ResponseEntity<?> listarUsuarios() {
+    public ResponseEntity<List<Usuario>> listarUsuarios() {
         List<Usuario> usuarios = usuarioService.listarUsuarios();
-        if (usuarios.size() > 0) {
+    if (!usuarios.isEmpty()) {
             return ResponseEntity.ok(usuarioService.listarUsuarios());
         } else {
-            return new ResponseEntity<>(SirhaException.USUARIO_NO_ENCONTRADO, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(List.of(), HttpStatus.NO_CONTENT);
         }
     }
 
@@ -159,7 +157,7 @@ public class UsuarioController {
             return ResponseEntity.ok(usuarios);
 
         } catch (IllegalArgumentException e) {
-            Log.record(e);
+            Log.logException(e);
             return ResponseEntity.badRequest().body(null);
         }
     }

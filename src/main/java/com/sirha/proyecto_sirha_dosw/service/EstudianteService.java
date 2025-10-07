@@ -24,12 +24,44 @@ import java.util.Optional;
  */
 @Service
 public class EstudianteService {
-
+    
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
     private final GrupoRepository grupoRepository;
     private final MateriaRepository materiaRepository;
     private final SolicitudUtil solicitudUtil;
+
+    // Validación de grupo y materia
+    private Grupo validarGrupo(String grupoId) throws SirhaException {
+        Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
+        if (grupoOpt.isEmpty()) throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
+        return grupoOpt.get();
+    }
+
+    private Materia validarMateria(String materiaAcronimo) throws SirhaException {
+        Optional<Materia> materiaOpt = materiaRepository.findByAcronimo(materiaAcronimo);
+        if (materiaOpt.isEmpty()) throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
+        return materiaOpt.get();
+    }
+
+    private void validarGrupoMateriaCorrespondencia(Grupo grupo, Materia materia, String errorMsg) throws SirhaException {
+        if (!grupo.getMateria().getId().equals(materia.getId())) {
+            throw new SirhaException(errorMsg);
+        }
+    }
+
+    private void validarEstudianteEnGrupo(Grupo grupo, String estudianteId, String errorMsg) throws SirhaException {
+        if (!grupo.getEstudiantesId().contains(estudianteId)) {
+            throw new SirhaException(errorMsg);
+        }
+    }
+
+    private void validarGrupoDestino(Grupo grupoDestino, Materia materiaDestino) throws SirhaException {
+        validarGrupoMateriaCorrespondencia(grupoDestino, materiaDestino, SirhaException.ERROR_CREACION_SOLICITUD + "La materia destino no corresponde al grupo destino");
+        if (grupoDestino.isEstaCompleto()) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El grupo destino está completo");
+        }
+    }
 
     /**
      * Constructor con inyección de dependencias.
@@ -80,66 +112,39 @@ public class EstudianteService {
      * @throws IllegalArgumentException si alguna validación falla.
      */
     public Solicitud crearSolicitud(SolicitudDTO solicitudDTO) throws SirhaException {
-        // 1. Verificar que el estudiante existe
         Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, solicitudDTO.getEstudianteId());
-        
-        // 2. Verificar que la materia no este cancelada en el semestre actual
         if (estudiante.tieneMateriaCandeladaEnSemestreActual(solicitudDTO.getMateriaProblemaAcronimo())) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
-                "No se puede crear solicitud para la materia " + solicitudDTO.getMateriaProblemaAcronimo() + 
-                " porque ya fue cancelada en el semestre actual");
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD +
+                    "No se puede crear solicitud para la materia " + solicitudDTO.getMateriaProblemaAcronimo() +
+                    " porque ya fue cancelada en el semestre actual");
         }
-        
-        // 3. Verificar grupo y materia de origen
-        Optional<Grupo> grupoProblemaOpt = grupoRepository.findById(solicitudDTO.getGrupoProblemaId());
-        if (grupoProblemaOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
-        }
-        Grupo grupoProblema = grupoProblemaOpt.get();
-        Optional<Materia> materiaProblemaOpt = materiaRepository.findByAcronimo(solicitudDTO.getMateriaProblemaAcronimo());
-        if (materiaProblemaOpt.isEmpty()) {
-            throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
-        }
-        Materia materiaProblema = materiaProblemaOpt.get();
-        // 4. Verificar que la materia corresponde al grupo
-        if (!grupoProblema.getMateria().getId().equals(materiaProblema.getId())) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "La materia problema no corresponde al grupo problema");
-        }
-        // 5. Verificar que el estudiante está inscrito en el grupo
-        if (!grupoProblema.getEstudiantesId().contains(solicitudDTO.getEstudianteId())) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El estudiante no está inscrito en el grupo problema");
-        }
-        // 6. Si es CAMBIO_GRUPO, verificar grupo y materia destino
+
+        Grupo grupoProblema = validarGrupo(solicitudDTO.getGrupoProblemaId());
+        Materia materiaProblema = validarMateria(solicitudDTO.getMateriaProblemaAcronimo());
+        validarGrupoMateriaCorrespondencia(grupoProblema, materiaProblema, SirhaException.ERROR_CREACION_SOLICITUD + "La materia problema no corresponde al grupo problema");
+        validarEstudianteEnGrupo(grupoProblema, solicitudDTO.getEstudianteId(), SirhaException.ERROR_CREACION_SOLICITUD + "El estudiante no está inscrito en el grupo problema");
+
         Grupo grupoDestino = null;
         Materia materiaDestino = null;
-
         if (solicitudDTO.getTipoSolicitud() == TipoSolicitud.CAMBIO_GRUPO) {
             if (solicitudDTO.getGrupoDestinoId() == null || solicitudDTO.getMateriaDestinoAcronimo() == null) {
                 throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "Faltan datos para el grupo o materia destino");
             }
-            Optional<Grupo> grupoDestinoOpt = grupoRepository.findById(solicitudDTO.getGrupoDestinoId());
-            if (grupoDestinoOpt.isEmpty()) {
-                throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
-            }
-            grupoDestino = grupoDestinoOpt.get();
-            Optional<Materia> materiaDestinoOpt = materiaRepository.findByAcronimo(solicitudDTO.getMateriaDestinoAcronimo());
-            if (materiaDestinoOpt.isEmpty()) {
-                throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
-            }
-            materiaDestino = materiaDestinoOpt.get();
-
-            // Verificar que la materia destino corresponde al grupo destino
-            if (!grupoDestino.getMateria().getId().equals(materiaDestino.getId())) {
-                throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "La materia destino no corresponde al grupo destino");
-            }
-
-            // Verificar que el grupo destino no esté lleno
-            if (grupoDestino.isEstaCompleto()) {
-                throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El grupo destino está completo");
-            }
+            grupoDestino = validarGrupo(solicitudDTO.getGrupoDestinoId());
+            materiaDestino = validarMateria(solicitudDTO.getMateriaDestinoAcronimo());
+            validarGrupoDestino(grupoDestino, materiaDestino);
         }
 
-        // 7. Crear la solicitud
+        Solicitud solicitud = crearSolicitudBase(estudiante, solicitudDTO, grupoProblema, materiaProblema);
+        if (grupoDestino != null && materiaDestino != null) {
+            solicitud.setGrupoDestino(grupoDestino);
+            solicitud.setMateriaDestino(materiaDestino);
+        }
+        solicitud.setObservaciones(solicitudDTO.getObservaciones());
+        return solicitudRepository.save(solicitud);
+    }
+
+    private Solicitud crearSolicitudBase(Estudiante estudiante, SolicitudDTO solicitudDTO, Grupo grupoProblema, Materia materiaProblema) {
         Solicitud solicitud = new Solicitud();
         solicitud.setEstudianteId(estudiante.getId());
         solicitud.setTipoSolicitud(solicitudDTO.getTipoSolicitud());
@@ -148,21 +153,9 @@ public class EstudianteService {
         solicitud.setFacultad(materiaProblema.getFacultad());
         solicitud.setFechaCreacion(LocalDateTime.now());
         solicitud.setEstado(SolicitudEstado.PENDIENTE);
-
-        // 8. Generar número de radicado automático
         solicitud.setNumeroRadicado(solicitudUtil.generarNumeroRadicado());
-        
-        // 9. Asignar prioridad secuencial automática (orden de llegada)
         solicitud.setPrioridad(solicitudUtil.generarNumeroPrioridad());
-
-        if (grupoDestino != null && materiaDestino != null) {
-            solicitud.setGrupoDestino(grupoDestino);
-            solicitud.setMateriaDestino(materiaDestino);
-        }
-
-        solicitud.setObservaciones(solicitudDTO.getObservaciones());
-
-        return solicitudRepository.save(solicitud);
+        return solicitud;
     }
 
     /**

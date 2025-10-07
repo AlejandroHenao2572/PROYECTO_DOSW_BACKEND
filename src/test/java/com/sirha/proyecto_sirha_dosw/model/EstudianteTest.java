@@ -455,7 +455,7 @@ class EstudianteTest {
         estudiante.addGrupo(grupo3);
 
         assertEquals(registrosIniciales + 1, semestre2.getRegistros().size());
-        assertEquals(semestre1.getRegistros().size(), 2); // semestre1 no debe cambiar
+        assertEquals(2, semestre1.getRegistros().size()); // semestre1 no debe cambiar
     }
 
     @Test
@@ -466,6 +466,6 @@ class EstudianteTest {
         estudiante.removeGrupo(grupo1); // Debe remover del último semestre
 
         assertEquals(registrosIniciales - 1, semestre2.getRegistros().size());
-        assertEquals(semestre1.getRegistros().size(), 2); // semestre1 no debe cambiar
+        assertEquals(2, semestre1.getRegistros().size()); // semestre1 no debe cambiar
     }
 }

@@ -10,7 +10,22 @@ public class Horario {
     // Campos y métodos con documentación básica
     private LocalTime horaInicio;
     private LocalTime horaFin;
-    public Dia dia;
+    private Dia dia;
+    /**
+     * Obtiene el día de la semana del horario.
+     * @return Día de la semana
+     */
+    public Dia getDia() {
+        return dia;
+    }
+
+    /**
+     * Establece el día de la semana del horario.
+     * @param dia Día de la semana
+     */
+    public void setDia(Dia dia) {
+        this.dia = dia;
+    }
 
     /**
      * Obtiene la hora de fin del horario.
@@ -48,17 +63,7 @@ public class Horario {
      * Obtiene el día de la semana del horario.
      * @return Objeto Dia que representa el día
      */
-    public Dia getDia() {
-        return dia;
-    }
-
-    /**
-     * Establece el día de la semana del horario.
-     * @param dia Objeto Dia que representa el día
-     */
-    public void setDia(Dia dia) {
-        this.dia = dia;
-    }
+    // ...existing code...
 
     /**
      * Verifica si este horario se cruza con otro horario.

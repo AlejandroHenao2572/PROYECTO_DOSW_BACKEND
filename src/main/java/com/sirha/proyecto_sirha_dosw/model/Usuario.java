@@ -61,11 +61,11 @@ public abstract class Usuario {
 	 * @param email Email del usuario
 	 * @param contraseña Contraseña del usuario
 	 */
-	public Usuario(String nombre, String apellido, String email, String contraseña) {
+	protected Usuario(String nombre, String apellido, String email, String contrasena) {
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.email = email;
-		this.password = contraseña;
+		this.password = contrasena;
 	}
 
 	/**
@@ -76,11 +76,11 @@ public abstract class Usuario {
 	 * @param contraseña Contraseña del usuario
 	 * @param rol Rol del usuario
 	 */
-	public Usuario(String nombre, String apellido, String email, String contraseña, Rol rol) {
+	protected Usuario(String nombre, String apellido, String email, String contrasena, Rol rol) {
 		this.nombre = nombre;
 		this.apellido = apellido;
 		this.email = email;
-		this.password = contraseña;
+		this.password = contrasena;
 		this.rol = rol;
 	}
 }

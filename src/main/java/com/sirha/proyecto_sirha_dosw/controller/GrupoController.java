@@ -1,6 +1,5 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
-import com.sirha.proyecto_sirha_dosw.dto.AsignacionProfesorDTO;
 import com.sirha.proyecto_sirha_dosw.dto.CapacidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.dto.GrupoDTO;
 import com.sirha.proyecto_sirha_dosw.exception.Log;
@@ -29,7 +28,7 @@ public class GrupoController {
 
     @Autowired
     public GrupoController(GrupoService grupoService) {
-        this.grupoService = grupoService;
+        this.grupoService = java.util.Objects.requireNonNull(grupoService);
     }
 
     /**
@@ -59,14 +58,14 @@ public class GrupoController {
      * @return grupo creado con código HTTP 201.
      */
     @PostMapping
-    public ResponseEntity<?> createGrupo(@Valid @RequestBody GrupoDTO grupoDTO) {
+    public ResponseEntity<Grupo> createGrupo(@Valid @RequestBody GrupoDTO grupoDTO) {
         try {
             // No need to validate materia/profesor objects since we're using IDs now
             Grupo createdGrupo = grupoService.createGrupo(grupoDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdGrupo);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_CREACION_GRUPO+e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
@@ -77,13 +76,13 @@ public class GrupoController {
      * @return grupo actualizado o 404 si no existe.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateGrupo(@PathVariable String id, @Valid @RequestBody GrupoDTO grupoDTO) {
+    public ResponseEntity<Grupo> updateGrupo(@PathVariable String id, @Valid @RequestBody GrupoDTO grupoDTO) {
         try {
             Grupo updatedGrupo = grupoService.updateGrupo(id, grupoDTO);
             return ResponseEntity.ok(updatedGrupo);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_ACTUALIZACION_GRUPO+e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
@@ -93,13 +92,13 @@ public class GrupoController {
      * @return código HTTP 204 si fue eliminado, 404 si no existe.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteGrupo(@PathVariable String id) {
+    public ResponseEntity<String> deleteGrupo(@PathVariable String id) {
         try {
             grupoService.deleteGrupo(id);
             return ResponseEntity.noContent().build();
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_ELIMINACION_GRUPO+e.getMessage());
+            Log.logException(e);
+            return new ResponseEntity<>(SirhaException.ERROR_ELIMINACION_GRUPO+e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 
@@ -153,13 +152,13 @@ public class GrupoController {
      * @return grupo actualizado con el estudiante agregado.
      */
     @PostMapping("/{grupoId}/estudiantes/{estudianteId}")
-    public ResponseEntity<?> addEstudianteToGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
+    public ResponseEntity<Grupo> addEstudianteToGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
         try {
             Grupo updatedGrupo = grupoService.addEstudianteToGrupo(grupoId, estudianteId);
             return ResponseEntity.ok(updatedGrupo);
         }catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_INSCRIPCION_ESTUDIANTE+e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
@@ -170,13 +169,13 @@ public class GrupoController {
      * @return grupo actualizado sin el estudiante.
      */
     @DeleteMapping("/{grupoId}/estudiantes/{estudianteId}")
-    public ResponseEntity<?> removeEstudianteFromGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
+    public ResponseEntity<Grupo> removeEstudianteFromGrupo(@PathVariable String grupoId, @PathVariable String estudianteId) {
         try {
             Grupo updatedGrupo = grupoService.removeEstudianteFromGrupo(grupoId, estudianteId);
             return ResponseEntity.ok(updatedGrupo);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(409).body(SirhaException.ERROR_DESINSCRIPCION_ESTUDIANTE+e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 
@@ -186,13 +185,13 @@ public class GrupoController {
      * @return información de capacidad del grupo.
      */
     @GetMapping("/{id}/capacidad")
-    public ResponseEntity<?> consultarCapacidadGrupo(@PathVariable String id) {
+    public ResponseEntity<CapacidadGrupoDTO> consultarCapacidadGrupo(@PathVariable String id) {
         try {
             CapacidadGrupoDTO capacidad = grupoService.obtenerCapacidadGrupo(id);
             return ResponseEntity.ok(capacidad);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(404).body("Grupo no encontrado: " + e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -224,13 +223,13 @@ public class GrupoController {
      * @return grupo actualizado con profesor asignado.
      */
     @PutMapping("/{grupoId}/profesor/{profesorId}")
-    public ResponseEntity<?> asignarProfesorAGrupo(@PathVariable String grupoId, @PathVariable String profesorId) {
+    public ResponseEntity<Grupo> asignarProfesorAGrupo(@PathVariable String grupoId, @PathVariable String profesorId) {
         try {
             Grupo grupoActualizado = grupoService.asignarProfesorAGrupo(grupoId, profesorId);
             return ResponseEntity.ok(grupoActualizado);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(400).body("Error al asignar profesor: " + e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -241,13 +240,13 @@ public class GrupoController {
      * @return grupo actualizado sin profesor asignado.
      */
     @DeleteMapping("/{grupoId}/profesor")
-    public ResponseEntity<?> removerProfesorDeGrupo(@PathVariable String grupoId) {
+    public ResponseEntity<Grupo> removerProfesorDeGrupo(@PathVariable String grupoId) {
         try {
             Grupo grupoActualizado = grupoService.removerProfesorDeGrupo(grupoId);
             return ResponseEntity.ok(grupoActualizado);
         } catch (SirhaException e) {
-            Log.record(e);
-            return ResponseEntity.status(404).body("Grupo no encontrado: " + e.getMessage());
+            Log.logException(e);
+            return ResponseEntity.notFound().build();
         }
     }
 
