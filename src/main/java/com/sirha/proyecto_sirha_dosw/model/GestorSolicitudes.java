@@ -3,14 +3,7 @@
  */
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public interface GestorSolicitudes {
-	/**
-	 * Lista de solicitudes (debe ser implementada por las clases que usen esta interfaz)
-	 */
-	List<Solicitud> solicitudes = new ArrayList<Solicitud>();
 
 	/**
 	 * Método para agregar una solicitud al gestor.

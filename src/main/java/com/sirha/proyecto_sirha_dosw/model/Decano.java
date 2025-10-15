@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "usuarios")
 @TypeAlias("decano")
-public class Decano extends Profesor implements GestorSolicitudes {
+public class Decano extends Profesor{
     // Campo específico del decano
     private Facultad carrera;
 
@@ -29,8 +29,8 @@ public class Decano extends Profesor implements GestorSolicitudes {
      * @param contraseña Contraseña del decano
      * @param carrera Facultad que dirige el decano
      */
-    public Decano(String nombre, String apellido, String email, String contraseña, Facultad carrera) {
-        super(nombre, apellido, email, contraseña);
+    public Decano(String nombre, String apellido, String email, String contrasena, Facultad carrera) {
+        super(nombre, apellido, email, contrasena);
         this.carrera = carrera;
     }
 
@@ -43,8 +43,8 @@ public class Decano extends Profesor implements GestorSolicitudes {
      * @param rol Rol del decano
      * @param carrera Facultad que dirige el decano
      */
-    public Decano(String nombre, String apellido, String email, String contraseña, Rol rol, Facultad carrera) {
-        super(nombre, apellido, email, contraseña, rol);
+    public Decano(String nombre, String apellido, String email, String contrasena, Rol rol, Facultad carrera) {
+        super(nombre, apellido, email, contrasena, rol);
         this.carrera = carrera;
     }
 
@@ -52,23 +52,5 @@ public class Decano extends Profesor implements GestorSolicitudes {
     public Facultad getFacultad() { return carrera; }
     public void setFacultad(Facultad carrera) { this.carrera = carrera; }
 
-    /**
-     * Implementación del método para agregar solicitudes (pendiente de implementación).
-     * @param solicitud Solicitud a agregar
-     */
-    @Override
-    public void agregarSolicitud(Solicitud solicitud) {
-        // Pendiente de implementación
-    }
-
-    /**
-     * Implementación del método para gestionar solicitudes (pendiente de implementación).
-     * @param solicitud Solicitud a gestionar
-     * @param accion Acción a realizar sobre la solicitud
-     */
-    @Override
-    public void gestionarSolicitud(Solicitud solicitud, String accion) {
-        // Pendiente de implementación
-    }
 
 }

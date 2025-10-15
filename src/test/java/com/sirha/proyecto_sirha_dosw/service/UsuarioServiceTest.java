@@ -21,6 +21,22 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UsuarioServiceTest {
+	// Métodos auxiliares para reducir complejidad en los tests
+	private Estudiante crearEstudianteBase() {
+		Estudiante usuario = new Estudiante("Juan", "Perez", "juan@example.com", "1234", Rol.ESTUDIANTE, Facultad.INGENIERIA_SISTEMAS);
+		usuario.setId("1");
+		return usuario;
+	}
+
+	private UsuarioDTO crearUsuarioDTOBase() {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setNombre("Carlos");
+		dto.setApellido("Lopez");
+		dto.setEmail("nuevo@example.com");
+		dto.setPassword("5678");
+		dto.setRol(Rol.PROFESOR.name());
+		return dto;
+	}
 
 	@Mock
 	private UsuarioRepository usuarioRepository;
@@ -122,24 +138,22 @@ class UsuarioServiceTest {
 
 	@Test
 	void testActualizarUsuarioExitoso() throws SirhaException {
-		UsuarioDTO dto = getUsuarioDTO();
-		dto.setNombre("Carlos");
-		dto.setApellido("Lopez");
-		dto.setEmail("nuevo@example.com");
-		dto.setPassword("5678");
-		dto.setRol(Rol.PROFESOR.name());
-		Estudiante usuario = new Estudiante("Juan", "Perez", "juan@example.com", "1234", Rol.ESTUDIANTE, Facultad.INGENIERIA_SISTEMAS);
-		usuario.setId("1");
-		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
-		when(usuarioRepository.findByEmail("nuevo@example.com")).thenReturn(Optional.empty());
-		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		UsuarioDTO dto = crearUsuarioDTOBase();
+		Estudiante usuario = crearEstudianteBase();
+		mockActualizarUsuario(usuario, dto);
 		Usuario actualizado = usuarioService.actualizarUsuario("1", dto);
 		assertEquals("Carlos", actualizado.getNombre());
 		assertEquals(Rol.PROFESOR, actualizado.getRol());
 	}
 
+	private void mockActualizarUsuario(Estudiante usuario, UsuarioDTO dto) {
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+	}
+
 	@Test
-	void testEliminarUsuarioExitoso() throws SirhaException {
+	void testEliminarUsuarioExitoso(){
 		when(usuarioRepository.existsById("1")).thenReturn(true);
 		doNothing().when(usuarioRepository).deleteById("1");
 		assertDoesNotThrow(() -> usuarioService.eliminarUsuario("1"));

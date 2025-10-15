@@ -2,10 +2,9 @@ package com.sirha.proyecto_sirha_dosw.dto;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.PlazoSolicitudesDTO;
 import java.time.LocalDate;
 
-public class PlazoSolicitudesDTOTest {
+class PlazoSolicitudesDTOTest {
 
 	@Test
 	void testConstructorPorDefecto() {

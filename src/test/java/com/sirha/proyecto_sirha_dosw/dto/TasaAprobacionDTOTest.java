@@ -1,10 +1,9 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.TasaAprobacionDTO;
 import java.time.LocalDateTime;
 
-public class TasaAprobacionDTOTest {
+class TasaAprobacionDTOTest {
 	@Test
 	void testSettersAndGettersTasas() {
 		TasaAprobacionDTO dto = new TasaAprobacionDTO();

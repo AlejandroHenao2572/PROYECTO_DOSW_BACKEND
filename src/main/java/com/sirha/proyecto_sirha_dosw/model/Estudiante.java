@@ -30,8 +30,8 @@ public class Estudiante extends Usuario {
 	 * @param contraseña Contraseña del estudiante
 	 * @param carrera Facultad a la que pertenece el estudiante
 	 */
-	public Estudiante(String nombre, String apellido, String email, String contraseña, Facultad carrera) {
-		super(nombre, apellido, email, contraseña);
+	public Estudiante(String nombre, String apellido, String email, String contrasena, Facultad carrera) {
+		super(nombre, apellido, email, contrasena);
 		this.carrera = carrera;
 	}
 
@@ -44,8 +44,8 @@ public class Estudiante extends Usuario {
 	 * @param rol Rol del usuario
 	 * @param carrera Facultad a la que pertenece el estudiante
 	 */
-	public Estudiante(String nombre, String apellido, String email, String contraseña, Rol rol, Facultad carrera) {
-		super(nombre, apellido, email, contraseña, rol);
+	public Estudiante(String nombre, String apellido, String email, String contrasena, Rol rol, Facultad carrera) {
+		super(nombre, apellido, email, contrasena, rol);
 		this.carrera = carrera;
 	}
 
@@ -61,8 +61,7 @@ public class Estudiante extends Usuario {
 	 * @return Lista de registros de materias del semestre especificado
 	 */
 	public List<RegistroMaterias> getRegistrosBySemestre(int semestre) {
-		List<RegistroMaterias> registros = semestres.get(semestre-1).getRegistros();
-		return registros;
+		return semestres.get(semestre-1).getRegistros();
 	}
 
 	/**

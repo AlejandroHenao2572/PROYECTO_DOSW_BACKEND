@@ -2,9 +2,8 @@ package com.sirha.proyecto_sirha_dosw.dto;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.EstadisticasGrupoDTO;
 
-public class EstadisticasGrupoDTOTest {
+class EstadisticasGrupoDTOTest {
 
 	@Test
 	void testConstructorPorDefecto() {

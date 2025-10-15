@@ -128,7 +128,7 @@ public class CarreraController {
             carreraService.registrar(dto);
             return new ResponseEntity<>("Carrera registrada exitosamente", HttpStatus.CREATED);
         } catch (SirhaException e) {
-            Log.record(e);
+            Log.logException(e);
             return ResponseEntity.status(409).body(SirhaException.ERROR_CREACION_CARRERA + e.getMessage());
         }
     }
@@ -208,7 +208,7 @@ public class CarreraController {
             Materia actualizado = carreraService.addMateria(dto,codigoCarrera);
             return ResponseEntity.ok(actualizado);
         } catch (SirhaException e) {
-            Log.record(e);
+            Log.logException(e);
             return ResponseEntity.status(409).body(null);
         }
     }
@@ -291,7 +291,7 @@ public class CarreraController {
             Carrera actualizado = carreraService.addMateriaById(codigoCarrera,codigoMateria);
             return ResponseEntity.ok(actualizado);
         } catch (SirhaException e) {
-            Log.record(e);
+            Log.logException(e);
             return ResponseEntity.status(409).body(null);
         }
     }

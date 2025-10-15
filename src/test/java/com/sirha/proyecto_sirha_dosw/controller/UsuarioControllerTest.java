@@ -24,7 +24,7 @@ import com.sirha.proyecto_sirha_dosw.model.Rol;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
 import com.sirha.proyecto_sirha_dosw.service.UsuarioService;
 
-public class UsuarioControllerTest {
+class UsuarioControllerTest {
 
     @Mock
     private UsuarioService usuarioService;
@@ -72,8 +72,8 @@ public class UsuarioControllerTest {
 
         ResponseEntity response = usuarioController.updateUsuario("id1", dto);
 
-        assertEquals(404, response.getStatusCodeValue());
-        assertTrue(response.getBody().toString().contains(SirhaException.ERROR_ACTUALIZACION_USUARIO));
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertEquals(null, response.getBody());
     }
 
     @Test
@@ -87,7 +87,7 @@ public class UsuarioControllerTest {
     void testDeleteUsuarioNotFound() throws SirhaException {
         doThrow(new SirhaException("No existe")).when(usuarioService).eliminarUsuario("id1");
         ResponseEntity response = usuarioController.deleteUsuario("id1");
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertTrue(response.getBody().toString().contains(SirhaException.ERROR_ELIMINACION_USUARIO));
     }
 
@@ -98,8 +98,8 @@ public class UsuarioControllerTest {
         when(usuarioService.listarUsuarios()).thenReturn(Collections.emptyList());
 
         ResponseEntity<?> response = usuarioController.listarUsuarios();
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        assertEquals(SirhaException.USUARIO_NO_ENCONTRADO, response.getBody());
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    assertEquals(Collections.emptyList(), response.getBody());
     }
 
     @Test

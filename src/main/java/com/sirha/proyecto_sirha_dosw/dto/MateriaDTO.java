@@ -1,17 +1,30 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.index.Indexed;
-
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import org.springframework.data.mongodb.core.index.Indexed;
 
 /**
  * DTO para la transferencia de datos relacionados con una Materia.
  * Se utiliza en los controladores para crear, actualizar o consultar materias,
- *          sin exponer directamente la entidad del modelo.
+ * sin exponer directamente la entidad del modelo.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class MateriaDTO {
 
     @NotBlank(message = "El nombre no puede estar vacío")
@@ -32,30 +45,4 @@ public class MateriaDTO {
 
     @NotNull(message = "La facultad no puede ser nula")
     private Facultad facultad;
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getAcronimo() {
-        return acronimo;
-    }
-
-    public void setAcronimo(String acronimo) {
-        this.acronimo = acronimo;
-    }
-
-    public int getCreditos() {
-        return creditos;
-    }
-
-    public void setCreditos(int creditos) {
-        this.creditos = creditos;
-    }
-    public Facultad getFacultad() { return facultad; }
-    public void setFacultad(Facultad facultad) { this.facultad = facultad; }
 }
