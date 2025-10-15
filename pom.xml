@@ -31,7 +31,6 @@
         <sonar.projectKey>proyecto-sirha-dosw</sonar.projectKey>
         <sonar.projectName>proyecto-sirha-dosw</sonar.projectName>
         <sonar.host.url>http://localhost:9000</sonar.host.url>
-        
     <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <lombok.version>1.18.42</lombok.version>
     </properties>
