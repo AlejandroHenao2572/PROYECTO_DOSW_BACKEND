@@ -174,7 +174,7 @@ class GrupoServiceTest {
 	}
 
 	@Test
-	void testDeleteGrupoExitoso() throws SirhaException {
+	void testDeleteGrupoExitoso() {
 		when(grupoRepository.existsById("G1")).thenReturn(true);
 		doNothing().when(grupoRepository).deleteById("G1");
 		assertDoesNotThrow(() -> grupoService.deleteGrupo("G1"));

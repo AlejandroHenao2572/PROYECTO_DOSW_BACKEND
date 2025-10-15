@@ -2,12 +2,11 @@ package com.sirha.proyecto_sirha_dosw.dto;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.DisponibilidadGrupoDTO;
 import com.sirha.proyecto_sirha_dosw.model.Horario;
 import java.util.Arrays;
 import java.util.List;
 
-public class DisponibilidadGrupoDTOTest {
+class DisponibilidadGrupoDTOTest {
 
 	@Test
 	void testConstructorPorDefecto() {
@@ -27,7 +26,16 @@ public class DisponibilidadGrupoDTOTest {
 	void testConstructorCompleto() {
 		List<Horario> horarios = Arrays.asList();
 		List<String> listaEspera = Arrays.asList("E1", "E2");
-		DisponibilidadGrupoDTO dto = new DisponibilidadGrupoDTO("G1", "Matemáticas", "MAT101", 30, 25, false, horarios, listaEspera);
+		DisponibilidadGrupoDTO dto = new DisponibilidadGrupoDTO.Builder()
+			.grupoId("G1")
+			.nombreMateria("Matemáticas")
+			.acronimoMateria("MAT101")
+			.capacidadMaxima(30)
+			.cantidadInscritos(25)
+			.estaCompleto(false)
+			.horarios(horarios)
+			.listaEspera(listaEspera)
+			.build();
 		assertEquals("G1", dto.getGrupoId());
 		assertEquals("Matemáticas", dto.getNombreMateria());
 		assertEquals("MAT101", dto.getAcronimoMateria());

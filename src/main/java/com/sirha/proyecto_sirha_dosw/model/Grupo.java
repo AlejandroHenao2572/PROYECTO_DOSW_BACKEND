@@ -35,7 +35,7 @@ public class Grupo {
 	@NotBlank
 	private Materia materia;
 
-	private List<String> estudiantesId = new ArrayList<String>();
+	private List<String> estudiantesId = new ArrayList<>();
 	private Profesor profesor;
 
 	/**
@@ -56,7 +56,7 @@ public class Grupo {
 		this.horarios = horarios;
 		this.cantidadInscritos = 0;
 		this.estaCompleto = false;
-		this.estudiantesId = new ArrayList<String>();
+		this.estudiantesId = new ArrayList<>();
 	}
 
 	// Getters y setters con documentación básica

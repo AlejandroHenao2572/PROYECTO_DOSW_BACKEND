@@ -33,28 +33,23 @@ class GrupoDTOTest {
         horario.setHoraInicio(LocalTime.parse("08:00"));
         horario.setHoraFin(LocalTime.parse("10:00"));
         dto.setHorarios(Arrays.asList(horario));
-        Set violations = validator.validate(dto);
+    Set<jakarta.validation.ConstraintViolation<GrupoDTO>> violations = validator.validate(dto);
         assertTrue(violations.isEmpty());
     }
 
-    @Test
-    void testGrupoDTOConCapacidadInvalida() {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "0,La capacidad debe ser al menos 1",
+        "41,La capacidad maxima es 40"
+    })
+    
+    void testGrupoDTOCapacidadInvalida(int capacidad, String mensajeEsperado) {
         GrupoDTO dto = new GrupoDTO();
-        dto.setCapacidad(0);
+        dto.setCapacidad(capacidad);
         dto.setMateriaId("mat123");
         Set violations = validator.validate(dto);
         assertEquals(1, violations.size());
-        assertTrue(violations.iterator().next().toString().contains("La capacidad debe ser al menos 1"));
-    }
-
-    @Test
-    void testGrupoDTOConCapacidadExcedida() {
-        GrupoDTO dto = new GrupoDTO();
-        dto.setCapacidad(41);
-        dto.setMateriaId("mat123");
-        Set violations = validator.validate(dto);
-        assertEquals(1, violations.size());
-        assertTrue(violations.iterator().next().toString().contains("La capacidad maxima es 40"));
+        assertTrue(violations.iterator().next().toString().contains(mensajeEsperado));
     }
 
     @Test

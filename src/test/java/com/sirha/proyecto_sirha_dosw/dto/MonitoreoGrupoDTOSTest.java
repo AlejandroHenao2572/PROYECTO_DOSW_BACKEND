@@ -3,9 +3,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.Arrays;
 import java.util.List;
-import com.sirha.proyecto_sirha_dosw.dto.MonitoreoGrupoDTO;
 
-public class MonitoreoGrupoDTOSTest {
+class MonitoreoGrupoDTOSTest {
 	@Test
 	void testAlertaCapacidadAsignacion() {
 		// Caso porcentajeOcupacion < 90.0

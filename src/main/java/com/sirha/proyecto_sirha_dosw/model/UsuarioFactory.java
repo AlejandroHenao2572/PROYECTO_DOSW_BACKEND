@@ -4,6 +4,7 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
 public class UsuarioFactory {
+    private UsuarioFactory() {}
 
     /**
      * Crea una instancia de usuario según el rol especificado.

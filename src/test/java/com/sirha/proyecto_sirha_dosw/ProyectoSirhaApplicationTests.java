@@ -11,7 +11,9 @@ class ProyectoSirhaApplicationTests {
 
 	@Test
 	void contextLoads() {
-	}
+        // Este método se deja vacío intencionalmente para verificar que el contexto de Spring Boot se carga correctamente.
+        // No requiere implementación porque su propósito es detectar errores de configuración al iniciar la aplicación.
+    }
 
 	@Test
 	void testMainMethod() {

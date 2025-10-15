@@ -1,5 +1,8 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -354,51 +357,17 @@ class CarreraControllerTest {
         verify(carreraService).addMateriaById(codigoCarrera, codigoMateria);
     }
 
-    @Test
-    @DisplayName("Debe manejar error al asociar materia existente - carrera no encontrada")
-    void testAddExistingMateria_CarreraNotFound() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+        "ING_INEXISTENTE,CALC1,Carrera no encontrada",
+        "ING_SIS,MATERIA_INEXISTENTE,Materia no encontrada",
+        "ING_SIS,CALC1,La materia ya está asociada a la carrera"
+    })
+    @DisplayName("Debe manejar error al asociar materia existente - casos parametrizados")
+    void testAddExistingMateria_Errors(String codigoCarrera, String codigoMateria, String errorMsg) throws Exception {
         // Given
-        String codigoCarrera = "ING_INEXISTENTE";
-        String codigoMateria = "CALC1";
-        
         when(carreraService.addMateriaById(codigoCarrera, codigoMateria))
-            .thenThrow(new SirhaException("Carrera no encontrada"));
-
-        // When & Then
-        mockMvc.perform(post("/api/carreras/materia/{codigoCarrera}/{codigoMateria}", 
-                codigoCarrera, codigoMateria))
-                .andExpect(status().isConflict());
-
-        verify(carreraService).addMateriaById(codigoCarrera, codigoMateria);
-    }
-
-    @Test
-    @DisplayName("Debe manejar error al asociar materia existente - materia no encontrada")
-    void testAddExistingMateria_MateriaNotFound() throws Exception {
-        // Given
-        String codigoCarrera = "ING_SIS";
-        String codigoMateria = "MATERIA_INEXISTENTE";
-        
-        when(carreraService.addMateriaById(codigoCarrera, codigoMateria))
-            .thenThrow(new SirhaException("Materia no encontrada"));
-
-        // When & Then
-        mockMvc.perform(post("/api/carreras/materia/{codigoCarrera}/{codigoMateria}", 
-                codigoCarrera, codigoMateria))
-                .andExpect(status().isConflict());
-
-        verify(carreraService).addMateriaById(codigoCarrera, codigoMateria);
-    }
-
-    @Test
-    @DisplayName("Debe manejar error al asociar materia existente - materia ya asociada")
-    void testAddExistingMateria_AlreadyAssociated() throws Exception {
-        // Given
-        String codigoCarrera = "ING_SIS";
-        String codigoMateria = "CALC1";
-        
-        when(carreraService.addMateriaById(codigoCarrera, codigoMateria))
-            .thenThrow(new SirhaException("La materia ya está asociada a la carrera"));
+            .thenThrow(new SirhaException(errorMsg));
 
         // When & Then
         mockMvc.perform(post("/api/carreras/materia/{codigoCarrera}/{codigoMateria}", 

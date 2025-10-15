@@ -2,10 +2,9 @@ package com.sirha.proyecto_sirha_dosw.dto;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import com.sirha.proyecto_sirha_dosw.dto.EstudianteBasicoDTO;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 
-public class EstudianteBasicoDTOTest {
+class EstudianteBasicoDTOTest {
 
 	@Test
 	void testConstructorPorDefecto() {

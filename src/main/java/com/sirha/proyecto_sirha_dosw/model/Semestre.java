@@ -16,6 +16,7 @@ public class Semestre {
      * Constructor por defecto.
      */
     public Semestre() {
+        // Constructor vacío requerido por frameworks de serialización/deserialización (Jackson, JPA, etc.)
     }
 
     // Getters y setters con documentación básica

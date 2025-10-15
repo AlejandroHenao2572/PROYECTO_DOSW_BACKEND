@@ -3,7 +3,7 @@ package com.sirha.proyecto_sirha_dosw.dto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UsuarioLoginDTOTest {
+class UsuarioLoginDTOTest {
 
 	@Test
 	void testSetAndGetEmail() {

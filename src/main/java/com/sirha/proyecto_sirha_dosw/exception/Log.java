@@ -9,13 +9,15 @@ import java.util.logging.Level;
  *
  */
 public class Log{
-    public static String nombre="Plan15";
 
-    public static void record(Exception e){
+    private Log(){}
+    public static final String NOMBRE = "Plan15";
+
+    public static void logException(Exception e){
         try{
-            Logger logger=Logger.getLogger(nombre);
+            Logger logger=Logger.getLogger(NOMBRE);
             logger.setUseParentHandlers(false);
-            FileHandler file=new FileHandler(nombre+".log",true);
+            FileHandler file=new FileHandler(NOMBRE+".log",true);
             file.setFormatter(new SimpleFormatter());
             logger.addHandler(file);
             logger.log(Level.SEVERE,e.toString(),e);

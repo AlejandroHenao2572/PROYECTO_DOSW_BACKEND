@@ -48,9 +48,8 @@ public class CarreraService {
         if (carreraOpt.isPresent()) {
             throw new SirhaException(SirhaException.CARRERA_YA_EXISTE + dto.getCodigo());
         }
-        Optional<Carrera> carreraOptName;
         try {
-            carreraOptName = carreraRepository.findByNombre(Facultad.valueOf(dto.getNombre().toUpperCase()));
+            carreraRepository.findByNombre(Facultad.valueOf(dto.getNombre().toUpperCase()));
         }catch (Exception e){
             throw new SirhaException(SirhaException.FACULTAD_ERROR + dto.getNombre());
         }

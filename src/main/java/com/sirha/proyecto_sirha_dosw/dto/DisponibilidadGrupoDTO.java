@@ -22,19 +22,64 @@ public class DisponibilidadGrupoDTO {
     // Constructor por defecto
     public DisponibilidadGrupoDTO() {}
     
-    // Constructor completo
-    public DisponibilidadGrupoDTO(String grupoId, String nombreMateria, String acronimoMateria, 
-                                 int capacidadMaxima, int cantidadInscritos, boolean estaCompleto, 
-                                 List<Horario> horarios, List<String> listaEspera) {
-        this.grupoId = grupoId;
-        this.nombreMateria = nombreMateria;
-        this.acronimoMateria = acronimoMateria;
-        this.capacidadMaxima = capacidadMaxima;
-        this.cantidadInscritos = cantidadInscritos;
-        this.cuposDisponibles = capacidadMaxima - cantidadInscritos;
-        this.estaCompleto = estaCompleto;
-        this.horarios = horarios;
-        this.listaEspera = listaEspera;
+    // Constructor privado para el builder
+    private DisponibilidadGrupoDTO(Builder builder) {
+        this.grupoId = builder.grupoId;
+        this.nombreMateria = builder.nombreMateria;
+        this.acronimoMateria = builder.acronimoMateria;
+        this.capacidadMaxima = builder.capacidadMaxima;
+        this.cantidadInscritos = builder.cantidadInscritos;
+        this.cuposDisponibles = builder.capacidadMaxima - builder.cantidadInscritos;
+        this.estaCompleto = builder.estaCompleto;
+        this.horarios = builder.horarios;
+        this.listaEspera = builder.listaEspera;
+    }
+
+    public static class Builder {
+        private String grupoId;
+        private String nombreMateria;
+        private String acronimoMateria;
+        private int capacidadMaxima;
+        private int cantidadInscritos;
+        private boolean estaCompleto;
+        private List<Horario> horarios;
+        private List<String> listaEspera;
+
+        public Builder grupoId(String grupoId) {
+            this.grupoId = grupoId;
+            return this;
+        }
+        public Builder nombreMateria(String nombreMateria) {
+            this.nombreMateria = nombreMateria;
+            return this;
+        }
+        public Builder acronimoMateria(String acronimoMateria) {
+            this.acronimoMateria = acronimoMateria;
+            return this;
+        }
+        public Builder capacidadMaxima(int capacidadMaxima) {
+            this.capacidadMaxima = capacidadMaxima;
+            return this;
+        }
+        public Builder cantidadInscritos(int cantidadInscritos) {
+            this.cantidadInscritos = cantidadInscritos;
+            return this;
+        }
+        public Builder estaCompleto(boolean estaCompleto) {
+            this.estaCompleto = estaCompleto;
+            return this;
+        }
+        public Builder horarios(List<Horario> horarios) {
+            this.horarios = horarios;
+            return this;
+        }
+        public Builder listaEspera(List<String> listaEspera) {
+            this.listaEspera = listaEspera;
+            return this;
+        }
+        public DisponibilidadGrupoDTO build() {
+            return new DisponibilidadGrupoDTO(this);
+        }
     }
     
     // Getters y Setters

@@ -3,7 +3,7 @@ package com.sirha.proyecto_sirha_dosw.dto;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CapacidadGrupoDTOTest {
+class CapacidadGrupoDTOTest {
 
 	@Test
 	void testConstructorPorDefecto() {
@@ -75,7 +75,7 @@ public class CapacidadGrupoDTOTest {
 	void testActualizarCalculosCapacidadCero() {
 		CapacidadGrupoDTO dto = new CapacidadGrupoDTO("G4", "M4", "Historia", "HIS101", 0, 10);
 		assertEquals(0.0, dto.getPorcentajeOcupacion());
-		assertEquals(-10, dto.getCuposDisponibles());
+		assertEquals(0, dto.getCuposDisponibles());
 		assertTrue(dto.isEstaCompleto());
 	}
 

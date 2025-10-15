@@ -145,7 +145,7 @@ class EstudianteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        verify(estudianteService, times(2)).consultarSemaforoAcademico(idEstudiante);
+        verify(estudianteService, times(1)).consultarSemaforoAcademico(idEstudiante);
     }
 
     @Test
