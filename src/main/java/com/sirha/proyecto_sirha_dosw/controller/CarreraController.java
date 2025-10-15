@@ -34,7 +34,7 @@ public class CarreraController {
     private final CarreraService carreraService;
 
     /**
-     * Constructor con inyección de dependencias de CarreraService.
+     *  Constructor con inyección de dependencias de CarreraService.
      * @param carreraService servicio que maneja la lógica de negocio para carreras.
      */
     public CarreraController(CarreraService carreraService) {

@@ -35,3 +35,8 @@ build/
 
 ### Astah ###
 *.asta.lock
+
+### Log files ###
+*.log
+logs/
+Plan*.log
