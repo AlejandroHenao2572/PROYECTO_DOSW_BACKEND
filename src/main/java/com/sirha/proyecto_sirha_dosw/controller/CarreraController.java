@@ -1,6 +1,3 @@
-/**
- * Probando
- */
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.CarreraDTO;
