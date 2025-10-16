@@ -1,40 +1,31 @@
-name: CI SIRHA
+name: CI - SIRHA API
 
 on:
   push:
     branches:
-      - main
+      - develop
+      - feature-API
   pull_request:
     branches:
-      - main
+      - develop
+      - feature-API
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: Build with Maven
-        run: mvn clean install -B
+        run: mvn clean install
 
       - name: Run tests
         run: mvn test
-
-      - name: Run application
-        run: mvn spring-boot:run

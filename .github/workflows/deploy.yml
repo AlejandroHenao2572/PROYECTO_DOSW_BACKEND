@@ -1,10 +1,7 @@
-name: CD SIRHA
+name: CD - Deploy to Azure App Service
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
     branches:
       - main
 
@@ -22,16 +19,17 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-
       - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: sirha-api
+          slot-name: production
           package: target/*.jar
