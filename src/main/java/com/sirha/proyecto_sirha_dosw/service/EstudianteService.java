@@ -25,43 +25,18 @@ import java.util.Optional;
 @Service
 public class EstudianteService {
     
+    private static final String MATERIA_CANCELADA_MSG = "El estudiante no tiene semestres registrados";
+    private static final String MATERIA_NO_INSCRITA_MSG = "El estudiante no está inscrito en la materia %s en el semestre actual";
+    private static final String MATERIA_YA_CANCELADA_MSG = "La materia %s ya está cancelada";
+    private static final String MATERIA_APROBADA_MSG = "No se puede cancelar la materia %s porque ya está aprobada";
+    private static final String MATERIA_CANCELADA_EXITOSAMENTE_MSG = "La materia %s ha sido cancelada exitosamente";
+    private static final String ESTADO_NULO_MSG = "El estado de la solicitud no puede ser nulo";
+    
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
     private final GrupoRepository grupoRepository;
     private final MateriaRepository materiaRepository;
     private final SolicitudUtil solicitudUtil;
-
-    // Validación de grupo y materia
-    private Grupo validarGrupo(String grupoId) throws SirhaException {
-        Optional<Grupo> grupoOpt = grupoRepository.findById(grupoId);
-        if (grupoOpt.isEmpty()) throw new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO);
-        return grupoOpt.get();
-    }
-
-    private Materia validarMateria(String materiaAcronimo) throws SirhaException {
-        Optional<Materia> materiaOpt = materiaRepository.findByAcronimo(materiaAcronimo);
-        if (materiaOpt.isEmpty()) throw new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA);
-        return materiaOpt.get();
-    }
-
-    private void validarGrupoMateriaCorrespondencia(Grupo grupo, Materia materia, String errorMsg) throws SirhaException {
-        if (!grupo.getMateria().getId().equals(materia.getId())) {
-            throw new SirhaException(errorMsg);
-        }
-    }
-
-    private void validarEstudianteEnGrupo(Grupo grupo, String estudianteId, String errorMsg) throws SirhaException {
-        if (!grupo.getEstudiantesId().contains(estudianteId)) {
-            throw new SirhaException(errorMsg);
-        }
-    }
-
-    private void validarGrupoDestino(Grupo grupoDestino, Materia materiaDestino) throws SirhaException {
-        validarGrupoMateriaCorrespondencia(grupoDestino, materiaDestino, SirhaException.ERROR_CREACION_SOLICITUD + "La materia destino no corresponde al grupo destino");
-        if (grupoDestino.isEstaCompleto()) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El grupo destino está completo");
-        }
-    }
 
     /**
      * Constructor con inyección de dependencias.
@@ -80,6 +55,103 @@ public class EstudianteService {
         this.materiaRepository = materiaRepository;
         this.solicitudUtil = solicitudUtil;
     }
+
+    // ========== MÉTODOS PRIVADOS DE VALIDACIÓN ==========
+
+    /**
+     * Valida que un grupo existe en el sistema.
+     * @param grupoId ID del grupo a validar
+     * @return el Grupo encontrado
+     * @throws SirhaException si el grupo no existe
+     */
+    private Grupo validarGrupo(String grupoId) throws SirhaException {
+        return grupoRepository.findById(grupoId)
+                .orElseThrow(() -> new SirhaException(SirhaException.GRUPO_NO_ENCONTRADO));
+    }
+
+    /**
+     * Valida que una materia existe en el sistema.
+     * @param materiaAcronimo acrónimo de la materia a validar
+     * @return la Materia encontrada
+     * @throws SirhaException si la materia no existe
+     */
+    private Materia validarMateria(String materiaAcronimo) throws SirhaException {
+        return materiaRepository.findByAcronimo(materiaAcronimo)
+                .orElseThrow(() -> new SirhaException(SirhaException.MATERIA_NO_ENCONTRADA));
+    }
+
+    /**
+     * Valida que un grupo corresponde a una materia específica.
+     * @param grupo grupo a validar
+     * @param materia materia esperada
+     * @param errorMsg mensaje de error personalizado
+     * @throws SirhaException si la materia del grupo no coincide
+     */
+    private void validarGrupoMateriaCorrespondencia(Grupo grupo, Materia materia, String errorMsg) throws SirhaException {
+        if (!grupo.getMateria().getId().equals(materia.getId())) {
+            throw new SirhaException(errorMsg);
+        }
+    }
+
+    /**
+     * Valida que un estudiante está inscrito en un grupo.
+     * @param grupo grupo a validar
+     * @param estudianteId ID del estudiante
+     * @param errorMsg mensaje de error personalizado
+     * @throws SirhaException si el estudiante no está en el grupo
+     */
+    private void validarEstudianteEnGrupo(Grupo grupo, String estudianteId, String errorMsg) throws SirhaException {
+        if (!grupo.getEstudiantesId().contains(estudianteId)) {
+            throw new SirhaException(errorMsg);
+        }
+    }
+
+    /**
+     * Valida que el grupo destino es válido para un cambio de grupo.
+     * @param grupoDestino grupo destino a validar
+     * @param materiaDestino materia destino esperada
+     * @throws SirhaException si el grupo no es válido o está completo
+     */
+    private void validarGrupoDestino(Grupo grupoDestino, Materia materiaDestino) throws SirhaException {
+        validarGrupoMateriaCorrespondencia(grupoDestino, materiaDestino, 
+            SirhaException.ERROR_CREACION_SOLICITUD + "La materia destino no corresponde al grupo destino");
+        if (grupoDestino.isEstaCompleto()) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El grupo destino está completo");
+        }
+    }
+
+    /**
+     * Busca un registro de materia en el semestre actual por su acrónimo.
+     * @param semestreActual semestre donde buscar
+     * @param acronimoMateria acrónimo de la materia
+     * @return el registro encontrado o null
+     */
+    private RegistroMaterias buscarRegistroMateria(Semestre semestreActual, String acronimoMateria) {
+        return semestreActual.getRegistros().stream()
+                .filter(registro -> registro.getGrupo().getMateria().getAcronimo().equals(acronimoMateria))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Valida que un registro de materia puede ser cancelado.
+     * @param registro registro a validar
+     * @param acronimoMateria acrónimo de la materia
+     * @throws SirhaException si la materia no puede ser cancelada
+     */
+    private void validarCancelacionMateria(RegistroMaterias registro, String acronimoMateria) throws SirhaException {
+        if (registro.getEstado() == Semaforo.CANCELADO) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
+                String.format(MATERIA_YA_CANCELADA_MSG, acronimoMateria));
+        }
+
+        if (registro.getEstado() == Semaforo.VERDE) {
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
+                String.format(MATERIA_APROBADA_MSG, acronimoMateria));
+        }
+    }
+
+    // ========== MÉTODOS PÚBLICOS ==========
 
     /**
      * Consulta el horario académico de un estudiante para un semestre específico.
@@ -101,8 +173,8 @@ public class EstudianteService {
      * @throws IllegalArgumentException si el estudiante no existe.
      */
     public Map<String, Semaforo> consultarSemaforoAcademico(String idEstudiante) throws SirhaException {
-    Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
-    return EstudianteValidationUtil.obtenerSemaforo(estudiante);
+        Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+        return EstudianteValidationUtil.obtenerSemaforo(estudiante);
     }
 
     /**
@@ -136,7 +208,7 @@ public class EstudianteService {
         }
 
         Solicitud solicitud = crearSolicitudBase(estudiante, solicitudDTO, grupoProblema, materiaProblema);
-        if (grupoDestino != null && materiaDestino != null) {
+        if (grupoDestino != null) {
             solicitud.setGrupoDestino(grupoDestino);
             solicitud.setMateriaDestino(materiaDestino);
         }
@@ -197,51 +269,26 @@ public class EstudianteService {
      * @throws SirhaException si el estudiante no existe, si la materia no está inscrita o ya está cancelada.
      */
     public String cancelarMateria(String idEstudiante, String acronimoMateria) throws SirhaException {
-        // 1. Verificar que el estudiante existe
-    Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
+        Estudiante estudiante = EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
 
-        // 2. Verificar que el estudiante tiene semestres
         if (estudiante.getSemestres().isEmpty()) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + "El estudiante no tiene semestres registrados");
+            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + MATERIA_CANCELADA_MSG);
         }
 
-        // 3. Obtener el semestre actual (último semestre)
         Semestre semestreActual = estudiante.getSemestres().get(estudiante.getSemestres().size() - 1);
+        RegistroMaterias registroEncontrado = buscarRegistroMateria(semestreActual, acronimoMateria);
 
-        // 4. Buscar la materia en el semestre actual
-        RegistroMaterias registroEncontrado = null;
-        for (RegistroMaterias registro : semestreActual.getRegistros()) {
-            if (registro.getGrupo().getMateria().getAcronimo().equals(acronimoMateria)) {
-                registroEncontrado = registro;
-                break;
-            }
-        }
-
-        // 5. Verificar que se encontró la materia
         if (registroEncontrado == null) {
             throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
-                "El estudiante no está inscrito en la materia " + acronimoMateria + " en el semestre actual");
+                String.format(MATERIA_NO_INSCRITA_MSG, acronimoMateria));
         }
 
-        // 6. Verificar que la materia no esté ya cancelada
-        if (registroEncontrado.getEstado() == Semaforo.CANCELADO) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
-                "La materia " + acronimoMateria + " ya está cancelada");
-        }
+        validarCancelacionMateria(registroEncontrado, acronimoMateria);
 
-        // 7. Verificar que la materia no esté ya aprobada
-        if (registroEncontrado.getEstado() == Semaforo.VERDE) {
-            throw new SirhaException(SirhaException.ERROR_CREACION_SOLICITUD + 
-                "No se puede cancelar la materia " + acronimoMateria + " porque ya está aprobada");
-        }
-
-        // 8. Cancelar la materia
         registroEncontrado.setEstado(Semaforo.CANCELADO);
-
-        // 9. Guardar los cambios
         usuarioRepository.save(estudiante);
 
-        return "La materia " + acronimoMateria + " ha sido cancelada exitosamente";
+        return String.format(MATERIA_CANCELADA_EXITOSAMENTE_MSG, acronimoMateria);
     }
 
     /**
@@ -255,7 +302,7 @@ public class EstudianteService {
      */
     public List<Solicitud> consultarSolicitudesPorEstado(SolicitudEstado estado) throws SirhaException {
         if (estado == null) {
-            throw new SirhaException("El estado de la solicitud no puede ser nulo");
+            throw new SirhaException(ESTADO_NULO_MSG);
         }
         return solicitudRepository.findByEstado(estado);
     }
@@ -279,14 +326,12 @@ public class EstudianteService {
      * @throws SirhaException si el estudiante no existe o el estado es inválido
      */
     public List<Solicitud> consultarSolicitudesEstudiantePorEstado(String idEstudiante, SolicitudEstado estado) throws SirhaException {
-        // Verificar que el estudiante existe
         EstudianteValidationUtil.obtenerEstudiante(usuarioRepository, idEstudiante);
 
         if (estado == null) {
-            throw new SirhaException("El estado de la solicitud no puede ser nulo");
+            throw new SirhaException(ESTADO_NULO_MSG);
         }
 
-        // Obtener todas las solicitudes del estudiante y filtrar por estado
         return solicitudRepository.findByEstudianteId(idEstudiante)
                 .stream()
                 .filter(solicitud -> solicitud.getEstado() == estado)

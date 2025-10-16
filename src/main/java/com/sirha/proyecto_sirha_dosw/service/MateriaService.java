@@ -2,7 +2,6 @@ package com.sirha.proyecto_sirha_dosw.service;
 
 import com.sirha.proyecto_sirha_dosw.dto.MateriaDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
-import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
 import com.sirha.proyecto_sirha_dosw.repository.MateriaRepository;
 import jakarta.validation.Valid;

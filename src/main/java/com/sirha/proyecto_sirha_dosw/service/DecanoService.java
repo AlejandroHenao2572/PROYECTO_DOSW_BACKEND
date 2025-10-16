@@ -414,7 +414,7 @@ public class DecanoService {
      * @throws SirhaException si la materia no pertenece a la facultad
      */
     private void validarMateriaPerteneceFacultad(Materia materia, String facultad) throws SirhaException {
-        if (materia.getFacultad().equals(facultad)) {
+        if (!materia.getFacultad().name().equalsIgnoreCase(facultad)) {
             throw new SirhaException("La materia " + materia.getAcronimo() + " no pertenece a la facultad: " + facultad);
         }
     }
