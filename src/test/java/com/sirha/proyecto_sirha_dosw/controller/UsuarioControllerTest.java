@@ -98,8 +98,8 @@ class UsuarioControllerTest {
         when(usuarioService.listarUsuarios()).thenReturn(Collections.emptyList());
 
         ResponseEntity<?> response = usuarioController.listarUsuarios();
-    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    assertEquals(Collections.emptyList(), response.getBody());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(Collections.emptyList(), response.getBody());
     }
 
     @Test
