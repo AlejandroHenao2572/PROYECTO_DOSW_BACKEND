@@ -13,7 +13,7 @@
 ## 📑 Tabla de Contenidos  
 
 1. [Miembros del Equipo](#miembros-del-equipo)  
-2. [Estructura del Proyecto](#estructura-del-proyecto-spring-boot-mvc)  [Administracion.java](src/main/java/com/sirha/proyecto_sirha_dosw/model/Administracion.java)
+2. [Estructura del Proyecto](#estructura-del-proyecto-spring-boot-mvc)
 3. [Estrategia de Gitflow](#estrategia-de-gitflow)  
 4. [Tecnologías Usadas](#tecnologías-usadas)  
 5. [Artefactos de Análisis y Diseño](#artefactos-de-análisis-y-diseño)  
@@ -350,10 +350,19 @@ Ver documentacion API REST en SWAGGER/OPENAI:
 'http://localhost:8080/swagger-ui/index.html'  
 
 Pruebas unitaras:  
+
 mvn test
+'./mvnw test jacoco:report'
 
 Anilisis con Sonar:  
 mvn clean verify sonar:sonar
+
+
+Anilisis con Sonar:  
+[^nota] Se debe de cambiar el token al ejecutar en otra maquina:
+
+'mvn clean verify sonar:sonar "-Dsonar.projectKey=proyecto-sirha-dosw" "-Dsonar.projectName=proyecto-sirha-dosw" "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=sqp_07717f1d20be7eb614a7dbfaabfe693787cfa4dd"'
+
 
 ---
 
