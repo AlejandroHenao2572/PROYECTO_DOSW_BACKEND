@@ -40,6 +40,7 @@ import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.model.Horario;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
 import com.sirha.proyecto_sirha_dosw.model.RegistroMaterias;
+import com.sirha.proyecto_sirha_dosw.model.PlazoSolicitudes;
 import com.sirha.proyecto_sirha_dosw.model.Semaforo;
 import com.sirha.proyecto_sirha_dosw.model.Solicitud;
 import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
@@ -211,6 +212,10 @@ class EstudianteControllerTest {
         // Given
         SolicitudDTO solicitudDTO = createValidSolicitudDTO();
         solicitudDTO.setFechaSolicitud(LocalDate.now().minusDays(100)); // Fecha muy antigua
+
+        // Configurar un plazo que NO incluya la fecha de la solicitud
+        PlazoSolicitudes.INSTANCIA.setFechaInicio(LocalDate.now().minusDays(10));
+        PlazoSolicitudes.INSTANCIA.setFechaFin(LocalDate.now().minusDays(1));
         
         // When & Then
         mockMvc.perform(post("/api/Estudiantes/solicitudes")
@@ -498,7 +503,8 @@ class EstudianteControllerTest {
     }
 
     private void mockValidTimeRange() {
-        // Note: This is a simplified mock. In a real test, you might need to mock PlazoSolicitudes.INSTANCIA
-        // For now, we'll assume the current date is within valid range
+        // Asegurar que la fecha actual esté dentro del plazo permitido
+        PlazoSolicitudes.INSTANCIA.setFechaInicio(LocalDate.now().minusDays(365));
+        PlazoSolicitudes.INSTANCIA.setFechaFin(LocalDate.now().plusDays(365));
     }
 }
