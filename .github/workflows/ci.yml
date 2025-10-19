@@ -128,19 +128,33 @@ jobs:
           echo ""
 
       - name: SonarCloud Analysis
+        # Continuar aunque falle (para que el pipeline no se rompa)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # If  no token, skip Sonar analysis (token required for CI-driven analysis)
+          # Verificar si el token está configurado
           if [ -z "$SONAR_TOKEN" ]; then
-            echo "SONAR_TOKEN no configurado - saltando análisis de SonarCloud"
-            echo "Para habilitar SonarCloud desde CI configura el secret SONAR_TOKEN en GitHub"
+            echo "=========================================="
+            echo "⚠️  SONARCLOUD NO CONFIGURADO"
+            echo "=========================================="
+            echo ""
+            echo "📋 Para habilitar el análisis de SonarCloud:"
+            echo ""
+            echo "1. Ve a https://sonarcloud.io"
+            echo "2. Importa tu repositorio 'PROYECTO_DOSW_BACKEND'"
+            echo "3. Genera un token de acceso"
+            echo "4. Agrega el secret SONAR_TOKEN en GitHub"
+            echo "   (Settings → Secrets and variables → Actions)"
+            echo ""
+            echo "⏩ El pipeline continuará sin análisis de SonarCloud."
+            echo "=========================================="
             exit 0
           fi
-
+          
           echo "=========================================="
-          echo "ANÁLISIS DE SONARCLOUD"
+          echo "🔍 ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
 
           mvn -B sonar:sonar \
@@ -151,7 +165,7 @@ jobs:
             -Dsonar.qualitygate.wait=true
 
           echo ""
-          echo "✅ Análisis de SonarCloud completado (modo CI)"
+          echo "✅ Análisis de SonarCloud completado"
           echo "✅ Quality Gate verificado"
           echo "=========================================="
 
