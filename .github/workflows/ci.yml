@@ -147,16 +147,11 @@ jobs:
             echo "🔍 SonarCloud - Análisis automático detectado"
             echo "=========================================="
             echo "Se está omitiendo la ejecución de 'mvn sonar:sonar' porque Automatic Analysis probablemente está activado en SonarCloud."
-            echo "Opciones para continuar:" 
-            echo " 1) Desactivar Automatic Analysis en SonarCloud (recomendado si quieres ejecutar desde CI)."
-            echo " 2) Forzar análisis desde CI estableciendo el secret 'SONAR_SCAN_MODE=ci' en el repositorio (Settings → Secrets)."
-            echo "Si eliges la opción 2, asegúrate de que SONAR_TOKEN esté configurado también."
-            echo "=========================================="
             exit 0
           fi
 
           echo "=========================================="
-          echo "🔍 ANÁLISIS DE SONARCLOUD (modo CI)"
+          echo "ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
 
           mvn -B sonar:sonar \
