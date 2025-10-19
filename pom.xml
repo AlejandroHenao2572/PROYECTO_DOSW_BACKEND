@@ -41,7 +41,7 @@
         <!-- SonarCloud Configuration -->
         <sonar.organization>alejandrohenao2572</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.projectKey>PROYECTO_DOSW_BACKEND</sonar.projectKey>
+        <sonar.projectKey>AlejandroHenao2572_PROYECTO_DOSW_BACKEND</sonar.projectKey>
         
         <!-- JaCoCo Configuration for SonarCloud -->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
