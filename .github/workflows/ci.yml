@@ -141,10 +141,14 @@ jobs:
           echo "=========================================="
           echo "ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
-
-          mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}
           
-          echo " Análisis de SonarCloud completado"
+          mvn -B sonar:sonar \
+            -Dsonar.token=${SONAR_TOKEN} \
+            -Dsonar.qualitygate.wait=true
+          
+          echo ""
+          echo "Análisis de SonarCloud completado"
+          echo "Quality Gate verificado"
           echo "=========================================="
 
       - name: Upload Coverage Report
