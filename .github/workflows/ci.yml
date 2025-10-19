@@ -139,16 +139,20 @@ jobs:
           fi
           
           echo "=========================================="
-          echo "ANÁLISIS DE SONARCLOUD"
+          echo "🔍 ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
           
           mvn -B sonar:sonar \
+            -Dsonar.projectKey=PROYECTO_DOSW_BACKEND \
+            -Dsonar.organization=alejandrohenao2572 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.branch.name=develop \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.qualitygate.wait=true
           
           echo ""
-          echo "Análisis de SonarCloud completado"
-          echo "Quality Gate verificado"
+          echo "✅ Análisis de SonarCloud completado"
+          echo "✅ Quality Gate verificado"
           echo "=========================================="
 
       - name: Upload Coverage Report

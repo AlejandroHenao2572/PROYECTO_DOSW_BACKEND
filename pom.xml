@@ -43,6 +43,9 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.projectKey>PROYECTO_DOSW_BACKEND</sonar.projectKey>
         
+        <!-- Branch Configuration -->
+        <sonar.branch.name>develop</sonar.branch.name>
+        
         <!-- JaCoCo Configuration for SonarCloud -->
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
