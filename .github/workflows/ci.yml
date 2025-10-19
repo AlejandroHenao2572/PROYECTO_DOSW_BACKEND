@@ -39,8 +39,152 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Build and Test with Coverage
+        run: |
+          echo "=========================================="
+          echo "📦 COMPILANDO Y EJECUTANDO TESTS"
+          echo "=========================================="
+          mvn clean verify -B
+          echo "✅ Compilación y tests completados"
+          echo "=========================================="
+
+      - name: Verify Jacoco Coverage (minimum 85%)
+        run: |
+          echo "=========================================="
+          echo "📊 VERIFICANDO COBERTURA DE CÓDIGO (mínimo 85%)"
+          echo "=========================================="
+          
+          if [ ! -f target/site/jacoco/jacoco.xml ]; then
+            echo "❌ ERROR: No se encontró el reporte de JaCoCo"
+            echo "Asegúrate de que el plugin jacoco esté configurado en pom.xml"
+            exit 1
+          fi
+          
+          # Extraer métricas de instrucciones
+          INSTRUCTION_LINE=$(grep '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | head -1)
+          INSTRUCTION_MISSED=$(echo "$INSTRUCTION_LINE" | sed 's/.*missed="\([^"]*\)".*/\1/')
+          INSTRUCTION_COVERED=$(echo "$INSTRUCTION_LINE" | sed 's/.*covered="\([^"]*\)".*/\1/')
+          
+          # Extraer métricas de ramas
+          BRANCH_LINE=$(grep '<counter type="BRANCH"' target/site/jacoco/jacoco.xml | head -1)
+          BRANCH_MISSED=$(echo "$BRANCH_LINE" | sed 's/.*missed="\([^"]*\)".*/\1/')
+          BRANCH_COVERED=$(echo "$BRANCH_LINE" | sed 's/.*covered="\([^"]*\)".*/\1/')
+          
+          # Validar que se extrajeron los valores
+          if [ -z "$INSTRUCTION_MISSED" ] || [ -z "$INSTRUCTION_COVERED" ]; then
+            echo "❌ ERROR: No se pudieron extraer métricas de instrucciones"
+            exit 1
+          fi
+          
+          # Calcular porcentajes
+          TOTAL_INSTRUCTIONS=$((INSTRUCTION_MISSED + INSTRUCTION_COVERED))
+          TOTAL_BRANCHES=$((BRANCH_MISSED + BRANCH_COVERED))
+          
+          if [ $TOTAL_INSTRUCTIONS -eq 0 ]; then
+            INSTRUCTION_COVERAGE=0
+          else
+            INSTRUCTION_COVERAGE=$((INSTRUCTION_COVERED * 100 / TOTAL_INSTRUCTIONS))
+          fi
+          
+          if [ $TOTAL_BRANCHES -eq 0 ]; then
+            BRANCH_COVERAGE=0
+          else
+            BRANCH_COVERAGE=$((BRANCH_COVERED * 100 / TOTAL_BRANCHES))
+          fi
+          
+          echo ""
+          echo "📊 Resultados de Cobertura:"
+          echo "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "   📈 Cobertura de Instrucciones: ${INSTRUCTION_COVERAGE}%"
+          echo "      ✓ Cubiertas: ${INSTRUCTION_COVERED}"
+          echo "      ✗ No cubiertas: ${INSTRUCTION_MISSED}"
+          echo ""
+          echo "   🌿 Cobertura de Ramas: ${BRANCH_COVERAGE}%"
+          echo "      ✓ Cubiertas: ${BRANCH_COVERED}"
+          echo "      ✗ No cubiertas: ${BRANCH_MISSED}"
+          echo "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "   🎯 Mínimo requerido: 85%"
+          echo ""
+          
+          # Verificar cobertura mínima del 85%
+          FAILED=0
+          if [ $INSTRUCTION_COVERAGE -lt 85 ]; then
+            echo "   ❌ ERROR: Cobertura de instrucciones (${INSTRUCTION_COVERAGE}%) < 85%"
+            FAILED=1
+          else
+            echo "   ✅ Cobertura de instrucciones: ${INSTRUCTION_COVERAGE}% ≥ 85%"
+          fi
+          
+          if [ $BRANCH_COVERAGE -lt 85 ]; then
+            echo "   ❌ ERROR: Cobertura de ramas (${BRANCH_COVERAGE}%) < 85%"
+            FAILED=1
+          else
+            echo "   ✅ Cobertura de ramas: ${BRANCH_COVERAGE}% ≥ 85%"
+          fi
+          
+          echo "=========================================="
+          
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "❌ Por favor, agrega más tests para aumentar la cobertura al 85%."
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ ¡Cobertura de código cumple con el requisito del 85%!"
+          echo ""
+
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=AlejandroHenao2572_PROYECTO_DOSW_BACKEND -Dsonar.organization=alejandrohenao2572 -Dsonar.host.url=https://sonarcloud.io
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "=========================================="
+            echo "⚠️  SONAR_TOKEN no configurado"
+            echo "=========================================="
+            echo "El análisis de SonarCloud se saltará."
+            echo "Para habilitarlo, configura el secret SONAR_TOKEN en GitHub."
+            exit 0
+          fi
+          
+          echo "=========================================="
+          echo "🔍 ANÁLISIS DE SONARCLOUD + QUALITY GATE"
+          echo "=========================================="
+          echo ""
+          echo "📋 Configuración:"
+          echo "   Organization: alejandrohenao2572"
+          echo "   Project Key: AlejandroHenao2572_PROYECTO_DOSW_BACKEND"
+          echo "   Host: https://sonarcloud.io"
+          echo "   Quality Gate: HABILITADO (el pipeline fallará si no pasa)"
+          echo ""
+          echo "🔄 Ejecutando análisis..."
+          echo ""
+          
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=AlejandroHenao2572_PROYECTO_DOSW_BACKEND \
+            -Dsonar.organization=alejandrohenao2572 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.qualitygate.wait=true
+          
+          echo ""
+          echo "✅ Análisis de SonarCloud completado"
+          echo "✅ Quality Gate: PASSED ✓"
+          echo "📊 Ver resultados: https://sonarcloud.io/dashboard?id=AlejandroHenao2572_PROYECTO_DOSW_BACKEND"
+          echo "=========================================="
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
+          retention-days: 30
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+          retention-days: 30

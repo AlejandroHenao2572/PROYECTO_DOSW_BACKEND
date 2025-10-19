@@ -310,7 +310,7 @@
                         </goals>
                     </execution>
                     
-                    <!-- Verificar cobertura mínima del 80% -->
+                    <!-- Verificar cobertura mínima del 85% -->
                     <execution>
                         <id>jacoco-check</id>
                         <phase>verify</phase>
@@ -323,17 +323,17 @@
                                 <rule>
                                     <element>BUNDLE</element>
                                     <limits>
-                                        <!-- Cobertura de instrucciones mínima 80% -->
+                                        <!-- Cobertura de instrucciones mínima 85% -->
                                         <limit>
                                             <counter>INSTRUCTION</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
+                                            <minimum>0.85</minimum>
                                         </limit>
-                                        <!-- Cobertura de ramas mínima 80% -->
+                                        <!-- Cobertura de ramas mínima 85% -->
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
+                                            <minimum>0.85</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
