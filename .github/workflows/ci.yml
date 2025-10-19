@@ -156,13 +156,22 @@ jobs:
           echo "=========================================="
           echo "🔍 ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
+          echo ""
+          echo "📋 Configuración:"
+          echo "   Organization: alejandrohenao2572"
+          echo "   Project Key: AlejandroHenao2572_PROYECTO_DOSW_BACKEND"
+          echo "   Host: https://sonarcloud.io"
+          echo ""
+          echo "🔄 Ejecutando análisis..."
+          echo ""
 
           mvn -B sonar:sonar \
             -Dsonar.projectKey=AlejandroHenao2572_PROYECTO_DOSW_BACKEND \
             -Dsonar.organization=alejandrohenao2572 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=true \
+            -X
 
           echo ""
           echo "✅ Análisis de SonarCloud completado"
