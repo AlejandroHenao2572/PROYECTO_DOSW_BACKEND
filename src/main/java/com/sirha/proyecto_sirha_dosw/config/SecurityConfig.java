@@ -20,7 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * </p>
  * 
  * <p>
- * <b>Nota:</b> Por el momento, la configuración permite todas las peticiones sin autenticación.
+ * <b>Nota: </b> Por el momento, la configuración permite todas las peticiones sin autenticación.
  * Para producción, se debe configurar adecuadamente la autorización y autenticación.
  * </p>
  */
