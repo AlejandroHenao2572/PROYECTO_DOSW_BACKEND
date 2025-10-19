@@ -139,18 +139,6 @@ jobs:
             echo "=========================================="
             echo "⚠️  SONARCLOUD NO CONFIGURADO"
             echo "=========================================="
-            echo ""
-            echo "📋 Para habilitar el análisis de SonarCloud:"
-            echo ""
-            echo "1. Ve a https://sonarcloud.io"
-            echo "2. Importa tu repositorio 'PROYECTO_DOSW_BACKEND'"
-            echo "3. Genera un token de acceso"
-            echo "4. Agrega el secret SONAR_TOKEN en GitHub"
-            echo "   (Settings → Secrets and variables → Actions)"
-            echo ""
-            echo "⏩ El pipeline continuará sin análisis de SonarCloud."
-            echo "=========================================="
-            exit 0
           fi
           
           echo "=========================================="
@@ -166,9 +154,6 @@ jobs:
           echo ""
 
           mvn -B sonar:sonar \
-            -Dsonar.projectKey=AlejandroHenao2572_PROYECTO_DOSW_BACKEND \
-            -Dsonar.organization=alejandrohenao2572 \
-            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.qualitygate.wait=true \
             -X
