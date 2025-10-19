@@ -9,7 +9,7 @@
         <module name="proyecto-sirha-dosw" />
         <module name="sirha" />
       </profile>
-      <profile name="Annotation profile for proyecto-sirha-dosw" enabled="true">
+      <profile name="Annotation profile for PROYECTO_DOSW_BACKEND" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
