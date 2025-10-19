@@ -137,7 +137,7 @@ jobs:
           # Verificar si el token está configurado
           if [ -z "$SONAR_TOKEN" ]; then
             echo "=========================================="
-            echo "⚠️  SONARCLOUD NO CONFIGURADO"
+            echo "❌ ERROR: SONAR_TOKEN NO ESTÁ CONFIGURADO"
             echo "=========================================="
             echo ""
             echo "📋 Para habilitar el análisis de SonarCloud:"
@@ -162,6 +162,7 @@ jobs:
           echo "   Project Key: AlejandroHenao2572_PROYECTO_DOSW_BACKEND"
           echo "   Host: https://sonarcloud.io"
           echo "   Quality Gate: Habilitado (wait=true)"
+          echo "   Token configurado: SÍ (${#SONAR_TOKEN} caracteres)"
           echo ""
           echo "🔄 Ejecutando análisis..."
           echo ""
@@ -170,7 +171,7 @@ jobs:
             "-Dsonar.projectKey=AlejandroHenao2572_PROYECTO_DOSW_BACKEND" \
             "-Dsonar.organization=alejandrohenao2572" \
             "-Dsonar.host.url=https://sonarcloud.io" \
-            "-Dsonar.token=b3cdcc9aba890f5e35dd8e08347f61cb8fe0c2f9" \
+            "-Dsonar.token=${SONAR_TOKEN}" \
             "-Dsonar.qualitygate.wait=true"
 
           echo ""
