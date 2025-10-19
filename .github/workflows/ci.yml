@@ -141,13 +141,8 @@ jobs:
           echo "=========================================="
           echo "ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
-          
-          mvn -B sonar:sonar \
-            -Dsonar.projectKey=PROYECTO_DOSW_BACKEND \
-            -Dsonar.organization=alejandrohenao2572 \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.qualitygate.wait=true
+
+          mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}
           
           echo " Análisis de SonarCloud completado"
           echo "=========================================="
