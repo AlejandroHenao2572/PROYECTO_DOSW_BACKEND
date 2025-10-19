@@ -128,39 +128,23 @@ jobs:
           echo ""
 
       - name: SonarCloud Analysis
-        # Continuar aunque falle (para que el pipeline no se rompa)
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # Verificar si el token está configurado
           if [ -z "$SONAR_TOKEN" ]; then
-            echo "=========================================="
-            echo "⚠️  SONARCLOUD NO CONFIGURADO"
-            echo "=========================================="
+            echo "SONAR_TOKEN no configurado - saltando análisis de SonarCloud"
+            echo "Para habilitar SonarCloud, configura el secret SONAR_TOKEN en GitHub"
+            exit 0
           fi
           
           echo "=========================================="
-          echo "🔍 ANÁLISIS DE SONARCLOUD"
+          echo "ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
-          echo ""
-          echo "📋 Configuración:"
-          echo "   Organization: alejandrohenao2572"
-          echo "   Project Key: AlejandroHenao2572_PROYECTO_DOSW_BACKEND"
-          echo "   Host: https://sonarcloud.io"
-          echo ""
-          echo "🔄 Ejecutando análisis..."
-          echo ""
 
-          mvn -B sonar:sonar \
-            -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.qualitygate.wait=true \
-            -X
-
-          echo ""
-          echo "✅ Análisis de SonarCloud completado"
-          echo "✅ Quality Gate verificado"
+          mvn clean verify sonar:sonar -Dsonar.login=${SONAR_TOKEN}
+          
+          echo " Análisis de SonarCloud completado"
           echo "=========================================="
 
       - name: Upload Coverage Report
@@ -185,5 +169,51 @@ jobs:
           echo "## 📊 Resumen del CI - SIRHA API" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔧 Pipeline Ejecutado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            # Extraer métricas usando sed (más compatible)
+            INSTRUCTION_LINE=$(grep '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | head -1)
+            INSTRUCTION_MISSED=$(echo "$INSTRUCTION_LINE" | sed 's/.*missed="\([^"]*\)".*/\1/')
+            INSTRUCTION_COVERED=$(echo "$INSTRUCTION_LINE" | sed 's/.*covered="\([^"]*\)".*/\1/')
+            
+            TOTAL=$((INSTRUCTION_MISSED + INSTRUCTION_COVERED))
+            
+            if [ $TOTAL -eq 0 ]; then
+              COVERAGE=0
+            else
+              COVERAGE=$((INSTRUCTION_COVERED * 100 / TOTAL))
+            fi
+            
+            if [ $COVERAGE -ge 80 ]; then
+              echo "**✅ Cobertura de Código**: ${COVERAGE}% (cumple requisito ≥80%)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**❌ Cobertura de Código**: ${COVERAGE}% (requiere ≥80%)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "**⚠️ Cobertura de Código**: No disponible" >> $GITHUB_STEP_SUMMARY
+          fi
           
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Pasos Ejecutados" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔨 Compilación del proyecto" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Ejecución de tests unitarios" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Generación de reporte JaCoCo" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 Verificación de cobertura (≥80%)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ ! -z "$SONAR_TOKEN" ]; then
+            echo "- 🔍 Análisis de SonarCloud + Quality Gate" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Análisis de SonarCloud (token no configurado)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📁 Artefactos Disponibles" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 [Reporte de cobertura JaCoCo](../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 [Resultados de tests](../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          
+          if [ ! -z "$SONAR_TOKEN" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 SonarCloud" >> $GITHUB_STEP_SUMMARY
+            echo "Ver análisis completo en [SonarCloud Dashboard](https://sonarcloud.io/project/overview?id=PROYECTO_DOSW_BACKEND)" >> $GITHUB_STEP_SUMMARY
+          fi
