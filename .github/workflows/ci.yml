@@ -139,17 +139,6 @@ jobs:
             exit 0
           fi
 
-          # SONAR_SCAN_MODE controls where analysis runs:
-          #  - set to 'ci' to run Sonar from this workflow (CI-driven analysis)
-          #  - default (unset or any other value) assumes SonarCloud Automatic Analysis is enabled
-          if [ "$SONAR_SCAN_MODE" != "ci" ]; then
-            echo "=========================================="
-            echo "🔍 SonarCloud - Análisis automático detectado"
-            echo "=========================================="
-            echo "Se está omitiendo la ejecución de 'mvn sonar:sonar' porque Automatic Analysis probablemente está activado en SonarCloud."
-            exit 0
-          fi
-
           echo "=========================================="
           echo "ANÁLISIS DE SONARCLOUD"
           echo "=========================================="
