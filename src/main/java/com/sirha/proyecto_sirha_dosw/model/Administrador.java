@@ -1,29 +1,62 @@
+/**
+ * Clase que representa a un administrador en el sistema.
+ * Extiende de Usuario e implementa la interfaz GestorSolicitudes.
+ */
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
+import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-public class Administrador extends Usuario implements IGestorSolicitudes {
+@Document(collection = "usuarios")
+@TypeAlias("administrador")
+public class Administrador extends Usuario implements GestorSolicitudes {
 
-	private CalendarioAcademico calendarioAcademico;
+    /**
+     * Constructor por defecto.
+     */
+    public Administrador() {
+        super();
+    }
 
-	public void administrarUsuarios() {
+    /**
+     * Constructor con parámetros básicos.
+     * @param nombre Nombre del administrador
+     * @param apellido Apellido del administrador
+     * @param email Email del administrador
+     * @param password Contraseña del administrador
+     */
+    public Administrador(String nombre, String apellido, String email, String password) {
+        super(nombre, apellido, email, password);
+    }
 
-	}
+    /**
+     * Constructor completo con todos los parámetros.
+     * @param nombre Nombre del administrador
+     * @param apellido Apellido del administrador
+     * @param email Email del administrador
+     * @param password Contraseña del administrador
+     * @param rol Rol del administrador
+     */
+    public Administrador(String nombre, String apellido, String email, String password, Rol rol) {
+        super(nombre, apellido, email, password, rol);
+    }
 
-	public List<Reporte> generarReportesDelSystema() {
-		return null;
-	}
+    /**
+     * Implementación del método para agregar solicitudes (pendiente de implementación).
+     * @param solicitud Solicitud a agregar
+     */
+    @Override
+    public void agregarSolicitud(Solicitud solicitud) {
+        // Pendiente de implementación
+    }
 
-	public void administrarConfiguracionDelSistema() {
-
-	}
-
-	public void establecerPeriodoAcademico(Date fechaInicio, Date fechaFinal) {
-
-	}
-
-	@Override
-	public boolean gestionarSolicitud(Solicitud solicitud) {
-		return false;
-	}
+    /**
+     * Implementación del método para gestionar solicitudes (pendiente de implementación).
+     * @param solicitud Solicitud a gestionar
+     * @param accion Acción a realizar sobre la solicitud
+     */
+    @Override
+    public void gestionarSolicitud(Solicitud solicitud, String accion) {
+        // Pendiente de implementación
+    }
 }

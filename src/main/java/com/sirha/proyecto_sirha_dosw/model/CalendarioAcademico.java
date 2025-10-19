@@ -1,9 +1,22 @@
 package com.sirha.proyecto_sirha_dosw.model;
 
-public class CalendarioAcademico {
+import java.time.LocalDate;
 
-	private Date periodoInicio;
+import com.sirha.proyecto_sirha_dosw.model.support.DateRangeHolder;
+import com.sirha.proyecto_sirha_dosw.model.support.MutableDateRange;
 
-	private Date periodoFinal;
+public enum CalendarioAcademico implements DateRangeHolder {
+    INSTANCIA(LocalDate.of(2025, 7, 11), LocalDate.of(2025, 12, 17));
 
+    private final MutableDateRange dateRange;
+
+    CalendarioAcademico(LocalDate fechaInicio, LocalDate fechaFin) {
+        this.dateRange = new MutableDateRange(fechaInicio, fechaFin);
+    }
+
+    @Override
+    public MutableDateRange getDateRange() {
+        return dateRange;
+    }
 }
+

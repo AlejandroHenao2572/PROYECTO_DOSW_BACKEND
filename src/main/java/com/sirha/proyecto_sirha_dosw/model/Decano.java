@@ -1,27 +1,56 @@
+/**
+ * Clase que representa a un decano en el sistema.
+ * Extiende de Profesor e implementa la interfaz GestorSolicitudes.
+ * Un decano está asociado a una facultad específica.
+ */
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
+import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-public class Decano extends Usuario implements IGestorSolicitudes {
+@Document(collection = "usuarios")
+@TypeAlias("decano")
+public class Decano extends Profesor{
+    // Campo específico del decano
+    private Facultad carrera;
 
-	public List<Solicitud> consultarSolicitudes() {
-		return null;
-	}
+    /**
+     * Constructor por defecto.
+     */
+    public Decano() {
+        super();
+    }
 
-	public boolean responderSolicitud(String idSolicitud, estadoRespuesta respuesta, String razon) {
-		return false;
-	}
+    /**
+     * Constructor con parámetros básicos.
+     * @param nombre Nombre del decano
+     * @param apellido Apellido del decano
+     * @param email Email del decano
+     * @param contraseña Contraseña del decano
+     * @param carrera Facultad que dirige el decano
+     */
+    public Decano(String nombre, String apellido, String email, String contrasena, Facultad carrera) {
+        super(nombre, apellido, email, contrasena);
+        this.carrera = carrera;
+    }
 
-	public List<Grupo> monitorearCapacidadGrupo() {
-		return null;
-	}
+    /**
+     * Constructor completo con todos los parámetros.
+     * @param nombre Nombre del decano
+     * @param apellido Apellido del decano
+     * @param email Email del decano
+     * @param contraseña Contraseña del decano
+     * @param rol Rol del decano
+     * @param carrera Facultad que dirige el decano
+     */
+    public Decano(String nombre, String apellido, String email, String contrasena, Rol rol, Facultad carrera) {
+        super(nombre, apellido, email, contrasena, rol);
+        this.carrera = carrera;
+    }
 
-	public boolean configurarPeriodos(Date fechaInicial, Date fechaFinal) {
-		return false;
-	}
+    // Getters y setters con documentación básica
+    public Facultad getFacultad() { return carrera; }
+    public void setFacultad(Facultad carrera) { this.carrera = carrera; }
 
-	@Override
-	public boolean gestionarSolicitud(Solicitud solicitud) {
-		return false;
-	}
+
 }

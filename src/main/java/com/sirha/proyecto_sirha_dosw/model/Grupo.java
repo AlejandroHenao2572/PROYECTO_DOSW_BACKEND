@@ -1,17 +1,130 @@
+/**
+ * Clase que representa un grupo académico en el sistema.
+ * Contiene información sobre la materia, capacidad, horarios y estudiantes inscritos.
+ */
 package com.sirha.proyecto_sirha_dosw.model;
 
-public class Grupo {
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.ArrayList;
+import java.util.List;
 
+@Document(collection = "grupos")
+public class Grupo {
+	// Campos
 	private String id;
 
-	private Integer capacidad;
+	@NotNull
+	@NotBlank
+	private int capacidad = 0;
 
+	@NotNull
+	@NotBlank
 	private int cantidadInscritos;
 
+	@NotNull
+	@NotBlank
 	private boolean estaCompleto;
 
-	private int cuposDisponibles;
+	@NotNull
+	@NotBlank
+	private List<Horario> horarios = new ArrayList<>();
 
-	private Horario horario;
+	@NotNull
+	@NotBlank
+	private Materia materia;
 
+	private List<String> estudiantesId = new ArrayList<>();
+	private Profesor profesor;
+
+	/**
+	 * Constructor por defecto.
+	 */
+	public Grupo() {
+	}
+
+	/**
+	 * Constructor con parámetros básicos.
+	 * @param materia Materia del grupo
+	 * @param capacidad Capacidad máxima del grupo
+	 * @param horarios Lista de horarios del grupo
+	 */
+	public Grupo(Materia materia, int capacidad, List<Horario> horarios) {
+		this.materia = materia;
+		this.capacidad = capacidad;
+		this.horarios = horarios;
+		this.cantidadInscritos = 0;
+		this.estaCompleto = false;
+		this.estudiantesId = new ArrayList<>();
+	}
+
+	// Getters y setters con documentación básica
+	public Materia getMateria() { return materia; }
+	public void setMateria(Materia materia) { this.materia = materia; }
+	public List<String> getEstudiantesId() { return estudiantesId; }
+	public void setEstudiantesId(List<String> estudiantesId) { this.estudiantesId = estudiantesId; }
+	public List<Horario> getHorarios() { return horarios; }
+	public void setHorarios(List<Horario> horarios) { this.horarios = horarios; }
+	public boolean isEstaCompleto() { return estaCompleto; }
+	public void setEstaCompleto(boolean estaCompleto) { this.estaCompleto = estaCompleto; }
+	public int getCantidadInscritos() { return cantidadInscritos; }
+	public void setCantidadInscritos(int cantidadInscritos) { this.cantidadInscritos = cantidadInscritos; }
+	public int getCapacidad() { return capacidad; }
+	public void setCapacidad(int capacidad) { this.capacidad = capacidad; }
+	public String getId() { return id; }
+	public void setId(String id) { this.id = id; }
+	public Profesor getProfesor() { return profesor; }
+	public void setProfesor(Profesor profesor) { this.profesor = profesor; }
+
+	/**
+	 * Agrega un estudiante al grupo si no está ya inscrito.
+	 * Actualiza la cantidad de inscritos y verifica si el grupo está completo.
+	 * @param estudianteId ID del estudiante a agregar
+	 */
+	public void addEstudiante(String estudianteId) {
+		if (!this.estudiantesId.contains(estudianteId)) {
+			this.estudiantesId.add(estudianteId);
+			this.cantidadInscritos++;
+			if (this.cantidadInscritos >= this.capacidad) {
+				this.estaCompleto = true;
+			}
+		}
+	}
+
+	/**
+	 * Remueve un estudiante del grupo.
+	 * Actualiza la cantidad de inscritos y verifica si el grupo deja de estar completo.
+	 * @param estudianteId ID del estudiante a remover
+	 */
+	public void removeEstudiante(String estudianteId) {
+		this.estudiantesId.remove(estudianteId);
+		this.cantidadInscritos--;
+		if (this.cantidadInscritos < this.capacidad) {
+			this.estaCompleto = false;
+		}
+	}
+
+	/**
+	 * Verifica si este grupo tiene cruce de horarios con otro grupo.
+	 * Compara todos los horarios de ambos grupos para detectar superposiciones.
+	 * @param otroGrupo Grupo a comparar
+	 * @return true si hay cruce de horarios, false en caso contrario
+	 */
+	public boolean tieneCruceDeHorario(Grupo otroGrupo) {
+		if (otroGrupo == null || this.horarios == null || otroGrupo.getHorarios() == null) {
+			return false;
+		}
+
+		// Comparar cada horario de este grupo con cada horario del otro grupo
+		for (Horario horario1 : this.horarios) {
+			for (Horario horario2 : otroGrupo.getHorarios()) {
+				if (horario1.tieneCruceConHorario(horario2)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
 }

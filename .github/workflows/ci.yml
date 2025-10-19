@@ -1,0 +1,224 @@
+name: CI - SIRHA API
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build-and-test:
+    name: Build, Test & Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para SonarCloud
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'  # Cache automático de Maven
+
+      - name: Build and Test with Coverage
+        run: |
+          echo "=========================================="
+          echo " COMPILANDO Y EJECUTANDO TESTS"
+          echo "=========================================="
+          mvn clean verify -B
+          echo "Compilación y tests completados"
+          echo "=========================================="
+
+      - name: Verify Jacoco Coverage (minimum 80%)
+        run: |
+          echo "=========================================="
+          echo "📊 VERIFICANDO COBERTURA DE CÓDIGO"
+          echo "=========================================="
+          
+          # Verificar que existe el reporte XML
+          if [ ! -f target/site/jacoco/jacoco.xml ]; then
+            echo "❌ ERROR: No se encontró el reporte de JaCoCo"
+            echo "Asegúrate de que el plugin jacoco esté configurado en pom.xml"
+            exit 1
+          fi
+          
+          # Usar xmllint o awk para parsear XML de forma más robusta
+          # Extraer la línea del counter INSTRUCTION (primer ocurrencia - nivel BUNDLE)
+          INSTRUCTION_LINE=$(grep '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | head -1)
+          INSTRUCTION_MISSED=$(echo "$INSTRUCTION_LINE" | sed 's/.*missed="\([^"]*\)".*/\1/')
+          INSTRUCTION_COVERED=$(echo "$INSTRUCTION_LINE" | sed 's/.*covered="\([^"]*\)".*/\1/')
+          
+          # Extraer la línea del counter BRANCH (primer ocurrencia - nivel BUNDLE)
+          BRANCH_LINE=$(grep '<counter type="BRANCH"' target/site/jacoco/jacoco.xml | head -1)
+          BRANCH_MISSED=$(echo "$BRANCH_LINE" | sed 's/.*missed="\([^"]*\)".*/\1/')
+          BRANCH_COVERED=$(echo "$BRANCH_LINE" | sed 's/.*covered="\([^"]*\)".*/\1/')
+          
+          # Validar que se extrajeron los valores
+          if [ -z "$INSTRUCTION_MISSED" ] || [ -z "$INSTRUCTION_COVERED" ]; then
+            echo "❌ ERROR: No se pudieron extraer métricas de instrucciones"
+            echo "Contenido del XML:"
+            cat target/site/jacoco/jacoco.xml
+            exit 1
+          fi
+          
+          # Calcular porcentajes
+          TOTAL_INSTRUCTIONS=$((INSTRUCTION_MISSED + INSTRUCTION_COVERED))
+          TOTAL_BRANCHES=$((BRANCH_MISSED + BRANCH_COVERED))
+          
+          if [ $TOTAL_INSTRUCTIONS -eq 0 ]; then
+            INSTRUCTION_COVERAGE=0
+          else
+            INSTRUCTION_COVERAGE=$((INSTRUCTION_COVERED * 100 / TOTAL_INSTRUCTIONS))
+          fi
+          
+          if [ $TOTAL_BRANCHES -eq 0 ]; then
+            BRANCH_COVERAGE=0
+          else
+            BRANCH_COVERAGE=$((BRANCH_COVERED * 100 / TOTAL_BRANCHES))
+          fi
+          
+          echo ""
+          echo " Resultados de Cobertura:"
+          echo "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "    Cobertura de Instrucciones: ${INSTRUCTION_COVERAGE}%"
+          echo "       Cubiertas: ${INSTRUCTION_COVERED}"
+          echo "       No cubiertas: ${INSTRUCTION_MISSED}"
+          echo ""
+          echo "   Cobertura de Ramas: ${BRANCH_COVERAGE}%"
+          echo "       Cubiertas: ${BRANCH_COVERED}"
+          echo "      No cubiertas: ${BRANCH_MISSED}"
+          echo "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "    Mínimo requerido: 80%"
+          echo ""
+          
+          # Verificar cobertura mínima
+          FAILED=0
+          if [ $INSTRUCTION_COVERAGE -lt 80 ]; then
+            echo "   ERROR: Cobertura de instrucciones (${INSTRUCTION_COVERAGE}%) < 80%"
+            FAILED=1
+          else
+            echo "   Cobertura de instrucciones: ${INSTRUCTION_COVERAGE}% ≥ 80%"
+          fi
+          
+          if [ $BRANCH_COVERAGE -lt 80 ]; then
+            echo "   ERROR: Cobertura de ramas (${BRANCH_COVERAGE}%) < 80%"
+            FAILED=1
+          else
+            echo "   ✅ Cobertura de ramas: ${BRANCH_COVERAGE}% ≥ 80%"
+          fi
+          
+          echo ""
+          echo "=========================================="
+          
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo " Por favor, agrega más tests para aumentar la cobertura."
+            exit 1
+          fi
+          
+          echo ""
+          echo "¡Cobertura de código cumple con los requisitos!"
+          echo ""
+
+      - name: SonarCloud Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "SONAR_TOKEN no configurado - saltando análisis de SonarCloud"
+            echo "Para habilitar SonarCloud, configura el secret SONAR_TOKEN en GitHub"
+            exit 0
+          fi
+          
+          echo "=========================================="
+          echo "ANÁLISIS DE SONARCLOUD"
+          echo "=========================================="
+          
+          mvn -B sonar:sonar \
+            -Dsonar.projectKey=PROYECTO_DOSW_BACKEND \
+            -Dsonar.organization=alejandrohenao2572 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=${SONAR_TOKEN} \
+            -Dsonar.qualitygate.wait=true
+          
+          echo " Análisis de SonarCloud completado"
+          echo "=========================================="
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
+          retention-days: 30
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: target/surefire-reports/
+          retention-days: 30
+
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## 📊 Resumen del CI - SIRHA API" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔧 Pipeline Ejecutado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            # Extraer métricas usando sed (más compatible)
+            INSTRUCTION_LINE=$(grep '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | head -1)
+            INSTRUCTION_MISSED=$(echo "$INSTRUCTION_LINE" | sed 's/.*missed="\([^"]*\)".*/\1/')
+            INSTRUCTION_COVERED=$(echo "$INSTRUCTION_LINE" | sed 's/.*covered="\([^"]*\)".*/\1/')
+            
+            TOTAL=$((INSTRUCTION_MISSED + INSTRUCTION_COVERED))
+            
+            if [ $TOTAL -eq 0 ]; then
+              COVERAGE=0
+            else
+              COVERAGE=$((INSTRUCTION_COVERED * 100 / TOTAL))
+            fi
+            
+            if [ $COVERAGE -ge 80 ]; then
+              echo "**✅ Cobertura de Código**: ${COVERAGE}% (cumple requisito ≥80%)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**❌ Cobertura de Código**: ${COVERAGE}% (requiere ≥80%)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "**⚠️ Cobertura de Código**: No disponible" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Pasos Ejecutados" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔨 Compilación del proyecto" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 Ejecución de tests unitarios" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 Generación de reporte JaCoCo" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 Verificación de cobertura (≥80%)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ ! -z "$SONAR_TOKEN" ]; then
+            echo "- 🔍 Análisis de SonarCloud + Quality Gate" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Análisis de SonarCloud (token no configurado)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📁 Artefactos Disponibles" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 [Reporte de cobertura JaCoCo](../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 [Resultados de tests](../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          
+          if [ ! -z "$SONAR_TOKEN" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 SonarCloud" >> $GITHUB_STEP_SUMMARY
+            echo "Ver análisis completo en [SonarCloud Dashboard](https://sonarcloud.io/project/overview?id=PROYECTO_DOSW_BACKEND)" >> $GITHUB_STEP_SUMMARY
+          fi
