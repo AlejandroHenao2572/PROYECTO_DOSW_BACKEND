@@ -132,7 +132,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          # If no token, skip Sonar analysis (token required for CI-driven analysis)
+          # If  no token, skip Sonar analysis (token required for CI-driven analysis)
           if [ -z "$SONAR_TOKEN" ]; then
             echo "SONAR_TOKEN no configurado - saltando análisis de SonarCloud"
             echo "Para habilitar SonarCloud desde CI configura el secret SONAR_TOKEN en GitHub"
