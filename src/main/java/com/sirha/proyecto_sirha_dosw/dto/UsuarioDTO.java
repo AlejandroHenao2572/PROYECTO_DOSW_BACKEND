@@ -1,16 +1,13 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
-import jakarta.validation.constraints.Email;
+import com.sirha.proyecto_sirha_dosw.dto.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import org.springframework.data.mongodb.core.index.Indexed;
 
 /**
  * DTO para la transferencia de datos relacionados con un Usuario.
@@ -32,15 +29,13 @@ public class UsuarioDTO {
     @NotNull(message = "El apellido no puede ser nulo")
     private String apellido;
 
-    @Indexed(unique = true)
-    @Email(message = "Debe ser un correo válido")
-    @NotBlank(message = "El email es obligatorio")
-    @NotNull(message = "El email no puede ser nulo")
+    // El email se genera automáticamente: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co
+    // Por lo tanto, no se requiere en el JSON de registro
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     @NotNull(message = "La contraseña no puede ser nula")
+    @ValidPassword
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")

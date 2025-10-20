@@ -17,12 +17,13 @@
 3. [Estrategia de Gitflow](#estrategia-de-gitflow)  
 4. [Tecnologías Usadas](#tecnologías-usadas)  
 5. [Artefactos de Análisis y Diseño](#artefactos-de-análisis-y-diseño)  
-6. [Dependencias](#dependencias)  
-7. [Plugins](#plugins)  
-8. [Configuración de la Aplicación](#aplicacion-properties)  
-9. [Cómo Ejecutar el Proyecto](#cómo-ejecutar-el-proyecto)  
-10. [Cobertura de Pruebas](#cobertura-de-pruebas-unitarias)  
-11. [Análisis Estático con SonarQube](#análisis-estático-con-sonarqube)  
+6. [🔐 Autenticación y Seguridad](#-autenticación-y-seguridad-jwt)
+7. [Dependencias](#dependencias)  
+8. [Plugins](#plugins)  
+9. [Configuración de la Aplicación](#aplicacion-properties)  
+10. [Cómo Ejecutar el Proyecto](#cómo-ejecutar-el-proyecto)  
+11. [Cobertura de Pruebas](#cobertura-de-pruebas-unitarias)  
+12. [Análisis Estático con SonarQube](#análisis-estático-con-sonarqube)  
 
 ---
 
@@ -89,7 +90,6 @@ docs #Documentacion del proyecto
 	- Realizar revisiones de código (pull requests).
 	- Mantener las ramas actualizadas y eliminar ramas que ya se fusionaron.
 
----
 
 ## Technologias usadas:
 

@@ -90,18 +90,21 @@ public class UsuarioService {
      * Registra un nuevo usuario en el sistema.
      *
      * <p>
-     * Valida que los campos obligatorios estén presentes y que
-     * el correo no esté ya registrado. Luego crea una instancia
-     * de {@link Usuario} usando la {@code UsuarioFactory} y la
+     * Valida que los campos obligatorios estén presentes y genera automáticamente
+     * el correo electrónico usando el formato: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co
+     * Luego crea una instancia de {@link Usuario} usando la {@code UsuarioFactory} y la
      * guarda en la base de datos.
      * </p>
      *
      * @param dto objeto {@link UsuarioDTO} con los datos del nuevo usuario
      * @return el {@link Usuario} recién creado y persistido
-     * @throws IllegalArgumentException si faltan campos obligatorios o el email ya
-     *                                  existe
+     * @throws SirhaException si faltan campos obligatorios, el email ya existe, o hay errores de validación
      */
     public Usuario registrar(UsuarioDTO dto) throws  SirhaException{
+        // Generar email automáticamente
+        String emailGenerado = generarEmail(dto.getNombre(), dto.getApellido());
+        dto.setEmail(emailGenerado);
+        
         if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
         }
@@ -131,6 +134,54 @@ public class UsuarioService {
                 facultad);
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         return usuarioRepository.insert(usuario);
+    }
+    
+    /**
+     * Genera un correo electrónico automáticamente basado en el nombre y apellido.
+     * Formato: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co
+     * 
+     * <p>Ejemplos:</p>
+     * <ul>
+     *   <li>Juan Pérez -> juan.perez-p@mail.escuelaing.edu.co</li>
+     *   <li>María García -> maria.garcia-g@mail.escuelaing.edu.co</li>
+     *   <li>Carlos López Martínez -> carlos.lopezmartinez-l@mail.escuelaing.edu.co</li>
+     * </ul>
+     *
+     * @param nombre el nombre del usuario
+     * @param apellido el apellido del usuario
+     * @return el correo electrónico generado
+     */
+    private String generarEmail(String nombre, String apellido) {
+        // Normalizar: remover espacios extras, convertir a minúsculas, remover acentos
+        String nombreNormalizado = normalizarTexto(nombre);
+        String apellidoNormalizado = normalizarTexto(apellido);
+        
+        // Obtener la primera letra del apellido
+        char primeraLetraApellido = apellidoNormalizado.charAt(0);
+        
+        // Formato: nombre.apellido-primeraLetraApellido@mail.escuelaing.edu.co
+        return String.format("%s.%s-%c@mail.escuelaing.edu.co", 
+                nombreNormalizado, 
+                apellidoNormalizado, 
+                primeraLetraApellido);
+    }
+    
+    /**
+     * Normaliza un texto removiendo acentos, espacios extras y convirtiéndolo a minúsculas.
+     *
+     * @param texto el texto a normalizar
+     * @return el texto normalizado
+     */
+    private String normalizarTexto(String texto) {
+        return texto.trim()
+                .toLowerCase()
+                .replaceAll("\\s+", "")  // Remover todos los espacios
+                .replaceAll("[áàäâ]", "a")
+                .replaceAll("[éèëê]", "e")
+                .replaceAll("[íìïî]", "i")
+                .replaceAll("[óòöô]", "o")
+                .replaceAll("[úùüû]", "u")
+                .replaceAll("[ñ]", "n");
     }
 
     private void verificarFacultad(UsuarioDTO dto) throws SirhaException{
