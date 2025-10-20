@@ -26,8 +26,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reportes")
-@Tag(name = "Reportes Controller", description = "API para la gestión de reportes y estadísticas del sistema SIRHA. " +
-        "Proporciona endpoints para obtener estadísticas de grupos más solicitados, tasas de aprobación, " +
+@Tag(name = "Reportes Controller", description = "API para la gestión de reportes y estadísticas del sistema SIRHA, " +
+        "proporciona endpoints para obtener estadísticas de grupos más solicitados, tasas de aprobación, " +
         "indicadores de avance académico y otros reportes analíticos del sistema.")
 public class ReportesController {
     
