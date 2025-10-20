@@ -116,7 +116,7 @@ public class CarreraController {
             )
         )
     })
-    @PostMapping("/registter")
+    @PostMapping("/register")
     public ResponseEntity<String> register(
         @Parameter(
             description = "Datos de la carrera a registrar",
