@@ -10,6 +10,7 @@ import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Servicio que gestiona las operaciones relacionadas con los usuarios.
@@ -90,50 +91,110 @@ public class UsuarioService {
      * Registra un nuevo usuario en el sistema.
      *
      * <p>
-     * Valida que los campos obligatorios estén presentes y genera automáticamente
-     * el correo electrónico usando el formato: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co
-     * Luego crea una instancia de {@link Usuario} usando la {@code UsuarioFactory} y la
-     * guarda en la base de datos.
+     * Este método genera automáticamente:
+     * <ul>
+     *   <li>ID: Cadena de 10 dígitos numéricos entre 0000000000 y 9999999999</li>
+     *   <li>Email: Formato {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co</li>
+     * </ul>
      * </p>
      *
-     * @param dto objeto {@link UsuarioDTO} con los datos del nuevo usuario
+     * @param dto objeto {@link UsuarioDTO} con los datos del nuevo usuario (nombre, apellido, password, rol, facultad)
      * @return el {@link Usuario} recién creado y persistido
-     * @throws SirhaException si faltan campos obligatorios, el email ya existe, o hay errores de validación
+     * @throws SirhaException si el email ya existe, el rol es inválido, o hay errores de validación
      */
-    public Usuario registrar(UsuarioDTO dto) throws  SirhaException{
-        // Generar email automáticamente
-        String emailGenerado = generarEmail(dto.getNombre(), dto.getApellido());
-        dto.setEmail(emailGenerado);
-        
-        if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
-        }
+    public Usuario registrar(UsuarioDTO dto) throws SirhaException {
+        // Validar el rol
         Rol rol;
         try {
             rol = Rol.valueOf(dto.getRol().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new SirhaException(SirhaException.ROL_INVALIDO);
+            throw new SirhaException(SirhaException.ROL_INVALIDO + ". Roles válidos: ESTUDIANTE, DECANO, ADMINISTRADOR, PROFESOR");
         }
-        Facultad facultad;
-        try {
-            if (dto.getFacultad() != null) {
+
+        // Validar y procesar la facultad
+        Facultad facultad = null;
+        if (dto.getFacultad() != null && !dto.getFacultad().trim().isEmpty()) {
+            try {
                 facultad = Facultad.valueOf(dto.getFacultad().toUpperCase());
-            } else {
-                facultad = null;
+            } catch (IllegalArgumentException e) {
+                throw new SirhaException(SirhaException.FACULTAD_ERROR + ". Facultades válidas: INGENIERIA_SISTEMAS, INGENIERIA_CIVIL, ADMINISTRACION");
             }
-        } catch (IllegalArgumentException e) {
-            throw new SirhaException(SirhaException.FACULTAD_ERROR);
         }
-        verificarFacultad(dto);
+
+        // Validar que la facultad sea obligatoria para ESTUDIANTE y DECANO
+        if ((rol == Rol.ESTUDIANTE || rol == Rol.DECANO) && facultad == null) {
+            throw new SirhaException("La facultad es obligatoria para el rol " + rol.name());
+        }
+
+        // Validar que el ADMINISTRADOR no tenga facultad
+        if (rol == Rol.ADMINISTRADOR && facultad != null) {
+            throw new SirhaException("El rol ADMINISTRADOR no debe tener facultad asignada");
+        }
+
+        // Validar que la carrera/facultad exista en el sistema
+        if (facultad != null) {
+            if (carreraRepository.findByNombre(facultad).isEmpty()) {
+                throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + facultad.name());
+            }
+
+            // Validar que no exista un decano para esa facultad
+            if (rol == Rol.DECANO) {
+                List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
+                for (Usuario decano : decanos) {
+                    if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(facultad)) {
+                        throw new SirhaException(SirhaException.DECANO_YA_EXISTE + " para la facultad " + facultad.name());
+                    }
+                }
+            }
+        }
+
+        // Generar email automáticamente
+        String emailGenerado = generarEmail(dto.getNombre(), dto.getApellido());
+        dto.setEmail(emailGenerado);
+        
+        // Validar que el email no exista
+        if (usuarioRepository.findByEmail(emailGenerado).isPresent()) {
+            throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
+        }
+
+        // Crear el usuario usando la factory
         Usuario usuario = UsuarioFactory.crearUsuario(
                 rol,
                 dto.getNombre(),
                 dto.getApellido(),
-                dto.getEmail(),
+                emailGenerado,
                 dto.getPassword(),
                 facultad);
+
+        // Generar ID único de 10 dígitos
+        String idGenerado = generarIdUnico();
+        usuario.setId(idGenerado);
+
+        // Encriptar la contraseña
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+
+        // Guardar el usuario
         return usuarioRepository.insert(usuario);
+    }
+
+    /**
+     * Genera un ID único de 10 dígitos numéricos para un usuario.
+     * 
+     * <p>El ID se genera aleatoriamente en el rango de 0000000000 a 9999999999.
+     * Si el ID ya existe en la base de datos, se genera uno nuevo hasta encontrar uno único.</p>
+     *
+     * @return ID único de 10 dígitos en formato String
+     */
+    private String generarIdUnico() {
+        String id;
+        do {
+            // Generar un número aleatorio de 10 dígitos
+            long numeroAleatorio = ThreadLocalRandom.current().nextLong(0L, 10000000000L);
+            // Formatear con ceros a la izquierda si es necesario
+            id = String.format("%010d", numeroAleatorio);
+        } while (usuarioRepository.existsById(id)); // Verificar que no exista
+        
+        return id;
     }
     
     /**
@@ -181,26 +242,8 @@ public class UsuarioService {
                 .replaceAll("[íìïî]", "i")
                 .replaceAll("[óòöô]", "o")
                 .replaceAll("[úùüû]", "u")
-                .replaceAll("[ñ]", "n");
+                .replaceAll("ñ", "n");
     }
-
-    private void verificarFacultad(UsuarioDTO dto) throws SirhaException{
-    if(dto.getRol().equalsIgnoreCase("DECANO") || dto.getRol().equalsIgnoreCase("ESTUDIANTE")) {
-            if (carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad())).isEmpty()) {
-                throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + dto.getFacultad());
-            }
-            if(dto.getRol().equalsIgnoreCase("DECANO")){
-                List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
-                for (Usuario decano : decanos) {
-                    if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(Facultad.valueOf(dto.getFacultad()))) {
-                        throw new SirhaException(SirhaException.DECANO_YA_EXISTE + dto.getFacultad());
-                    }
-                }
-            }
-        }
-    }
-
-
 
     /**
      * Actualiza a un usuario.

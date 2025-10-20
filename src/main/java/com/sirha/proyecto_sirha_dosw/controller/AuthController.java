@@ -39,10 +39,17 @@ import org.springframework.web.bind.annotation.*;
  * {
  *   "nombre": "Juan",
  *   "apellido": "Pérez",
- *   "email": "juan.perez@estudiantes.edu.co",
- *   "password": "password123",
+ *   "password": "Password123!",
  *   "rol": "ESTUDIANTE",
- *   "facultad": "INGENIERIA"
+ *   "facultad": "INGENIERIA_SISTEMAS"
+ * }
+ * 
+ * Respuesta exitosa (201 CREATED):
+ * {
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+ *   "email": "juan.perez-p@mail.escuelaing.edu.co",
+ *   "rol": "ESTUDIANTE",
+ *   "nombre": "Juan Pérez"
  * }
  * </pre>
  * 
@@ -52,14 +59,14 @@ import org.springframework.web.bind.annotation.*;
  * Content-Type: application/json
  * 
  * {
- *   "email": "juan.perez@estudiantes.edu.co",
- *   "password": "password123"
+ *   "email": "juan.perez-p@mail.escuelaing.edu.co",
+ *   "password": "Password123!"
  * }
  * 
  * Respuesta exitosa (200 OK):
  * {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
- *   "email": "juan.perez@estudiantes.edu.co",
+ *   "email": "juan.perez-p@mail.escuelaing.edu.co",
  *   "rol": "ESTUDIANTE",
  *   "nombre": "Juan Pérez"
  * }
@@ -76,7 +83,12 @@ public class AuthController {
     /**
      * Endpoint para registrar un nuevo usuario en el sistema.
      * 
-     * <p>Registra un usuario con rol de ESTUDIANTE, DECANO o ADMINISTRADOR.</p>
+     * <p>Registra un usuario con rol de ESTUDIANTE, DECANO, ADMINISTRADOR o PROFESOR.</p>
+     * <p>El ID y el email se generan automáticamente:</p>
+     * <ul>
+     *   <li>ID: Cadena de 10 dígitos numéricos (0000000000 a 9999999999)</li>
+     *   <li>Email: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co</li>
+     * </ul>
      * <p>La contraseña se encripta automáticamente con BCrypt.</p>
      * 
      * @param usuarioDTO DTO con los datos del nuevo usuario
@@ -84,8 +96,11 @@ public class AuthController {
      */
     @Operation(
         summary = "Registrar nuevo usuario",
-        description = "Registra un nuevo usuario en el sistema SIRHA. El usuario puede tener roles de ESTUDIANTE, " +
-                     "DECANO o ADMINISTRADOR. La contraseña se encripta automáticamente. " +
+        description = "Registra un nuevo usuario en el sistema SIRHA. Solo se requiere nombre, apellido, " +
+                     "contraseña, rol y facultad (excepto para ADMINISTRADOR). " +
+                     "El ID y el email se generan automáticamente. " +
+                     "La contraseña debe cumplir con los requisitos de seguridad: mínimo 8 caracteres, " +
+                     "al menos una mayúscula, una minúscula, un número y un carácter especial. " +
                      "Retorna un token JWT para usar inmediatamente después del registro.",
         tags = {"Autenticación"}
     )
@@ -101,7 +116,7 @@ public class AuthController {
                     value = """
                     {
                         "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        "email": "juan.perez@estudiantes.edu.co",
+                        "email": "juan.perez-p@mail.escuelaing.edu.co",
                         "rol": "ESTUDIANTE",
                         "nombre": "Juan Pérez"
                     }
@@ -122,7 +137,7 @@ public class AuthController {
         ),
         @ApiResponse(
             responseCode = "409",
-            description = "Email ya registrado",
+            description = "Email ya registrado o rol/facultad inválidos",
             content = @Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
                 examples = @ExampleObject(
@@ -134,10 +149,56 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<Object> register(
-        @Parameter(
-            description = "Datos del usuario a registrar. Incluye nombre, apellido, email, password, rol y facultad (opcional).",
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Datos del usuario a registrar. Solo incluye: nombre, apellido, password, rol y facultad (obligatoria para ESTUDIANTE y DECANO). El email se genera automáticamente.",
             required = true,
-            schema = @Schema(implementation = UsuarioDTO.class)
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = UsuarioDTO.class),
+                examples = {
+                    @ExampleObject(
+                        name = "Registro de Estudiante",
+                        summary = "Ejemplo de registro de estudiante",
+                        description = "Registro de un estudiante con todos los campos requeridos",
+                        value = """
+                        {
+                          "nombre": "Juan",
+                          "apellido": "Pérez",
+                          "password": "Password123!",
+                          "rol": "ESTUDIANTE",
+                          "facultad": "INGENIERIA_SISTEMAS"
+                        }
+                        """
+                    ),
+                    @ExampleObject(
+                        name = "Registro de Decano",
+                        summary = "Ejemplo de registro de decano",
+                        description = "Registro de un decano con todos los campos requeridos",
+                        value = """
+                        {
+                          "nombre": "María",
+                          "apellido": "García",
+                          "password": "Secure#Pass1",
+                          "rol": "DECANO",
+                          "facultad": "INGENIERIA_CIVIL"
+                        }
+                        """
+                    ),
+                    @ExampleObject(
+                        name = "Registro de Administrador",
+                        summary = "Ejemplo de registro de administrador",
+                        description = "Registro de un administrador (sin facultad)",
+                        value = """
+                        {
+                          "nombre": "Carlos",
+                          "apellido": "Rodríguez",
+                          "password": "Admin2024@",
+                          "rol": "ADMINISTRADOR"
+                        }
+                        """
+                    )
+                }
+            )
         )
         @Valid @RequestBody UsuarioDTO usuarioDTO
     ) {

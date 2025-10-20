@@ -91,19 +91,24 @@ public class AuthService {
      * 
      * <p>Proceso de registro:</p>
      * <ol>
-     *   <li>Valida que el email no esté registrado</li>
-     *   <li>Crea el usuario con la contraseña encriptada</li>
+     *   <li>Valida los datos del usuario (nombre, apellido, password, rol, facultad)</li>
+     *   <li>Genera automáticamente el ID (10 dígitos numéricos)</li>
+     *   <li>Genera automáticamente el email: nombre.apellido-primeraLetraApellido@mail.escuelaing.edu.co</li>
+     *   <li>Valida que el rol sea válido en el sistema</li>
+     *   <li>Valida que la facultad sea válida (obligatoria para ESTUDIANTE y DECANO)</li>
+     *   <li>Encripta la contraseña</li>
      *   <li>Guarda el usuario en la base de datos</li>
      *   <li>Genera un token JWT automáticamente</li>
      *   <li>Retorna el token y la información del usuario</li>
      * </ol>
      * 
-     * @param usuarioDTO DTO con los datos del nuevo usuario
+     * @param usuarioDTO DTO con los datos del nuevo usuario (nombre, apellido, password, rol, facultad)
      * @return DTO con el token JWT y la información del usuario registrado
+     * @throws SirhaException si hay errores de validación o el email ya está registrado
      */
-    public AuthResponseDTO register(UsuarioDTO usuarioDTO) {
+    public AuthResponseDTO register(UsuarioDTO usuarioDTO) throws SirhaException {
         // Registrar el usuario usando el servicio de usuarios
-        // Este método valida y encripta la contraseña automáticamente
+        // Este método valida, genera ID y email, y encripta la contraseña automáticamente
         Usuario usuario = usuarioService.registrar(usuarioDTO);
 
         // Crear UserDetails para generar el token
