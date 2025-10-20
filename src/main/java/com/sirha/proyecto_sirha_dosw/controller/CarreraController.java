@@ -1,7 +1,3 @@
-/**
- * PROBANDO DESPLIEGUE EN AZURE CON CD
- */
-
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.CarreraDTO;
@@ -120,7 +116,7 @@ public class CarreraController {
             )
         )
     })
-    @PostMapping("/register")
+    @PostMapping("/registter")
     public ResponseEntity<String> register(
         @Parameter(
             description = "Datos de la carrera a registrar",
