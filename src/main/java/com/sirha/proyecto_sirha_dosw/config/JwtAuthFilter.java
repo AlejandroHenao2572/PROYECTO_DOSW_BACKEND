@@ -58,8 +58,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Lista de endpoints públicos que no requieren autenticación
         if (requestPath.equals("/api/auth/login") || 
             requestPath.equals("/api/auth/register") ||
+            requestPath.equals("/api/usuarios/register") ||
+            requestPath.equals("/api/usuarios/login") ||
             requestPath.startsWith("/swagger-ui") ||
-            requestPath.startsWith("/v3/api-docs")) {
+            requestPath.startsWith("/v3/api-docs") ||
+            requestPath.startsWith("/swagger-resources") ||
+            requestPath.startsWith("/webjars")) {
             // Permitir acceso sin validar token
             filterChain.doFilter(request, response);
             return;

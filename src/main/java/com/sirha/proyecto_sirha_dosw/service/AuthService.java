@@ -100,9 +100,8 @@ public class AuthService {
      * 
      * @param usuarioDTO DTO con los datos del nuevo usuario
      * @return DTO con el token JWT y la información del usuario registrado
-     * @throws SirhaException si el email ya está registrado o hay errores de validación
      */
-    public AuthResponseDTO register(UsuarioDTO usuarioDTO) throws SirhaException {
+    public AuthResponseDTO register(UsuarioDTO usuarioDTO) {
         // Registrar el usuario usando el servicio de usuarios
         // Este método valida y encripta la contraseña automáticamente
         Usuario usuario = usuarioService.registrar(usuarioDTO);

@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -131,17 +133,24 @@ public class AuthController {
         )
     })
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(
+    public ResponseEntity<Object> register(
         @Parameter(
-            description = "Datos del usuario a registrar. Incluye nombre, apellido, password, rol y facultad (opcional). " +
-                         "El email se genera automáticamente en formato: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co",
+            description = "Datos del usuario a registrar. Incluye nombre, apellido, email, password, rol y facultad (opcional).",
             required = true,
             schema = @Schema(implementation = UsuarioDTO.class)
         )
         @Valid @RequestBody UsuarioDTO usuarioDTO
-    ) throws SirhaException {
-        AuthResponseDTO response = authService.register(usuarioDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    ) {
+        try {
+            AuthResponseDTO response = authService.register(usuarioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (SirhaException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Error al registrar usuario: " + e.getMessage()));
+        }
     }
 
     /**
@@ -193,7 +202,7 @@ public class AuthController {
         )
     })
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(
+    public ResponseEntity<Object> login(
         @Parameter(
             description = "Credenciales de acceso (email y contraseña)",
             required = true,
@@ -201,7 +210,23 @@ public class AuthController {
         )
         @Valid @RequestBody AuthRequestDTO request
     ) {
-        AuthResponseDTO response = authService.login(request);
-        return ResponseEntity.ok(response);
+        try {
+            AuthResponseDTO response = authService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Usuario no encontrado"));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Credenciales inválidas"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error al procesar la solicitud"));
+        }
     }
+
+    /**
+     * Clase interna para las respuestas de error.
+     */
+    private record ErrorResponse(String error) {}
 }

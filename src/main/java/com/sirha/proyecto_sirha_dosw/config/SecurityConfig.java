@@ -113,9 +113,18 @@ public class SecurityConfig {
                 // Endpoints públicos (sin autenticación) - Login y Registro
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/register").permitAll()
+                .requestMatchers("/api/usuarios/register").permitAll()
+                .requestMatchers("/api/usuarios/login").permitAll()
                 
-                // Documentación Swagger (opcional, si lo usas)
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                // Documentación Swagger (sin autenticación)
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/v3/api-docs",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
                 
                 // Endpoints solo para ADMINISTRADOR
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")

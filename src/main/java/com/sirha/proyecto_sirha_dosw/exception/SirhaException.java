@@ -1,6 +1,12 @@
 package com.sirha.proyecto_sirha_dosw.exception;
 
-public class SirhaException extends Exception{
+/**
+ * Excepción personalizada para el sistema SIRHA.
+ * 
+ * <p>Extiende de RuntimeException (unchecked exception) para evitar 
+ * necesidad de declarar throws en cada método y facilitar la integración con Swagger.</p>
+ */
+public class SirhaException extends RuntimeException {
     //Mensajes de error generales
     public static final String ERROR_FALTAN_DATOS = "Faltan datos obligatorios: ";
     //Carrera
