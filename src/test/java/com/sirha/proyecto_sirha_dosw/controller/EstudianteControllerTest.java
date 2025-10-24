@@ -85,7 +85,7 @@ class EstudianteControllerTest {
             .thenReturn(registroMaterias);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
+        mockMvc.perform(get("/api/estudiante/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.['Cálculo Diferencial']").exists())
@@ -105,7 +105,7 @@ class EstudianteControllerTest {
             .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
+        mockMvc.perform(get("/api/estudiante/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
                 .andExpect(status().isNotFound());
 
         verify(estudianteService).consultarHorarioBySemester(idEstudiante, semestre);
@@ -122,7 +122,7 @@ class EstudianteControllerTest {
             .thenThrow(new SirhaException("Error al consultar horario"));
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
+        mockMvc.perform(get("/api/estudiante/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
                 .andExpect(status().isNotFound());
 
         verify(estudianteService).consultarHorarioBySemester(idEstudiante, semestre);
@@ -142,7 +142,7 @@ class EstudianteControllerTest {
             .thenReturn(semaforoMap);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/semaforo/{idEstudiante}", idEstudiante))
+        mockMvc.perform(get("/api/estudiante/semaforo/{idEstudiante}", idEstudiante))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
@@ -159,7 +159,7 @@ class EstudianteControllerTest {
             .thenReturn(Collections.emptyMap());
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/semaforo/{idEstudiante}", idEstudiante))
+        mockMvc.perform(get("/api/estudiante/semaforo/{idEstudiante}", idEstudiante))
                 .andExpect(status().isNoContent());
 
         verify(estudianteService).consultarSemaforoAcademico(idEstudiante);
@@ -175,7 +175,7 @@ class EstudianteControllerTest {
             .thenThrow(new SirhaException("Error al consultar semáforo"));
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/semaforo/{idEstudiante}", idEstudiante))
+        mockMvc.perform(get("/api/estudiante/semaforo/{idEstudiante}", idEstudiante))
                 .andExpect(status().isNotFound());
 
         verify(estudianteService).consultarSemaforoAcademico(idEstudiante);
@@ -197,7 +197,7 @@ class EstudianteControllerTest {
             .thenReturn(solicitudCreada);
 
         // When & Then
-        mockMvc.perform(post("/api/Estudiantes/solicitudes")
+        mockMvc.perform(post("/api/estudiante/solicitudes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(solicitudDTO)))
                 .andExpect(status().isCreated())
@@ -218,7 +218,7 @@ class EstudianteControllerTest {
         PlazoSolicitudes.INSTANCIA.setFechaFin(LocalDate.now().minusDays(1));
         
         // When & Then
-        mockMvc.perform(post("/api/Estudiantes/solicitudes")
+        mockMvc.perform(post("/api/estudiante/solicitudes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(solicitudDTO)))
                 .andExpect(status().isBadRequest());
@@ -238,7 +238,7 @@ class EstudianteControllerTest {
             .thenThrow(new SirhaException("Error al crear solicitud"));
 
         // When & Then
-        mockMvc.perform(post("/api/Estudiantes/solicitudes")
+        mockMvc.perform(post("/api/estudiante/solicitudes")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(solicitudDTO)))
                 .andExpect(status().isInternalServerError());
@@ -259,7 +259,7 @@ class EstudianteControllerTest {
             .thenReturn(solicitudes);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/{idEstudiante}", idEstudiante))
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}", idEstudiante))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
@@ -276,7 +276,7 @@ class EstudianteControllerTest {
             .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/{idEstudiante}", idEstudiante))
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}", idEstudiante))
                 .andExpect(status().isNoContent());
 
         verify(estudianteService).consultarSolicitudes(idEstudiante);
@@ -294,7 +294,7 @@ class EstudianteControllerTest {
             .thenReturn(solicitud);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/{idEstudiante}/{solicitudId}", 
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}/{solicitudId}", 
                 idEstudiante, solicitudId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
@@ -316,7 +316,7 @@ class EstudianteControllerTest {
             .thenReturn(resultado);
 
         // When & Then
-        mockMvc.perform(put("/api/Estudiantes/materias/{idEstudiante}/{acronimoMateria}/cancelar", 
+        mockMvc.perform(put("/api/estudiante/materias/{idEstudiante}/{acronimoMateria}/cancelar", 
                 idEstudiante, acronimoMateria))
                 .andExpect(status().isOk());
 
@@ -334,7 +334,7 @@ class EstudianteControllerTest {
             .thenThrow(new SirhaException("No se puede cancelar la materia"));
 
         // When & Then
-        mockMvc.perform(put("/api/Estudiantes/materias/{idEstudiante}/{acronimoMateria}/cancelar", 
+        mockMvc.perform(put("/api/estudiante/materias/{idEstudiante}/{acronimoMateria}/cancelar", 
                 idEstudiante, acronimoMateria))
                 .andExpect(status().isBadRequest());
 
@@ -354,7 +354,7 @@ class EstudianteControllerTest {
             .thenReturn(solicitudes);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/estado/{estado}", estado))
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/{estado}", estado))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.solicitudes").exists())
@@ -371,7 +371,7 @@ class EstudianteControllerTest {
         String estadoInvalido = "ESTADO_INEXISTENTE";
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/estado/{estado}", estadoInvalido))
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/{estado}", estadoInvalido))
                 .andExpect(status().isBadRequest());
 
         verify(estudianteService, never()).consultarSolicitudesPorEstado(any());
@@ -387,7 +387,7 @@ class EstudianteControllerTest {
             .thenReturn(Collections.emptyList());
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/estado/{estado}", estado))
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/{estado}", estado))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mensaje").exists())
                 .andExpect(jsonPath("$.total").value(0));
@@ -405,7 +405,7 @@ class EstudianteControllerTest {
             .thenReturn(solicitudes);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/todas"))
+        mockMvc.perform(get("/api/estudiante/solicitudes/todas"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.solicitudes").exists())
                 .andExpect(jsonPath("$.total").value(2));
@@ -425,7 +425,7 @@ class EstudianteControllerTest {
             .thenReturn(solicitudes);
 
         // When & Then
-        mockMvc.perform(get("/api/Estudiantes/solicitudes/{idEstudiante}/estado/{estado}", 
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}/estado/{estado}", 
                 idEstudiante, estado))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.solicitudes").exists())
@@ -434,6 +434,261 @@ class EstudianteControllerTest {
                 .andExpect(jsonPath("$.total").value(1));
 
         verify(estudianteService).consultarSolicitudesEstudiantePorEstado(idEstudiante, SolicitudEstado.PENDIENTE);
+    }
+
+    @Test
+    @DisplayName("Debe retornar mensaje cuando estudiante no tiene solicitudes en estado específico")
+    void testConsultarSolicitudesEstudiantePorEstado_Empty() throws Exception {
+        // Given
+        String idEstudiante = "EST001";
+        String estado = "APROBADA";
+        
+        when(estudianteService.consultarSolicitudesEstudiantePorEstado(idEstudiante, SolicitudEstado.APROBADA))
+            .thenReturn(Collections.emptyList());
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}/estado/{estado}", 
+                idEstudiante, estado))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensaje").exists())
+                .andExpect(jsonPath("$.idEstudiante").value(idEstudiante))
+                .andExpect(jsonPath("$.total").value(0));
+
+        verify(estudianteService).consultarSolicitudesEstudiantePorEstado(idEstudiante, SolicitudEstado.APROBADA);
+    }
+
+    @Test
+    @DisplayName("Debe manejar estado inválido en consulta de estudiante por estado")
+    void testConsultarSolicitudesEstudiantePorEstado_InvalidState() throws Exception {
+        // Given
+        String idEstudiante = "EST001";
+        String estadoInvalido = "ESTADO_INVALIDO";
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}/estado/{estado}", 
+                idEstudiante, estadoInvalido))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
+
+        verify(estudianteService, never()).consultarSolicitudesEstudiantePorEstado(any(), any());
+    }
+
+    @Test
+    @DisplayName("Debe manejar excepción en consulta de estudiante por estado")
+    void testConsultarSolicitudesEstudiantePorEstado_Exception() throws Exception {
+        // Given
+        String idEstudiante = "EST001";
+        String estado = "PENDIENTE";
+        
+        when(estudianteService.consultarSolicitudesEstudiantePorEstado(idEstudiante, SolicitudEstado.PENDIENTE))
+            .thenThrow(new SirhaException("Estudiante no encontrado"));
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}/estado/{estado}", 
+                idEstudiante, estado))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").exists());
+
+        verify(estudianteService).consultarSolicitudesEstudiantePorEstado(idEstudiante, SolicitudEstado.PENDIENTE);
+    }
+
+    @Test
+    @DisplayName("Debe consultar solicitud por ID cuando no se encuentra")
+    void testConsultarSolicitudesPorId_NotFound() throws Exception {
+        // Given
+        String idEstudiante = "EST001";
+        String solicitudId = "SOL999";
+        
+        when(estudianteService.consultarSolicitudesById(idEstudiante, solicitudId))
+            .thenThrow(new SirhaException("Solicitud no encontrada"));
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}/{solicitudId}", 
+                idEstudiante, solicitudId))
+                .andExpect(status().isNotFound());
+
+        verify(estudianteService).consultarSolicitudesById(idEstudiante, solicitudId);
+    }
+
+    @Test
+    @DisplayName("Debe manejar excepción en consulta de solicitudes por estudiante")
+    void testConsultarSolicitudes_Exception() throws Exception {
+        // Given
+        String idEstudiante = "EST001";
+        
+        when(estudianteService.consultarSolicitudes(idEstudiante))
+            .thenThrow(new SirhaException("Error al consultar solicitudes"));
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/{idEstudiante}", idEstudiante))
+                .andExpect(status().isNotFound());
+
+        verify(estudianteService).consultarSolicitudes(idEstudiante);
+    }
+
+    @Test
+    @DisplayName("Debe retornar mensaje cuando no hay solicitudes en el sistema")
+    void testConsultarTodasLasSolicitudes_Empty() throws Exception {
+        // Given
+        when(estudianteService.consultarTodasLasSolicitudes())
+            .thenReturn(Collections.emptyList());
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/todas"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensaje").exists())
+                .andExpect(jsonPath("$.total").value(0));
+
+        verify(estudianteService).consultarTodasLasSolicitudes();
+    }
+
+    @Test
+    @DisplayName("Debe manejar excepción genérica en consulta de todas las solicitudes")
+    void testConsultarTodasLasSolicitudes_Exception() throws Exception {
+        // Given
+        when(estudianteService.consultarTodasLasSolicitudes())
+            .thenThrow(new RuntimeException("Error de conexión"));
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/todas"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").exists());
+
+        verify(estudianteService).consultarTodasLasSolicitudes();
+    }
+
+    @Test
+    @DisplayName("Debe manejar excepción en consulta de solicitudes por estado")
+    void testConsultarSolicitudesPorEstado_Exception() throws Exception {
+        // Given
+        String estado = "PENDIENTE";
+        
+        when(estudianteService.consultarSolicitudesPorEstado(SolicitudEstado.PENDIENTE))
+            .thenThrow(new SirhaException("Error al consultar"));
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/{estado}", estado))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
+
+        verify(estudianteService).consultarSolicitudesPorEstado(SolicitudEstado.PENDIENTE);
+    }
+
+    @Test
+    @DisplayName("Debe crear solicitud con fecha actual cuando no se proporciona fecha")
+    void testCrearSolicitud_WithoutFechaSolicitud() throws Exception {
+        // Given
+        SolicitudDTO solicitudDTO = createValidSolicitudDTO();
+        solicitudDTO.setFechaSolicitud(null); // Sin fecha proporcionada
+        Solicitud solicitudCreada = createMockSolicitud();
+        
+        mockValidTimeRange();
+        
+        when(estudianteService.crearSolicitud(any(SolicitudDTO.class)))
+            .thenReturn(solicitudCreada);
+
+        // When & Then
+        mockMvc.perform(post("/api/estudiante/solicitudes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(solicitudDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(estudianteService).crearSolicitud(any(SolicitudDTO.class));
+    }
+
+    @Test
+    @DisplayName("Debe validar múltiples horarios por materia")
+    void testConsultarHorarioPorSemestre_MultipleHorarios() throws Exception {
+        // Given
+        String idEstudiante = "EST001";
+        int semestre = 5;
+        
+        List<RegistroMaterias> registroMaterias = createMockRegistroMateriasWithMultipleSchedules();
+        when(estudianteService.consultarHorarioBySemester(idEstudiante, semestre))
+            .thenReturn(registroMaterias);
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/horario/{idEstudiante}/{semestre}", idEstudiante, semestre))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.['Cálculo Diferencial']").exists());
+
+        verify(estudianteService).consultarHorarioBySemester(idEstudiante, semestre);
+    }
+
+    @Test
+    @DisplayName("Debe probar todos los estados válidos de SolicitudEstado")
+    void testConsultarSolicitudesPorEstado_AllValidStates() throws Exception {
+        // Test PENDIENTE
+        when(estudianteService.consultarSolicitudesPorEstado(SolicitudEstado.PENDIENTE))
+            .thenReturn(Arrays.asList(createMockSolicitud()));
+        
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/PENDIENTE"))
+                .andExpect(status().isOk());
+
+        // Test EN_REVISION
+        when(estudianteService.consultarSolicitudesPorEstado(SolicitudEstado.EN_REVISION))
+            .thenReturn(Arrays.asList(createMockSolicitud()));
+        
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/EN_REVISION"))
+                .andExpect(status().isOk());
+
+        // Test APROBADA
+        when(estudianteService.consultarSolicitudesPorEstado(SolicitudEstado.APROBADA))
+            .thenReturn(Arrays.asList(createMockSolicitud()));
+        
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/APROBADA"))
+                .andExpect(status().isOk());
+
+        // Test RECHAZADA
+        when(estudianteService.consultarSolicitudesPorEstado(SolicitudEstado.RECHAZADA))
+            .thenReturn(Arrays.asList(createMockSolicitud()));
+        
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/RECHAZADA"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Debe manejar estado en minúsculas correctamente")
+    void testConsultarSolicitudesPorEstado_LowerCase() throws Exception {
+        // Given
+        String estado = "pendiente";
+        List<Solicitud> solicitudes = Arrays.asList(createMockSolicitud());
+        
+        when(estudianteService.consultarSolicitudesPorEstado(SolicitudEstado.PENDIENTE))
+            .thenReturn(solicitudes);
+
+        // When & Then
+        mockMvc.perform(get("/api/estudiante/solicitudes/estado/{estado}", estado))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.solicitudes").exists());
+
+        verify(estudianteService).consultarSolicitudesPorEstado(SolicitudEstado.PENDIENTE);
+    }
+
+    @Test
+    @DisplayName("Debe crear solicitud con fecha proporcionada dentro del plazo")
+    void testCrearSolicitud_WithProvidedFechaInRange() throws Exception {
+        // Given
+        SolicitudDTO solicitudDTO = createValidSolicitudDTO();
+        LocalDate fechaEnPlazo = LocalDate.now();
+        solicitudDTO.setFechaSolicitud(fechaEnPlazo);
+        Solicitud solicitudCreada = createMockSolicitud();
+        
+        PlazoSolicitudes.INSTANCIA.setFechaInicio(LocalDate.now().minusDays(10));
+        PlazoSolicitudes.INSTANCIA.setFechaFin(LocalDate.now().plusDays(10));
+        
+        when(estudianteService.crearSolicitud(any(SolicitudDTO.class)))
+            .thenReturn(solicitudCreada);
+
+        // When & Then
+        mockMvc.perform(post("/api/estudiante/solicitudes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(solicitudDTO)))
+                .andExpect(status().isCreated());
+
+        verify(estudianteService).crearSolicitud(any(SolicitudDTO.class));
     }
 
     // ========== MÉTODOS AUXILIARES ==========
@@ -468,6 +723,28 @@ class EstudianteControllerTest {
         grupo2.setHorarios(horarios2);
         registro2.setGrupo(grupo2);
         registros.add(registro2);
+        
+        return registros;
+    }
+
+    private List<RegistroMaterias> createMockRegistroMateriasWithMultipleSchedules() {
+        List<RegistroMaterias> registros = new ArrayList<>();
+        
+        // Crear registro con múltiples horarios
+        RegistroMaterias registro = new RegistroMaterias();
+        Grupo grupo = new Grupo();
+        Materia materia = new Materia();
+        materia.setNombre("Cálculo Diferencial");
+        grupo.setMateria(materia);
+        
+        List<Horario> horarios = Arrays.asList(
+            createHorario(Dia.LUNES, LocalTime.of(8, 0), LocalTime.of(10, 0)),
+            createHorario(Dia.MIERCOLES, LocalTime.of(8, 0), LocalTime.of(10, 0)),
+            createHorario(Dia.VIERNES, LocalTime.of(8, 0), LocalTime.of(10, 0))
+        );
+        grupo.setHorarios(horarios);
+        registro.setGrupo(grupo);
+        registros.add(registro);
         
         return registros;
     }

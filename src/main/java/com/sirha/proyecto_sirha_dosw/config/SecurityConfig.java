@@ -127,11 +127,19 @@ public class SecurityConfig {
                 ).permitAll()
                 
                 // Endpoints solo para ADMINISTRADOR
-                .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/reportes/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/grupos/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/materias/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
                 
                 // Endpoints solo para DECANO
                 .requestMatchers("/api/decano/**").hasRole("DECANO")
-                
+                .requestMatchers("/api/reportes/**").hasRole("DECANO")
+                .requestMatchers("/api/grupos/**").hasRole("DECANO")
+                .requestMatchers("/api/materias/**").hasRole("DECANO")
+                .requestMatchers("/api/usuarios/**").hasRole("DECANO")
+
                 // Endpoints solo para ESTUDIANTE
                 .requestMatchers("/api/estudiante/**").hasRole("ESTUDIANTE")
                 

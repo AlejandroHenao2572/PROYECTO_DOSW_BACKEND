@@ -18,12 +18,14 @@
 4. [Tecnologías Usadas](#tecnologías-usadas)  
 5. [Artefactos de Análisis y Diseño](#artefactos-de-análisis-y-diseño)  
 6. [🔐 Autenticación y Seguridad](#-autenticación-y-seguridad-jwt)
-7. [Dependencias](#dependencias)  
-8. [Plugins](#plugins)  
-9. [Configuración de la Aplicación](#aplicacion-properties)  
-10. [Cómo Ejecutar el Proyecto](#cómo-ejecutar-el-proyecto)  
-11. [Cobertura de Pruebas](#cobertura-de-pruebas-unitarias)  
-12. [Análisis Estático con SonarQube](#análisis-estático-con-sonarqube)  
+7. [📚 Documentación de API](#-documentación-de-api)
+8. [🧪 Testing con Postman](#-testing-con-postman)
+9. [Dependencias](#dependencias)  
+10. [Plugins](#plugins)  
+11. [Configuración de la Aplicación](#aplicacion-properties)  
+12. [Cómo Ejecutar el Proyecto](#cómo-ejecutar-el-proyecto)  
+13. [Cobertura de Pruebas](#cobertura-de-pruebas-unitarias)  
+14. [Análisis Estático con SonarQube](#análisis-estático-con-sonarqube)  
 
 ---
 
@@ -90,6 +92,7 @@ docs #Documentacion del proyecto
 	- Realizar revisiones de código (pull requests).
 	- Mantener las ramas actualizadas y eliminar ramas que ya se fusionaron.
 
+---
 
 ## Technologias usadas:
 
@@ -222,6 +225,49 @@ docs #Documentacion del proyecto
   }
 }
 ```
+---
+
+## 📚 Documentación de API
+
+### Swagger/OpenAPI
+La API REST está completamente documentada con Swagger UI:
+- **URL Local**: http://localhost:8080/swagger-ui/index.html
+- **API Docs**: http://localhost:8080/v3/api-docs
+
+### Endpoints Principales
+
+#### Autenticación
+- `POST /api/auth/register` - Registro de nuevos usuarios
+- `POST /api/auth/login` - Autenticación de usuarios
+
+📖 **Documentación detallada de registro**: Ver [REGISTRO_USUARIOS.md](./REGISTRO_USUARIOS.md)
+
+---
+
+## 🧪 Testing con Postman
+
+### Inicio Rápido
+1. **Importa la colección**: `SIRHA_Postman_Collection.json`
+2. **Importa el entorno**: `SIRHA_Local_Environment.json`
+3. **Selecciona el entorno** "SIRHA Local"
+4. **¡Comienza a probar!** 🚀
+
+### Documentación Disponible
+- 📘 **[POSTMAN_QUICKSTART.md](./POSTMAN_QUICKSTART.md)** - Guía de inicio rápido (3 pasos)
+- 📗 **[GUIA_POSTMAN.md](./GUIA_POSTMAN.md)** - Guía completa de testing
+  - Configuración detallada
+  - Todos los endpoints documentados
+  - Ejemplos de peticiones por rol
+  - Troubleshooting
+  - Escenarios de prueba
+
+### Características de la Colección
+✅ Gestión automática de tokens JWT  
+✅ Variables de entorno pre-configuradas  
+✅ Ejemplos listos para usar  
+✅ Scripts de test incluidos  
+✅ Organización por roles (Estudiante, Decano, Admin)
+
 ---
 
 ## Dependencias:  

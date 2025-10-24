@@ -69,24 +69,30 @@ class UsuarioServiceTest {
 	@Test
 	void testRegistrarExitoso() throws SirhaException {
 		UsuarioDTO dto = getUsuarioDTO();
-		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		// Email autogenerado será: juan.perez-p@mail.escuelaing.edu.co (password: "1234")
+		// Formato: nombre.apellido-primeraLetraApellido@mail.escuelaing.edu.co
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
 		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
 		when(passwordEncoder.encode("1234")).thenReturn("hashed");
 		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
 		Usuario registrado = usuarioService.registrar(dto);
 		assertEquals("hashed", registrado.getPassword());
-		assertEquals(dto.getEmail(), registrado.getEmail());
+		assertEquals(emailEsperado, registrado.getEmail());
 	}
 
 	@Test
 	void testRegistrarDecanoDuplicado() {
 		UsuarioDTO dto = getUsuarioDTO();
 		dto.setRol("DECANO");
-		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		
 		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
 		Decano decanoExistente = new Decano();
 		decanoExistente.setFacultad(Facultad.valueOf(dto.getFacultad()));
 		when(usuarioRepository.findByRol(Rol.DECANO)).thenReturn(List.of(decanoExistente));
+		
 		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
 		assertTrue(ex.getMessage().contains(SirhaException.DECANO_YA_EXISTE));
 	}
@@ -95,7 +101,7 @@ class UsuarioServiceTest {
 	void testRegistrarFacultadInvalida() {
 		UsuarioDTO dto = getUsuarioDTO();
 		dto.setFacultad("NO_EXISTE");
-		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		
 		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
 		assertTrue(ex.getMessage().contains(SirhaException.FACULTAD_ERROR));
 	}
@@ -104,8 +110,9 @@ class UsuarioServiceTest {
 	void testVerificarFacultadCarreraNoEncontrada() {
 		UsuarioDTO dto = getUsuarioDTO();
 		dto.setRol("DECANO");
-		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		
 		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.empty());
+		
 		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
 		assertTrue(ex.getMessage().contains(SirhaException.CARRERA_NO_ENCONTRADA));
 	}
@@ -114,16 +121,25 @@ class UsuarioServiceTest {
 	@Test
 	void testRegistrarEmailYaRegistrado() {
 		UsuarioDTO dto = getUsuarioDTO();
-	when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mock(Usuario.class)));
+		// Email autogenerado será: juan.perez-p@mail.escuelaing.edu.co (password: "1234")
+		// Formato: nombre.apellido-primeraLetraApellido@mail.escuelaing.edu.co
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		
+		// Mock de la carrera (necesario para que el flujo llegue a la validación de email)
+		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
+		// Mock del email ya existente
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.of(mock(Usuario.class)));
+		
 		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
-		assertTrue(ex.getMessage().contains(SirhaException.EMAIL_YA_REGISTRADO));
+		// Verifica que el mensaje de la excepción sea exactamente el esperado
+		assertEquals(SirhaException.EMAIL_YA_REGISTRADO, ex.getMessage());
 	}
 
 	@Test
 	void testRegistrarRolInvalido() {
 		UsuarioDTO dto = getUsuarioDTO();
 		dto.setRol("NO_EXISTE");
-		when(usuarioRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+		
 		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
 		assertTrue(ex.getMessage().contains(SirhaException.ROL_INVALIDO));
 	}
