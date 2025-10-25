@@ -36,7 +36,7 @@ import java.util.Map;
                  "y cancelación de materias"
 )
 @RestController
-@RequestMapping("/api/Estudiantes")
+@RequestMapping("/api/estudiante/")
 public class EstudianteController {
     private static final String SOLICITUDES_KEY = "solicitudes";
     private static final String TOTAL_KEY = "total";

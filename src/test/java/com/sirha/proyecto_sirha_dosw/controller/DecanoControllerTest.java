@@ -738,4 +738,274 @@ class DecanoControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Facultad inválida", response.getBody());
     }
+
+    // Tests adicionales para mejorar cobertura
+
+    @Test
+    void testListarUsuarios_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.findEstudiantesByFacultad(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.listarUsuarios(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerPorId_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String id = "EST123";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.findEstudianteByIdAndFacultad(id, facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerPorId(facultad, id);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerPorEmail_EmptyEmail() {
+        String facultad = "ingenieria_sistemas";
+        String email = "";
+
+        ResponseEntity<Object> response = decanoController.obtenerPorEmail(facultad, email);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Email no puede estar vacío", response.getBody());
+    }
+
+    @Test
+    void testObtenerPorEmail_NotFound() throws SirhaException {
+        String facultad = "ingenieria_sistemas";
+        String email = "noexiste@test.com";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.findEstudianteByEmailAndFacultad(email, facultad))
+                .thenReturn(null);
+
+        ResponseEntity<Object> response = decanoController.obtenerPorEmail(facultad, email);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        Object body = response.getBody();
+        assertTrue(body != null && body.toString().contains("Estudiante no encontrado"));
+    }
+
+    @Test
+    void testObtenerPorEmail_InternalServerError() throws SirhaException {
+        String facultad = "ingenieria_sistemas";
+        String email = "test@test.com";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.findEstudianteByEmailAndFacultad(email, facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerPorEmail(facultad, email);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testConfigurarCalendarioAcademico_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        CalendarioAcademicoDTO calendario = new CalendarioAcademicoDTO();
+        doThrow(new RuntimeException("Error interno")).when(decanoService)
+                .configurarCalendarioAcademico(calendario, facultad);
+
+        ResponseEntity<Object> response = decanoController.configurarCalendarioAcademico(facultad, calendario);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testConfigurarPlazoSolicitudes_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        PlazoSolicitudesDTO plazo = new PlazoSolicitudesDTO();
+        doThrow(new RuntimeException("Error interno")).when(decanoService)
+                .configurarPlazoSolicitudes(plazo, facultad);
+
+        ResponseEntity<Object> response = decanoController.configurarPlazoSolicitudes(facultad, plazo);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerCalendarioAcademico_NotFound() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerCalendarioAcademico(facultad))
+                .thenThrow(new SirhaException("Calendario no configurado"));
+
+        ResponseEntity<Object> response = decanoController.obtenerCalendarioAcademico(facultad);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerCalendarioAcademico_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerCalendarioAcademico(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerCalendarioAcademico(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerPlazoSolicitudes_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerPlazoSolicitudes(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerPlazoSolicitudes(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerResumenConfiguraciones_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerCalendarioAcademico(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerResumenConfiguraciones(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testMonitorearGrupos_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.monitorearGruposPorFacultad(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.monitorearGrupos(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerGruposConAlerta_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerGruposConAlerta(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerGruposConAlerta(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testObtenerEstadisticasGrupos_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerEstadisticasAlertas(facultad))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.obtenerEstadisticasGrupos(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testConsultarResumenSolicitudesPorFacultad_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.consultarResumenSolicitudesPorFacultad(facultad);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testConsultarDetalleSolicitud_BadRequest() throws SirhaException {
+        String facultad = "INVALIDA";
+        String solicitudId = "SOL123";
+        doThrow(new SirhaException("Facultad inválida")).when(decanoService).validarFacultad(facultad);
+
+        ResponseEntity<Object> response = decanoController.consultarDetalleSolicitud(facultad, solicitudId);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testConsultarDetalleSolicitud_InternalServerError() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        String solicitudId = "SOL123";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenThrow(new RuntimeException("Error interno"));
+
+        ResponseEntity<Object> response = decanoController.consultarDetalleSolicitud(facultad, solicitudId);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void testConsultarResumenSolicitudesPorFacultad_EmptyList() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenReturn(Collections.emptyList());
+
+        ResponseEntity<Object> response = decanoController.consultarResumenSolicitudesPorFacultad(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals(0, body.get("totalSolicitudes"));
+    }
+
+    @Test
+    void testConsultarResumenSolicitudesPorFacultad_WithMixedStates() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        
+        Solicitud sol1 = new Solicitud();
+        sol1.setEstado(SolicitudEstado.PENDIENTE);
+        
+        Solicitud sol2 = new Solicitud();
+        sol2.setEstado(SolicitudEstado.APROBADA);
+        
+        Solicitud sol3 = new Solicitud();
+        sol3.setEstado(SolicitudEstado.RECHAZADA);
+        
+        List<Solicitud> solicitudes = Arrays.asList(sol1, sol2, sol3);
+        
+        doNothing().when(decanoService).validarFacultad(facultad);
+        when(decanoService.consultarSolicitudesPorFacultad(Facultad.INGENIERIA_SISTEMAS))
+                .thenReturn(solicitudes);
+
+        ResponseEntity<Object> response = decanoController.consultarResumenSolicitudesPorFacultad(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals(3, body.get("totalSolicitudes"));
+        
+        Map<String, Long> resumen = (Map<String, Long>) body.get("resumen");
+        assertEquals(1L, resumen.get("pendientes"));
+        assertEquals(1L, resumen.get("aprobadas"));
+        assertEquals(1L, resumen.get("rechazadas"));
+    }
+
+    @Test
+    void testMonitorearGrupos_EmptyList() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.monitorearGruposPorFacultad(facultad))
+                .thenReturn(Collections.emptyList());
+
+        ResponseEntity<Object> response = decanoController.monitorearGrupos(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals(0, body.get("totalGrupos"));
+    }
+
+    @Test
+    void testObtenerGruposConAlerta_EmptyList() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        when(decanoService.obtenerGruposConAlerta(facultad))
+                .thenReturn(Collections.emptyList());
+
+        ResponseEntity<Object> response = decanoController.obtenerGruposConAlerta(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertEquals(0, body.get("totalGruposConAlerta"));
+        assertEquals(0, ((List<?>) body.get("gruposConAlerta")).size());
+    }
+
+    @Test
+    void testObtenerEstadisticasGrupos_EmptyStats() throws SirhaException {
+        String facultad = "INGENIERIA_SISTEMAS";
+        Map<String, Long> estadisticas = new HashMap<>();
+        estadisticas.put("NORMAL", 0L);
+        estadisticas.put("ADVERTENCIA", 0L);
+        estadisticas.put("CRITICO", 0L);
+        
+        when(decanoService.obtenerEstadisticasAlertas(facultad)).thenReturn(estadisticas);
+        when(decanoService.monitorearGruposPorFacultad(facultad))
+                .thenReturn(Collections.emptyList());
+
+        ResponseEntity<Object> response = decanoController.obtenerEstadisticasGrupos(facultad);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
 }

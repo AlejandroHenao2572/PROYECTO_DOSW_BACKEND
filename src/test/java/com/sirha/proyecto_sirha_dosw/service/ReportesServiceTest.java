@@ -8,6 +8,9 @@ import com.sirha.proyecto_sirha_dosw.model.Estudiante;
 import com.sirha.proyecto_sirha_dosw.model.Facultad;
 import com.sirha.proyecto_sirha_dosw.model.Grupo;
 import com.sirha.proyecto_sirha_dosw.model.Materia;
+import com.sirha.proyecto_sirha_dosw.model.RegistroMaterias;
+import com.sirha.proyecto_sirha_dosw.model.Semaforo;
+import com.sirha.proyecto_sirha_dosw.model.Semestre;
 import com.sirha.proyecto_sirha_dosw.model.Solicitud;
 import com.sirha.proyecto_sirha_dosw.model.SolicitudEstado;
 import com.sirha.proyecto_sirha_dosw.model.TipoSolicitud;
@@ -352,6 +355,231 @@ class ReportesServiceTest {
 		verify(usuarioRepository).findById("EST005");
 		verify(usuarioRepository).findById("EST006");
 		verify(carreraRepository, times(2)).findByNombre(Facultad.INGENIERIA_SISTEMAS);
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceEstudianteConSemestres() {
+		// Crear estudiante con semestres y registros completos
+		Estudiante estudiante = new Estudiante();
+		estudiante.setId("EST007");
+		estudiante.setNombre("Pedro");
+		estudiante.setApellido("López");
+		estudiante.setCarrera(Facultad.INGENIERIA_CIVIL);
+
+		// Crear materia
+		Materia materia1 = new Materia("Cálculo", "CAL1", 4, Facultad.INGENIERIA_CIVIL);
+		materia1.setId("MAT001");
+
+		// Crear grupo
+		Grupo grupo1 = new Grupo(materia1, 30, new ArrayList<>());
+		grupo1.setId("GRP001");
+
+		// Crear registro con estado VERDE (aprobada)
+		RegistroMaterias registro1 = new RegistroMaterias();
+		registro1.setGrupo(grupo1);
+		registro1.setEstado(Semaforo.VERDE);
+
+		// Crear semestre
+		Semestre semestre = new Semestre();
+		semestre.setRegistros(List.of(registro1));
+		estudiante.setSemestres(List.of(semestre));
+
+		// Crear carrera
+		Carrera carrera = new Carrera();
+		carrera.setCreditosTotales(180);
+
+		when(usuarioRepository.findById("EST007")).thenReturn(Optional.of(estudiante));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_CIVIL)).thenReturn(Optional.of(carrera));
+
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceEstudiante("EST007");
+
+		assertNotNull(resultado);
+		assertEquals("EST007", resultado.getEstudianteId());
+		assertEquals("Pedro", resultado.getEstudianteNombre());
+		assertEquals("López", resultado.getEstudianteApellido());
+		assertEquals(Facultad.INGENIERIA_CIVIL, resultado.getFacultad());
+		assertEquals(1, resultado.getMateriasAprobadas());
+		assertEquals(4, resultado.getCreditosAprobados());
+		assertEquals(1, resultado.getSemestreActual());
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceEstudianteConMultiplesEstados() {
+		Estudiante estudiante = new Estudiante();
+		estudiante.setId("EST008");
+		estudiante.setNombre("Laura");
+		estudiante.setApellido("García");
+		estudiante.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		Materia materia1 = new Materia("Programación", "PROG", 3, Facultad.INGENIERIA_SISTEMAS);
+		materia1.setId("MAT002");
+		Materia materia2 = new Materia("Base de Datos", "BD", 3, Facultad.INGENIERIA_SISTEMAS);
+		materia2.setId("MAT003");
+		Materia materia3 = new Materia("Redes", "REDES", 3, Facultad.INGENIERIA_SISTEMAS);
+		materia3.setId("MAT004");
+		Materia materia4 = new Materia("Algoritmos", "ALG", 3, Facultad.INGENIERIA_SISTEMAS);
+		materia4.setId("MAT005");
+
+		Grupo grupo1 = new Grupo(materia1, 30, new ArrayList<>());
+		Grupo grupo2 = new Grupo(materia2, 30, new ArrayList<>());
+		Grupo grupo3 = new Grupo(materia3, 30, new ArrayList<>());
+		Grupo grupo4 = new Grupo(materia4, 30, new ArrayList<>());
+
+		RegistroMaterias registro1 = new RegistroMaterias();
+		registro1.setGrupo(grupo1);
+		registro1.setEstado(Semaforo.VERDE); // Aprobada
+
+		RegistroMaterias registro2 = new RegistroMaterias();
+		registro2.setGrupo(grupo2);
+		registro2.setEstado(Semaforo.AZUL); // En progreso
+
+		RegistroMaterias registro3 = new RegistroMaterias();
+		registro3.setGrupo(grupo3);
+		registro3.setEstado(Semaforo.ROJO); // Con problemas
+
+		RegistroMaterias registro4 = new RegistroMaterias();
+		registro4.setGrupo(grupo4);
+		registro4.setEstado(Semaforo.CANCELADO); // Cancelada
+
+		Semestre semestre = new Semestre();
+		semestre.setRegistros(List.of(registro1, registro2, registro3, registro4));
+		estudiante.setSemestres(List.of(semestre));
+
+		Carrera carrera = new Carrera();
+		carrera.setCreditosTotales(160);
+
+		when(usuarioRepository.findById("EST008")).thenReturn(Optional.of(estudiante));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_SISTEMAS)).thenReturn(Optional.of(carrera));
+
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceEstudiante("EST008");
+
+		assertNotNull(resultado);
+		assertEquals(1, resultado.getMateriasAprobadas());
+		assertEquals(1, resultado.getMateriasEnProgreso());
+		assertEquals(1, resultado.getMateriasConProblemas());
+		assertEquals(1, resultado.getMateriasCanceladas());
+		assertEquals(3, resultado.getCreditosAprobados());
+	}
+
+	@Test
+	void testCalcularIndicadoresAvanceEstudianteSinCarrera() {
+		Estudiante estudiante = new Estudiante();
+		estudiante.setId("EST009");
+		estudiante.setNombre("Miguel");
+		estudiante.setApellido("Torres");
+		estudiante.setCarrera(Facultad.INGENIERIA_SISTEMAS);
+
+		when(usuarioRepository.findById("EST009")).thenReturn(Optional.of(estudiante));
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_SISTEMAS)).thenReturn(Optional.empty());
+
+		IndicadoresAvanceDTO resultado = reportesService.calcularIndicadoresAvanceEstudiante("EST009");
+
+		assertNotNull(resultado);
+		assertEquals("EST009", resultado.getEstudianteId());
+		assertEquals(0, resultado.getCreditosTotales());
+		assertEquals(0, resultado.getTotalMaterias());
+	}
+
+	@Test
+	void testObtenerGruposMasSolicitadosOrdenadosPorSolicitudes() {
+		Materia materia1 = new Materia("Software", "SW1", 3, Facultad.INGENIERIA_SISTEMAS);
+		materia1.setId("MAT_A");
+		Materia materia2 = new Materia("Cálculo", "CAL1", 4, Facultad.INGENIERIA_CIVIL);
+		materia2.setId("MAT_B");
+		Materia materia3 = new Materia("Física", "FIS1", 4, Facultad.INGENIERIA_CIVIL);
+		materia3.setId("MAT_C");
+
+		Grupo grupo1 = new Grupo(materia1, 30, new ArrayList<>());
+		grupo1.setId("GRP_A");
+		grupo1.setCantidadInscritos(25);
+
+		Grupo grupo2 = new Grupo(materia2, 20, new ArrayList<>());
+		grupo2.setId("GRP_B");
+		grupo2.setCantidadInscritos(18);
+
+		Grupo grupo3 = new Grupo(materia3, 25, new ArrayList<>());
+		grupo3.setId("GRP_C");
+		grupo3.setCantidadInscritos(22);
+
+		when(grupoRepository.findAll()).thenReturn(List.of(grupo1, grupo2, grupo3));
+		when(solicitudRepository.countByGrupoDestino_IdAndTipoSolicitud("GRP_A", TipoSolicitud.CAMBIO_GRUPO)).thenReturn(10L);
+		when(solicitudRepository.countByGrupoDestino_IdAndTipoSolicitud("GRP_B", TipoSolicitud.CAMBIO_GRUPO)).thenReturn(15L);
+		when(solicitudRepository.countByGrupoDestino_IdAndTipoSolicitud("GRP_C", TipoSolicitud.CAMBIO_GRUPO)).thenReturn(5L);
+
+		List<EstadisticasGrupoDTO> resultados = reportesService.obtenerGruposMasSolicitados();
+
+		assertEquals(3, resultados.size());
+		assertEquals("GRP_B", resultados.get(0).getGrupoId()); // Mayor solicitudes
+		assertEquals(15L, resultados.get(0).getCantidadSolicitudes());
+		assertEquals("GRP_A", resultados.get(1).getGrupoId());
+		assertEquals(10L, resultados.get(1).getCantidadSolicitudes());
+		assertEquals("GRP_C", resultados.get(2).getGrupoId());
+		assertEquals(5L, resultados.get(2).getCantidadSolicitudes());
+	}
+
+	@Test
+	void testObtenerTasasAprobacionGlobalSinSolicitudes() {
+		when(solicitudRepository.count()).thenReturn(0L);
+		when(solicitudRepository.countByEstado(SolicitudEstado.APROBADA)).thenReturn(0L);
+		when(solicitudRepository.countByEstado(SolicitudEstado.RECHAZADA)).thenReturn(0L);
+		when(solicitudRepository.countByEstado(SolicitudEstado.PENDIENTE)).thenReturn(0L);
+		when(solicitudRepository.countByEstado(SolicitudEstado.EN_REVISION)).thenReturn(0L);
+
+		TasaAprobacionDTO resultado = reportesService.obtenerTasasAprobacionGlobal();
+
+		assertNotNull(resultado);
+		assertEquals(0L, resultado.getTotalSolicitudes());
+		assertEquals(0L, resultado.getSolicitudesAprobadas());
+		assertEquals("TODAS", resultado.getTipoSolicitud());
+	}
+
+	@Test
+	void testObtenerTasasAprobacionPorFacultadSinSolicitudes() {
+		when(solicitudRepository.countByFacultad(Facultad.INGENIERIA_SISTEMAS)).thenReturn(0L);
+		when(solicitudRepository.countByFacultadAndEstado(Facultad.INGENIERIA_SISTEMAS, SolicitudEstado.APROBADA)).thenReturn(0L);
+		when(solicitudRepository.countByFacultadAndEstado(Facultad.INGENIERIA_SISTEMAS, SolicitudEstado.RECHAZADA)).thenReturn(0L);
+		when(solicitudRepository.countByFacultadAndEstado(Facultad.INGENIERIA_SISTEMAS, SolicitudEstado.PENDIENTE)).thenReturn(0L);
+		when(solicitudRepository.countByFacultadAndEstado(Facultad.INGENIERIA_SISTEMAS, SolicitudEstado.EN_REVISION)).thenReturn(0L);
+
+		TasaAprobacionDTO resultado = reportesService.obtenerTasasAprobacionPorFacultad(Facultad.INGENIERIA_SISTEMAS);
+
+		assertNotNull(resultado);
+		assertEquals(0L, resultado.getTotalSolicitudes());
+		assertEquals("INGENIERIA_SISTEMAS", resultado.getFacultad());
+	}
+
+	@Test
+	void testObtenerTasasAprobacionPorTipoSinSolicitudes() {
+		when(solicitudRepository.countByTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO)).thenReturn(0L);
+		when(solicitudRepository.findByTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO)).thenReturn(List.of());
+
+		TasaAprobacionDTO resultado = reportesService.obtenerTasasAprobacionPorTipo(TipoSolicitud.CAMBIO_GRUPO);
+
+		assertNotNull(resultado);
+		assertEquals(0L, resultado.getTotalSolicitudes());
+		assertEquals("CAMBIO_GRUPO", resultado.getTipoSolicitud());
+	}
+
+	@Test
+	void testObtenerGruposMasSolicitadosConLimite() {
+		List<Grupo> grupos = new ArrayList<>();
+		for (int i = 0; i < 15; i++) {
+			Materia materia = new Materia("Materia" + i, "MAT" + i, 3, Facultad.INGENIERIA_SISTEMAS);
+			materia.setId("MAT_" + i);
+			Grupo grupo = new Grupo(materia, 30, new ArrayList<>());
+			grupo.setId("GRP_" + i);
+			grupos.add(grupo);
+		}
+
+		when(grupoRepository.findAll()).thenReturn(grupos);
+		for (int i = 0; i < 15; i++) {
+			when(solicitudRepository.countByGrupoDestino_IdAndTipoSolicitud("GRP_" + i, TipoSolicitud.CAMBIO_GRUPO)).thenReturn((long) i);
+		}
+
+		List<EstadisticasGrupoDTO> resultados = reportesService.obtenerGruposMasSolicitados(null, 5);
+
+		assertEquals(5, resultados.size());
+		assertTrue(resultados.get(0).getCantidadSolicitudes() >= resultados.get(4).getCantidadSolicitudes());
 	}
 
 }

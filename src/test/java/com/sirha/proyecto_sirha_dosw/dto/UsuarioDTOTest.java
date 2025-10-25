@@ -1,5 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.dto;
 
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -23,11 +24,11 @@ class UsuarioDTOTest {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombre("Juan");
         dto.setApellido("Perez");
-        dto.setEmail("juan.perez@test.com");
-        dto.setPassword("password123");
+        // Email ya no se valida porque se genera automáticamente en el servicio
+        dto.setPassword("Password123!");
         dto.setRol("ESTUDIANTE");
         dto.setFacultad("INGENIERIA_SISTEMAS");
-        Set violations = validator.validate(dto);
+        Set<ConstraintViolation<UsuarioDTO>> violations = validator.validate(dto);
         assertTrue(violations.isEmpty());
     }
 
@@ -36,12 +37,13 @@ class UsuarioDTOTest {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombre("Juan");
         dto.setApellido("Perez");
-        dto.setEmail("email-invalido");
-        dto.setPassword("password123");
+        // Email no se valida en el DTO porque se genera automáticamente
+        dto.setEmail("email-invalido"); // Este campo se ignora
+        dto.setPassword("Password123!");
         dto.setRol("ESTUDIANTE");
-        Set violations = validator.validate(dto);
-        assertEquals(1, violations.size());
-        assertTrue(violations.iterator().next().toString().contains("Debe ser un correo válido"));
+        Set<ConstraintViolation<UsuarioDTO>> violations = validator.validate(dto);
+        // No debe haber violaciones porque email no se valida
+        assertTrue(violations.isEmpty());
     }
 
     @Test
@@ -49,12 +51,16 @@ class UsuarioDTOTest {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombre("Juan");
         dto.setApellido("Perez");
-        dto.setEmail("juan@test.com");
         dto.setPassword("123");
         dto.setRol("ESTUDIANTE");
-        Set violations = validator.validate(dto);
-        assertEquals(1, violations.size());
-        assertTrue(violations.iterator().next().toString().contains("La contraseña debe tener al menos 6 caracteres"));
+        Set<ConstraintViolation<UsuarioDTO>> violations = validator.validate(dto);
+        // Debe fallar por la validación de @ValidPassword
+        assertFalse(violations.isEmpty(), "Debe haber violaciones para una contraseña corta");
+        assertTrue(violations.stream().anyMatch(v -> 
+            v.getMessage().contains("contraseña") ||
+            v.getMessage().contains("mínimo 8 caracteres") ||
+            v.getMessage().contains("debe tener") ||
+            v.getMessage().contains("8 caracteres")));
     }
 
     @Test
@@ -62,18 +68,20 @@ class UsuarioDTOTest {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombre("");
         dto.setApellido("");
-        dto.setEmail("");
+        // Email no se valida
         dto.setPassword("");
         dto.setRol("");
-        Set violations = validator.validate(dto);
-        assertTrue(violations.size() >= 4);
+        Set<ConstraintViolation<UsuarioDTO>> violations = validator.validate(dto);
+        // Debe haber al menos 3 violaciones (nombre, apellido, password, rol)
+        assertTrue(violations.size() >= 3);
     }
 
     @Test
     void testUsuarioDTOConCamposNulos() {
         UsuarioDTO dto = new UsuarioDTO();
-        Set violations = validator.validate(dto);
-        assertTrue(violations.size() >= 4);
+        Set<ConstraintViolation<UsuarioDTO>> violations = validator.validate(dto);
+        // Debe haber al menos 3 violaciones (nombre, apellido, password, rol)
+        assertTrue(violations.size() >= 3);
     }
 
     @Test
@@ -82,13 +90,13 @@ class UsuarioDTOTest {
         dto.setNombre("Maria");
         dto.setApellido("Gomez");
         dto.setEmail("maria.gomez@test.com");
-        dto.setPassword("securepass");
+        dto.setPassword("SecurePass123!");
         dto.setRol("PROFESOR");
         dto.setFacultad("INGENIERIA_CIVIL");
         assertEquals("Maria", dto.getNombre());
         assertEquals("Gomez", dto.getApellido());
         assertEquals("maria.gomez@test.com", dto.getEmail());
-        assertEquals("securepass", dto.getPassword());
+        assertEquals("SecurePass123!", dto.getPassword());
         assertEquals("PROFESOR", dto.getRol());
         assertEquals("INGENIERIA_CIVIL", dto.getFacultad());
     }
@@ -98,10 +106,10 @@ class UsuarioDTOTest {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setNombre("Carlos");
         dto.setApellido("Lopez");
-        dto.setEmail("carlos@test.com");
-        dto.setPassword("password");
+        // Email no se valida porque se genera automáticamente
+        dto.setPassword("AdminPass123!");
         dto.setRol("ADMINISTRADOR");
-        Set violations = validator.validate(dto);
+        Set<ConstraintViolation<UsuarioDTO>> violations = validator.validate(dto);
         assertTrue(violations.isEmpty());
         assertNull(dto.getFacultad());
     }

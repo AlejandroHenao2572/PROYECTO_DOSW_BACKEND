@@ -10,6 +10,7 @@ import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
 import java.util.Optional;
+import java.security.SecureRandom;
 
 /**
  * Servicio que gestiona las operaciones relacionadas con los usuarios.
@@ -90,66 +91,250 @@ public class UsuarioService {
      * Registra un nuevo usuario en el sistema.
      *
      * <p>
-     * Valida que los campos obligatorios estén presentes y que
-     * el correo no esté ya registrado. Luego crea una instancia
-     * de {@link Usuario} usando la {@code UsuarioFactory} y la
-     * guarda en la base de datos.
+     * Este método genera automáticamente:
+     * <ul>
+     *   <li>ID: Cadena de 10 dígitos numéricos entre 0000000000 y 9999999999</li>
+     *   <li>Email: Formato {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co</li>
+     * </ul>
      * </p>
      *
-     * @param dto objeto {@link UsuarioDTO} con los datos del nuevo usuario
+     * @param dto objeto {@link UsuarioDTO} con los datos del nuevo usuario (nombre, apellido, password, rol, facultad)
      * @return el {@link Usuario} recién creado y persistido
-     * @throws IllegalArgumentException si faltan campos obligatorios o el email ya
-     *                                  existe
+     * @throws SirhaException si el email ya existe, el rol es inválido, o hay errores de validación
      */
-    public Usuario registrar(UsuarioDTO dto) throws  SirhaException{
-        if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
-        }
-        Rol rol;
-        try {
-            rol = Rol.valueOf(dto.getRol().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new SirhaException(SirhaException.ROL_INVALIDO);
-        }
-        Facultad facultad;
-        try {
-            if (dto.getFacultad() != null) {
-                facultad = Facultad.valueOf(dto.getFacultad().toUpperCase());
-            } else {
-                facultad = null;
-            }
-        } catch (IllegalArgumentException e) {
-            throw new SirhaException(SirhaException.FACULTAD_ERROR);
-        }
-        verificarFacultad(dto);
-        Usuario usuario = UsuarioFactory.crearUsuario(
-                rol,
-                dto.getNombre(),
-                dto.getApellido(),
-                dto.getEmail(),
-                dto.getPassword(),
-                facultad);
-        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+    public Usuario registrar(UsuarioDTO dto) throws SirhaException {
+        Rol rol = validarYObtenerRol(dto.getRol());
+        Facultad facultad = validarYObtenerFacultad(dto.getFacultad());
+        
+        validarFacultadPorRol(rol, facultad);
+        validarCarreraExistente(facultad);
+        validarDecanoUnico(rol, facultad);
+        
+        String emailGenerado = generarYValidarEmail(dto.getNombre(), dto.getApellido());
+        dto.setEmail(emailGenerado);
+        
+        Usuario usuario = crearYConfigurarUsuario(dto, rol, facultad, emailGenerado);
+        
         return usuarioRepository.insert(usuario);
     }
 
-    private void verificarFacultad(UsuarioDTO dto) throws SirhaException{
-    if(dto.getRol().equalsIgnoreCase("DECANO") || dto.getRol().equalsIgnoreCase("ESTUDIANTE")) {
-            if (carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad())).isEmpty()) {
-                throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + dto.getFacultad());
-            }
-            if(dto.getRol().equalsIgnoreCase("DECANO")){
-                List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
-                for (Usuario decano : decanos) {
-                    if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(Facultad.valueOf(dto.getFacultad()))) {
-                        throw new SirhaException(SirhaException.DECANO_YA_EXISTE + dto.getFacultad());
-                    }
+    /**
+     * Valida y obtiene el rol desde el DTO.
+     *
+     * @param rolStr el rol en formato String
+     * @return el enum {@link Rol} validado
+     * @throws SirhaException si el rol no es válido
+     */
+    private Rol validarYObtenerRol(String rolStr) throws SirhaException {
+        try {
+            return Rol.valueOf(rolStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new SirhaException(SirhaException.ROL_INVALIDO + ". Roles válidos: ESTUDIANTE, DECANO, ADMINISTRADOR, PROFESOR");
+        }
+    }
+
+    /**
+     * Valida y obtiene la facultad desde el DTO.
+     *
+     * @param facultadStr la facultad en formato String
+     * @return el enum {@link Facultad} validado o null si no se proporciona
+     * @throws SirhaException si la facultad no es válida
+     */
+    private Facultad validarYObtenerFacultad(String facultadStr) throws SirhaException {
+        if (facultadStr == null || facultadStr.trim().isEmpty()) {
+            return null;
+        }
+        
+        try {
+            return Facultad.valueOf(facultadStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new SirhaException(SirhaException.FACULTAD_ERROR + ". Facultades válidas: INGENIERIA_SISTEMAS, INGENIERIA_CIVIL, ADMINISTRACION");
+        }
+    }
+
+    /**
+     * Valida que la facultad sea apropiada según el rol del usuario.
+     *
+     * @param rol el rol del usuario
+     * @param facultad la facultad asignada
+     * @throws SirhaException si la validación falla
+     */
+    private void validarFacultadPorRol(Rol rol, Facultad facultad) throws SirhaException {
+        if (requiereFacultad(rol) && facultad == null) {
+            throw new SirhaException("La facultad es obligatoria para el rol " + rol.name());
+        }
+        
+        if (rol == Rol.ADMINISTRADOR && facultad != null) {
+            throw new SirhaException("El rol ADMINISTRADOR no debe tener facultad asignada");
+        }
+    }
+
+    /**
+     * Determina si un rol requiere facultad asignada.
+     *
+     * @param rol el rol a verificar
+     * @return true si el rol requiere facultad, false en caso contrario
+     */
+    private boolean requiereFacultad(Rol rol) {
+        return rol == Rol.ESTUDIANTE || rol == Rol.DECANO;
+    }
+
+    /**
+     * Valida que la carrera/facultad exista en el sistema.
+     *
+     * @param facultad la facultad a validar
+     * @throws SirhaException si la facultad no existe en el sistema
+     */
+    private void validarCarreraExistente(Facultad facultad) throws SirhaException {
+        if (facultad != null && carreraRepository.findByNombre(facultad).isEmpty()) {
+            throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + facultad.name());
+        }
+    }
+
+    /**
+     * Valida que no exista ya un decano para la facultad especificada.
+     *
+     * @param rol el rol del usuario
+     * @param facultad la facultad a verificar
+     * @throws SirhaException si ya existe un decano para esa facultad
+     */
+    private void validarDecanoUnico(Rol rol, Facultad facultad) throws SirhaException {
+        if (rol == Rol.DECANO && facultad != null) {
+            List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
+            for (Usuario decano : decanos) {
+                if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(facultad)) {
+                    throw new SirhaException(SirhaException.DECANO_YA_EXISTE + " para la facultad " + facultad.name());
                 }
             }
         }
     }
 
+    /**
+     * Genera un email y valida que no exista en el sistema.
+     *
+     * @param nombre el nombre del usuario
+     * @param apellido el apellido del usuario
+     * @return el email generado
+     * @throws SirhaException si el email ya está registrado
+     */
+    private String generarYValidarEmail(String nombre, String apellido) throws SirhaException {
+        String emailGenerado = generarEmail(nombre, apellido);
+        
+        if (usuarioRepository.findByEmail(emailGenerado).isPresent()) {
+            throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
+        }
+        
+        return emailGenerado;
+    }
 
+    /**
+     * Crea y configura un nuevo usuario con todos sus atributos.
+     *
+     * @param dto el DTO con los datos del usuario
+     * @param rol el rol validado
+     * @param facultad la facultad validada
+     * @param email el email generado
+     * @return el usuario configurado listo para persistir
+     */
+    private Usuario crearYConfigurarUsuario(UsuarioDTO dto, Rol rol, Facultad facultad, String email) {
+        Usuario usuario = UsuarioFactory.crearUsuario(
+                rol,
+                dto.getNombre(),
+                dto.getApellido(),
+                email,
+                dto.getPassword(),
+                facultad);
+
+        usuario.setId(generarIdUnico());
+        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        
+        return usuario;
+    }
+
+    /**
+     * Genera un ID único de 10 dígitos numéricos para un usuario.
+     * 
+     * <p>El ID se genera de forma criptográficamente segura usando {@link SecureRandom}
+     * en el rango de 0000000000 a 9999999999.
+     * Si el ID ya existe en la base de datos, se genera uno nuevo hasta encontrar uno único.</p>
+     *
+     * @return ID único de 10 dígitos en formato String
+     */
+    private String generarIdUnico() {
+        SecureRandom secureRandom = new SecureRandom();
+        String id;
+        do {
+            // Generar un número aleatorio de 10 dígitos de forma criptográficamente segura
+            long numeroAleatorio = secureRandom.nextLong(10000000000L);
+            // Formatear con ceros a la izquierda si es necesario
+            id = String.format("%010d", numeroAleatorio);
+        } while (usuarioRepository.existsById(id)); // Verificar que no exista
+        
+        return id;
+    }
+    
+    /**
+     * Genera un correo electrónico automáticamente basado en el nombre y apellido.
+     * Formato: {nombre}.{apellido}-{primera letra del apellido}@mail.escuelaing.edu.co
+     * 
+     * <p>Ejemplos:</p>
+     * <ul>
+     *   <li>Juan Pérez -> juan.perez-p@mail.escuelaing.edu.co</li>
+     *   <li>María García -> maria.garcia-g@mail.escuelaing.edu.co</li>
+     *   <li>Carlos López Martínez -> carlos.lopezmartinez-l@mail.escuelaing.edu.co</li>
+     * </ul>
+     *
+     * @param nombre el nombre del usuario
+     * @param apellido el apellido del usuario
+     * @return el correo electrónico generado
+     */
+    private String generarEmail(String nombre, String apellido) {
+        // Normalizar: remover espacios extras, convertir a minúsculas, remover acentos
+        String nombreNormalizado = normalizarTexto(nombre);
+        String apellidoNormalizado = normalizarTexto(apellido);
+        
+        // Obtener la primera letra del apellido
+        char primeraLetraApellido = apellidoNormalizado.charAt(0);
+        
+        // Formato: nombre.apellido-primeraLetraApellido@mail.escuelaing.edu.co
+        return String.format("%s.%s-%c@mail.escuelaing.edu.co", 
+                nombreNormalizado, 
+                apellidoNormalizado, 
+                primeraLetraApellido);
+    }
+    
+    /**
+     * Normaliza un texto removiendo acentos, espacios extras y convirtiéndolo a minúsculas.
+     *
+     * @param texto el texto a normalizar
+     * @return el texto normalizado
+     */
+    private String normalizarTexto(String texto) {
+        return texto.trim()
+                .toLowerCase()
+                .replace(" ", "")  // Remover todos los espacios
+                .replace("á", "a")
+                .replace("à", "a")
+                .replace("ä", "a")
+                .replace("â", "a")
+                .replace("é", "e")
+                .replace("è", "e")
+                .replace("ë", "e")
+                .replace("ê", "e")
+                .replace("í", "i")
+                .replace("ì", "i")
+                .replace("ï", "i")
+                .replace("î", "i")
+                .replace("ó", "o")
+                .replace("ò", "o")
+                .replace("ö", "o")
+                .replace("ô", "o")
+                .replace("ú", "u")
+                .replace("ù", "u")
+                .replace("ü", "u")
+                .replace("û", "u")
+                .replace("ñ", "n");
+    }
 
     /**
      * Actualiza a un usuario.
