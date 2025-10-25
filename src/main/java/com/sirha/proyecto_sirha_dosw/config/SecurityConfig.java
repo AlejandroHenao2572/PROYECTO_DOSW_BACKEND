@@ -24,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * <p>Esta clase configura:</p>
  * <ul>
  *   <li>Autenticación basada en JWT (sin sesiones)</li>
- *   <li>Autorización por roles (ADMIN, DECANO, ESTUDIANTE)</li>
+ *   <li>Autorización por roles (ADMINISTRADOR, DECANO, ESTUDIANTE)</li>
  *   <li>Protección de endpoints según roles</li>
  *   <li>Codificación de contraseñas con BCrypt</li>
  * </ul>
@@ -32,13 +32,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * <h3>Endpoints públicos (sin autenticación):</h3>
  * <ul>
  *   <li>POST /api/auth/login - Login de usuarios</li>
- *   <li>POST /api/usuarios/crear - Registro de usuarios</li>
+ *   <li>POST /api/auth/register - Registro de usuarios</li>
+ *   <li>POST /api/usuarios/register - Registro de usuarios (alternativo)</li>
+ *   <li>POST /api/usuarios/login - Login de usuarios (alternativo)</li>
  * </ul>
  * 
  * <h3>Endpoints protegidos por rol:</h3>
  * <ul>
- *   <li>ADMIN: /api/admin/** - Solo administradores</li>
- *   <li>DECANO: /api/decano/** - Solo decanos</li>
+ *   <li>ADMINISTRADOR: /api/reportes/**, /api/grupos/**, /api/carreras/**, /api/materias/**, /api/usuarios/** - Solo administradores</li>
+ *   <li>DECANO: /api/decano/** - Decanos y administradores</li>
  *   <li>ESTUDIANTE: /api/estudiante/** - Solo estudiantes</li>
  * </ul>
  */
@@ -67,7 +69,6 @@ public class SecurityConfig {
      * @return el proveedor de autenticación configurado
      */
     @Bean
-    @SuppressWarnings("deprecation")
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
@@ -110,45 +111,20 @@ public class SecurityConfig {
             
             // Configurar autorización de requests
             .authorizeHttpRequests(auth -> auth
-                // Endpoints públicos (sin autenticación) - Login y Registro
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/register").permitAll()
-                .requestMatchers("/api/usuarios/register").permitAll()
-                .requestMatchers("/api/usuarios/login").permitAll()
+                // Endpoints públicos (sin autenticación)
+                .requestMatchers(getPublicEndpoints()).permitAll()
                 
                 // Documentación Swagger (sin autenticación)
-                .requestMatchers(
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/v3/api-docs/**",
-                    "/v3/api-docs",
-                    "/swagger-resources/**",
-                    "/webjars/**"
-                ).permitAll()
+                .requestMatchers(getSwaggerEndpoints()).permitAll()
                 
                 // Endpoints solo para ADMINISTRADOR
-                .requestMatchers("/api/reportes/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/grupos/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/materias/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
+                .requestMatchers(getAdminEndpoints()).hasRole("ADMINISTRADOR")
                 
-                // Endpoints solo para DECANO
-                .requestMatchers("/api/decano/**").hasRole("DECANO")
-                .requestMatchers("/api/reportes/**").hasRole("DECANO")
-                .requestMatchers("/api/grupos/**").hasRole("DECANO")
-                .requestMatchers("/api/materias/**").hasRole("DECANO")
-                .requestMatchers("/api/usuarios/**").hasRole("DECANO")
-
+                // Endpoints solo para DECANO (permite DECANO y ADMINISTRADOR)
+                .requestMatchers(getDecanoEndpoints()).hasAnyRole("DECANO", "ADMINISTRADOR")
+                
                 // Endpoints solo para ESTUDIANTE
-                .requestMatchers("/api/estudiante/**").hasRole("ESTUDIANTE")
-                
-                // Endpoints que requieren autenticación (cualquier rol autenticado)
-                .requestMatchers("/api/usuarios/**").authenticated()
-                .requestMatchers("/api/carreras/**").authenticated()
-                .requestMatchers("/api/materias/**").authenticated()
-                .requestMatchers("/api/grupos/**").authenticated()
-                .requestMatchers("/api/reportes/**").authenticated()
+                .requestMatchers(getEstudianteEndpoints()).hasRole("ESTUDIANTE")
                 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
@@ -166,5 +142,72 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
+    }
+
+    /**
+     * Define los endpoints públicos que no requieren autenticación.
+     * 
+     * @return array de patrones de endpoints públicos
+     */
+    private String[] getPublicEndpoints() {
+        return new String[]{
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/usuarios/register",
+            "/api/usuarios/login"
+        };
+    }
+
+    /**
+     * Define los endpoints de documentación Swagger.
+     * 
+     * @return array de patrones de endpoints de Swagger
+     */
+    private String[] getSwaggerEndpoints() {
+        return new String[]{
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs/**",
+            "/v3/api-docs",
+            "/swagger-resources/**",
+            "/webjars/**"
+        };
+    }
+
+    /**
+     * Define los endpoints exclusivos para el rol ADMINISTRADOR.
+     * 
+     * @return array de patrones de endpoints administrativos
+     */
+    private String[] getAdminEndpoints() {
+        return new String[]{
+            "/api/reportes/**",
+            "/api/grupos/**",
+            "/api/carreras/**",
+            "/api/materias/**",
+            "/api/usuarios/**"
+        };
+    }
+
+    /**
+     * Define los endpoints para el rol DECANO.
+     * 
+     * @return array de patrones de endpoints para decanos
+     */
+    private String[] getDecanoEndpoints() {
+        return new String[]{
+            "/api/decano/**"
+        };
+    }
+
+    /**
+     * Define los endpoints para el rol ESTUDIANTE.
+     * 
+     * @return array de patrones de endpoints para estudiantes
+     */
+    private String[] getEstudianteEndpoints() {
+        return new String[]{
+            "/api/estudiante/**"
+        };
     }
 }

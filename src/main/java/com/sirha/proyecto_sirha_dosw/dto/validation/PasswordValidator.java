@@ -4,40 +4,12 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.regex.Pattern;
-
-/**
- * Validador para contraseñas seguras.
- * 
- * <p>Valida que una contraseña cumpla con los siguientes requisitos:</p>
- * <ul>
- *   <li>Mínimo 8 caracteres de longitud</li>
- *   <li>Al menos una letra mayúscula (A-Z)</li>
- *   <li>Al menos una letra minúscula (a-z)</li>
- *   <li>Al menos un dígito (0-9)</li>
- *   <li>Al menos un carácter especial (@$!%*?&.#-_)</li>
- *   <li>Solo caracteres alfanuméricos y especiales permitidos</li>
- * </ul>
- */
 public class PasswordValidator implements ConstraintValidator<ValidPassword, String> {
 
-    /**
-     * Patrón de expresión regular para validar contraseñas.
-     * 
-     * <p>Explicación del patrón:</p>
-     * <ul>
-     *   <li>^                      - Inicio de la cadena</li>
-     *   <li>(?=.*[a-z])            - Al menos una minúscula (lookahead positivo)</li>
-     *   <li>(?=.*[A-Z])            - Al menos una mayúscula (lookahead positivo)</li>
-     *   <li>(?=.*\d)               - Al menos un dígito (lookahead positivo)</li>
-     *   <li>(?=.*[@$!%*?&.#\-_])   - Al menos un carácter especial (lookahead positivo)</li>
-     *   <li>[A-Za-z\d@$!%*?&.#\-_]{8,} - Solo caracteres válidos, mínimo 8</li>
-     *   <li>$                      - Fin de la cadena</li>
-     * </ul>
-     */
-    private static final String PASSWORD_PATTERN = 
+    private static final String PASSWPATTERN = 
         "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&.#\\-_])[A-Za-z\\d@$!%*?&.#\\-_]{8,}$";
 
-    private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
+    private static final Pattern pattern = Pattern.compile(PASSWPATTERN);
 
     @Override
     public void initialize(ValidPassword constraintAnnotation) {
@@ -60,52 +32,117 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
 
         // Validación del patrón
         if (!pattern.matcher(password).matches()) {
-            // Personalizar el mensaje de error con detalles específicos
+            String errorMessage = buildErrorMessage(password);
             context.disableDefaultConstraintViolation();
-            
-            StringBuilder errorMessage = new StringBuilder("La contraseña no cumple con los requisitos: ");
-            boolean hasErrors = false;
-            
-            if (password.length() < 8) {
-                errorMessage.append("debe tener mínimo 8 caracteres");
-                hasErrors = true;
-            }
-            
-            if (!password.matches(".*[a-z].*")) {
-                if (hasErrors) errorMessage.append(", ");
-                errorMessage.append("debe contener al menos una minúscula");
-                hasErrors = true;
-            }
-            
-            if (!password.matches(".*[A-Z].*")) {
-                if (hasErrors) errorMessage.append(", ");
-                errorMessage.append("debe contener al menos una mayúscula");
-                hasErrors = true;
-            }
-            
-            if (!password.matches(".*\\d.*")) {
-                if (hasErrors) errorMessage.append(", ");
-                errorMessage.append("debe contener al menos un número");
-                hasErrors = true;
-            }
-            
-            if (!password.matches(".*[@$!%*?&.#\\-_].*")) {
-                if (hasErrors) errorMessage.append(", ");
-                errorMessage.append("debe contener al menos un carácter especial (@$!%*?&.#-_)");
-                hasErrors = true;
-            }
-            
-            if (!password.matches("^[A-Za-z\\d@$!%*?&.#\\-_]+$")) {
-                if (hasErrors) errorMessage.append(", ");
-                errorMessage.append("contiene caracteres no permitidos");
-            }
-            
-            context.buildConstraintViolationWithTemplate(errorMessage.toString())
+            context.buildConstraintViolationWithTemplate(errorMessage)
                    .addConstraintViolation();
-            
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * Construye un mensaje de error detallado basado en los requisitos no cumplidos.
+     *
+     * @param password La contraseña a validar
+     * @return Mensaje de error personalizado
+     */
+    private String buildErrorMessage(String password) {
+        StringBuilder errorMessage = new StringBuilder("La contraseña no cumple con los requisitos: ");
+        StringBuilder errors = new StringBuilder();
+
+        appendErrorIfNeeded(errors, password.length() < 8, "debe tener mínimo 8 caracteres");
+        appendErrorIfNeeded(errors, !hasLowercase(password), "debe contener al menos una minúscula");
+        appendErrorIfNeeded(errors, !hasUppercase(password), "debe contener al menos una mayúscula");
+        appendErrorIfNeeded(errors, !hasDigit(password), "debe contener al menos un número");
+        appendErrorIfNeeded(errors, !hasSpecialChar(password), "debe contener al menos un carácter especial (@$!%*?&.#-_)");
+        appendErrorIfNeeded(errors, !hasOnlyAllowedChars(password), "contiene caracteres no permitidos");
+
+        return errorMessage.append(errors).toString();
+    }
+
+    /**
+     * Agrega un mensaje de error si la condición se cumple.
+     *
+     * @param errors StringBuilder que acumula los errores
+     * @param condition Condición que indica si hay un error
+     * @param message Mensaje de error a agregar
+     */
+    private void appendErrorIfNeeded(StringBuilder errors, boolean condition, String message) {
+        if (condition) {
+            if (!errors.isEmpty()) {
+                errors.append(", ");
+            }
+            errors.append(message);
+        }
+    }
+
+    /**
+     * Verifica si la contraseña contiene al menos una minúscula.
+     * Usa iteración en lugar de regex para evitar ReDoS.
+     */
+    private boolean hasLowercase(String password) {
+        for (int i = 0; i < password.length(); i++) {
+            if (Character.isLowerCase(password.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si la contraseña contiene al menos una mayúscula.
+     * Usa iteración en lugar de regex para evitar ReDoS.
+     */
+    private boolean hasUppercase(String password) {
+        for (int i = 0; i < password.length(); i++) {
+            if (Character.isUpperCase(password.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si la contraseña contiene al menos un dígito.
+     * Usa iteración en lugar de regex para evitar ReDoS.
+     */
+    private boolean hasDigit(String password) {
+        for (int i = 0; i < password.length(); i++) {
+            if (Character.isDigit(password.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si la contraseña contiene al menos un carácter especial.
+     * Usa iteración en lugar de regex para evitar ReDoS.
+     */
+    private boolean hasSpecialChar(String password) {
+        String specialChars = "@$!%*?&.#-_";
+        for (int i = 0; i < password.length(); i++) {
+            if (specialChars.indexOf(password.charAt(i)) >= 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si la contraseña solo contiene caracteres permitidos.
+     * Usa iteración en lugar de regex para evitar ReDoS.
+     */
+    private boolean hasOnlyAllowedChars(String password) {
+        for (int i = 0; i < password.length(); i++) {
+            char c = password.charAt(i);
+            boolean isValid = Character.isLetterOrDigit(c) || "@$!%*?&.#-_".indexOf(c) >= 0;
+            if (!isValid) {
+                return false;
+            }
+        }
         return true;
     }
 }

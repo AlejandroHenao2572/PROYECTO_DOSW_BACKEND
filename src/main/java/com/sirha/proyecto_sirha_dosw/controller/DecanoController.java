@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/Decanos")
+@RequestMapping("/api/decano")
 @Tag(name = "Decano Controller", description = "API para la gestión de funcionalidades específicas del Decano. " +
         "Incluye gestión de estudiantes, solicitudes de cambio de grupo, configuración de calendario académico, " +
         "monitoreo de grupos y administración de plazos de solicitudes por facultad.")

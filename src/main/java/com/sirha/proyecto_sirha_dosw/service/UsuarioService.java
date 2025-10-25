@@ -10,7 +10,7 @@ import com.sirha.proyecto_sirha_dosw.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
+import java.security.SecureRandom;
 
 /**
  * Servicio que gestiona las operaciones relacionadas con los usuarios.
@@ -103,93 +103,169 @@ public class UsuarioService {
      * @throws SirhaException si el email ya existe, el rol es inválido, o hay errores de validación
      */
     public Usuario registrar(UsuarioDTO dto) throws SirhaException {
-        // Validar el rol
-        Rol rol;
+        Rol rol = validarYObtenerRol(dto.getRol());
+        Facultad facultad = validarYObtenerFacultad(dto.getFacultad());
+        
+        validarFacultadPorRol(rol, facultad);
+        validarCarreraExistente(facultad);
+        validarDecanoUnico(rol, facultad);
+        
+        String emailGenerado = generarYValidarEmail(dto.getNombre(), dto.getApellido());
+        dto.setEmail(emailGenerado);
+        
+        Usuario usuario = crearYConfigurarUsuario(dto, rol, facultad, emailGenerado);
+        
+        return usuarioRepository.insert(usuario);
+    }
+
+    /**
+     * Valida y obtiene el rol desde el DTO.
+     *
+     * @param rolStr el rol en formato String
+     * @return el enum {@link Rol} validado
+     * @throws SirhaException si el rol no es válido
+     */
+    private Rol validarYObtenerRol(String rolStr) throws SirhaException {
         try {
-            rol = Rol.valueOf(dto.getRol().toUpperCase());
+            return Rol.valueOf(rolStr.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new SirhaException(SirhaException.ROL_INVALIDO + ". Roles válidos: ESTUDIANTE, DECANO, ADMINISTRADOR, PROFESOR");
         }
+    }
 
-        // Validar y procesar la facultad
-        Facultad facultad = null;
-        if (dto.getFacultad() != null && !dto.getFacultad().trim().isEmpty()) {
-            try {
-                facultad = Facultad.valueOf(dto.getFacultad().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new SirhaException(SirhaException.FACULTAD_ERROR + ". Facultades válidas: INGENIERIA_SISTEMAS, INGENIERIA_CIVIL, ADMINISTRACION");
-            }
+    /**
+     * Valida y obtiene la facultad desde el DTO.
+     *
+     * @param facultadStr la facultad en formato String
+     * @return el enum {@link Facultad} validado o null si no se proporciona
+     * @throws SirhaException si la facultad no es válida
+     */
+    private Facultad validarYObtenerFacultad(String facultadStr) throws SirhaException {
+        if (facultadStr == null || facultadStr.trim().isEmpty()) {
+            return null;
         }
+        
+        try {
+            return Facultad.valueOf(facultadStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new SirhaException(SirhaException.FACULTAD_ERROR + ". Facultades válidas: INGENIERIA_SISTEMAS, INGENIERIA_CIVIL, ADMINISTRACION");
+        }
+    }
 
-        // Validar que la facultad sea obligatoria para ESTUDIANTE y DECANO
-        if ((rol == Rol.ESTUDIANTE || rol == Rol.DECANO) && facultad == null) {
+    /**
+     * Valida que la facultad sea apropiada según el rol del usuario.
+     *
+     * @param rol el rol del usuario
+     * @param facultad la facultad asignada
+     * @throws SirhaException si la validación falla
+     */
+    private void validarFacultadPorRol(Rol rol, Facultad facultad) throws SirhaException {
+        if (requiereFacultad(rol) && facultad == null) {
             throw new SirhaException("La facultad es obligatoria para el rol " + rol.name());
         }
-
-        // Validar que el ADMINISTRADOR no tenga facultad
+        
         if (rol == Rol.ADMINISTRADOR && facultad != null) {
             throw new SirhaException("El rol ADMINISTRADOR no debe tener facultad asignada");
         }
+    }
 
-        // Validar que la carrera/facultad exista en el sistema
-        if (facultad != null) {
-            if (carreraRepository.findByNombre(facultad).isEmpty()) {
-                throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + facultad.name());
-            }
+    /**
+     * Determina si un rol requiere facultad asignada.
+     *
+     * @param rol el rol a verificar
+     * @return true si el rol requiere facultad, false en caso contrario
+     */
+    private boolean requiereFacultad(Rol rol) {
+        return rol == Rol.ESTUDIANTE || rol == Rol.DECANO;
+    }
 
-            // Validar que no exista un decano para esa facultad
-            if (rol == Rol.DECANO) {
-                List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
-                for (Usuario decano : decanos) {
-                    if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(facultad)) {
-                        throw new SirhaException(SirhaException.DECANO_YA_EXISTE + " para la facultad " + facultad.name());
-                    }
+    /**
+     * Valida que la carrera/facultad exista en el sistema.
+     *
+     * @param facultad la facultad a validar
+     * @throws SirhaException si la facultad no existe en el sistema
+     */
+    private void validarCarreraExistente(Facultad facultad) throws SirhaException {
+        if (facultad != null && carreraRepository.findByNombre(facultad).isEmpty()) {
+            throw new SirhaException(SirhaException.CARRERA_NO_ENCONTRADA + facultad.name());
+        }
+    }
+
+    /**
+     * Valida que no exista ya un decano para la facultad especificada.
+     *
+     * @param rol el rol del usuario
+     * @param facultad la facultad a verificar
+     * @throws SirhaException si ya existe un decano para esa facultad
+     */
+    private void validarDecanoUnico(Rol rol, Facultad facultad) throws SirhaException {
+        if (rol == Rol.DECANO && facultad != null) {
+            List<Usuario> decanos = usuarioRepository.findByRol(Rol.DECANO);
+            for (Usuario decano : decanos) {
+                if (decano instanceof Decano decanoObj && decanoObj.getFacultad().equals(facultad)) {
+                    throw new SirhaException(SirhaException.DECANO_YA_EXISTE + " para la facultad " + facultad.name());
                 }
             }
         }
+    }
 
-        // Generar email automáticamente
-        String emailGenerado = generarEmail(dto.getNombre(), dto.getApellido());
-        dto.setEmail(emailGenerado);
+    /**
+     * Genera un email y valida que no exista en el sistema.
+     *
+     * @param nombre el nombre del usuario
+     * @param apellido el apellido del usuario
+     * @return el email generado
+     * @throws SirhaException si el email ya está registrado
+     */
+    private String generarYValidarEmail(String nombre, String apellido) throws SirhaException {
+        String emailGenerado = generarEmail(nombre, apellido);
         
-        // Validar que el email no exista
         if (usuarioRepository.findByEmail(emailGenerado).isPresent()) {
             throw new SirhaException(SirhaException.EMAIL_YA_REGISTRADO);
         }
+        
+        return emailGenerado;
+    }
 
-        // Crear el usuario usando la factory
+    /**
+     * Crea y configura un nuevo usuario con todos sus atributos.
+     *
+     * @param dto el DTO con los datos del usuario
+     * @param rol el rol validado
+     * @param facultad la facultad validada
+     * @param email el email generado
+     * @return el usuario configurado listo para persistir
+     */
+    private Usuario crearYConfigurarUsuario(UsuarioDTO dto, Rol rol, Facultad facultad, String email) {
         Usuario usuario = UsuarioFactory.crearUsuario(
                 rol,
                 dto.getNombre(),
                 dto.getApellido(),
-                emailGenerado,
+                email,
                 dto.getPassword(),
                 facultad);
 
-        // Generar ID único de 10 dígitos
-        String idGenerado = generarIdUnico();
-        usuario.setId(idGenerado);
-
-        // Encriptar la contraseña
+        usuario.setId(generarIdUnico());
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-
-        // Guardar el usuario
-        return usuarioRepository.insert(usuario);
+        
+        return usuario;
     }
 
     /**
      * Genera un ID único de 10 dígitos numéricos para un usuario.
      * 
-     * <p>El ID se genera aleatoriamente en el rango de 0000000000 a 9999999999.
+     * <p>El ID se genera de forma criptográficamente segura usando {@link SecureRandom}
+     * en el rango de 0000000000 a 9999999999.
      * Si el ID ya existe en la base de datos, se genera uno nuevo hasta encontrar uno único.</p>
      *
      * @return ID único de 10 dígitos en formato String
      */
     private String generarIdUnico() {
+        SecureRandom secureRandom = new SecureRandom();
         String id;
         do {
-            // Generar un número aleatorio de 10 dígitos
-            long numeroAleatorio = ThreadLocalRandom.current().nextLong(0L, 10000000000L);
+            // Generar un número aleatorio de 10 dígitos de forma criptográficamente segura
+            long numeroAleatorio = secureRandom.nextLong(10000000000L);
             // Formatear con ceros a la izquierda si es necesario
             id = String.format("%010d", numeroAleatorio);
         } while (usuarioRepository.existsById(id)); // Verificar que no exista
@@ -236,13 +312,28 @@ public class UsuarioService {
     private String normalizarTexto(String texto) {
         return texto.trim()
                 .toLowerCase()
-                .replaceAll("\\s+", "")  // Remover todos los espacios
-                .replaceAll("[áàäâ]", "a")
-                .replaceAll("[éèëê]", "e")
-                .replaceAll("[íìïî]", "i")
-                .replaceAll("[óòöô]", "o")
-                .replaceAll("[úùüû]", "u")
-                .replaceAll("ñ", "n");
+                .replace(" ", "")  // Remover todos los espacios
+                .replace("á", "a")
+                .replace("à", "a")
+                .replace("ä", "a")
+                .replace("â", "a")
+                .replace("é", "e")
+                .replace("è", "e")
+                .replace("ë", "e")
+                .replace("ê", "e")
+                .replace("í", "i")
+                .replace("ì", "i")
+                .replace("ï", "i")
+                .replace("î", "i")
+                .replace("ó", "o")
+                .replace("ò", "o")
+                .replace("ö", "o")
+                .replace("ô", "o")
+                .replace("ú", "u")
+                .replace("ù", "u")
+                .replace("ü", "u")
+                .replace("û", "u")
+                .replace("ñ", "n");
     }
 
     /**

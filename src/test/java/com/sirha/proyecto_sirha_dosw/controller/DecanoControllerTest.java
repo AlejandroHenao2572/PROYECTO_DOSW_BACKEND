@@ -780,10 +780,12 @@ class DecanoControllerTest {
         String email = "noexiste@test.com";
         doNothing().when(decanoService).validarFacultad(facultad);
         when(decanoService.findEstudianteByEmailAndFacultad(email, facultad))
-                .thenThrow(new SirhaException(SirhaException.ESTUDIANTE_NO_ENCONTRADO));
+                .thenReturn(null);
 
         ResponseEntity<Object> response = decanoController.obtenerPorEmail(facultad, email);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        Object body = response.getBody();
+        assertTrue(body != null && body.toString().contains("Estudiante no encontrado"));
     }
 
     @Test
