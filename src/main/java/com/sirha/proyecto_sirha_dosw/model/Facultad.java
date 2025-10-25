@@ -1,15 +1,10 @@
+/**
+ * Enum que representa las facultades disponibles en la universidad.
+ */
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
-
-public class Facultad {
-
-	private String nombre;
-
-	private Solicitud solicitud;
-
-	public List<Solicitud> getSolicitudes() {
-		return null;
-	}
-
+public enum Facultad {
+	INGENIERIA_SISTEMAS,
+	INGENIERIA_CIVIL,
+	ADMINISTRACION
 }

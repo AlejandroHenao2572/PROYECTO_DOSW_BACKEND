@@ -1,27 +1,168 @@
+/**
+ * Clase que representa a un estudiante en el sistema.
+ * Extiende de Usuario y contiene información específica como carrera, semestres y solicitudes.
+ */
 package com.sirha.proyecto_sirha_dosw.model;
 
-import java.util.List;
+import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.*;
 
+@Document(collection = "usuarios")
+@TypeAlias("estudiante")
 public class Estudiante extends Usuario {
+	// Campos
+	private Facultad carrera;
+	private List<Semestre> semestres = new ArrayList<>();
 
-	private int semestre;
-
-	private SemaforoAcademico semaforoAcademico;
-
-	public Horario consultarHorario() {
-		return null;
+	/**
+	 * Constructor por defecto.
+	 */
+	public Estudiante() {
+		super();
 	}
 
-	public SemaforoAcademico consultarSemaforoAcademico() {
-		return null;
+	/**
+	 * Constructor con parámetros básicos.
+	 * @param nombre Nombre del estudiante
+	 * @param apellido Apellido del estudiante
+	 * @param email Email del estudiante
+	 * @param contraseña Contraseña del estudiante
+	 * @param carrera Facultad a la que pertenece el estudiante
+	 */
+	public Estudiante(String nombre, String apellido, String email, String contrasena, Facultad carrera) {
+		super(nombre, apellido, email, contrasena);
+		this.carrera = carrera;
 	}
 
-	public Solicitud crearSolicitudDeCambio(Curso cursoOrigen, Grupo grupoOrigen, Curso cursoDestino, Grupo grupoDestino) {
-		return null;
+	/**
+	 * Constructor completo con todos los parámetros.
+	 * @param nombre Nombre del estudiante
+	 * @param apellido Apellido del estudiante
+	 * @param email Email del estudiante
+	 * @param contraseña Contraseña del estudiante
+	 * @param rol Rol del usuario
+	 * @param carrera Facultad a la que pertenece el estudiante
+	 */
+	public Estudiante(String nombre, String apellido, String email, String contrasena, Rol rol, Facultad carrera) {
+		super(nombre, apellido, email, contrasena, rol);
+		this.carrera = carrera;
 	}
 
-	public List<Solicitud> consultarHistorialDeSolicitudes() {
-		return null;
+	// Getters y setters con documentación básica
+	public Facultad getCarrera() { return carrera; }
+	public void setCarrera(Facultad carrera) { this.carrera = carrera; }
+	public List<Semestre> getSemestres() { return semestres; }
+	public void setSemestres(List<Semestre> semestres) { this.semestres = semestres; }
+
+	/**
+	 * Obtiene los registros de materias para un semestre específico.
+	 * @param semestre Número del semestre (1-based)
+	 * @return Lista de registros de materias del semestre especificado
+	 */
+	public List<RegistroMaterias> getRegistrosBySemestre(int semestre) {
+		return semestres.get(semestre-1).getRegistros();
+	}
+
+	/**
+	 * Obtiene un mapa con el estado del semáforo para cada materia del estudiante.
+	 * @return Mapa donde la clave es el nombre de la materia y el valor es el estado del semáforo
+	 */
+	public Map<String, Semaforo> getSemaforo() {
+		HashMap<String, Semaforo> semaforo = new HashMap<>();
+		for (Semestre semestre : semestres) {
+			for (RegistroMaterias registro : semestre.getRegistros()) {
+				String nombre = registro.getGrupo().getMateria().getNombre();
+				Semaforo estado = registro.getEstado();
+				semaforo.put(nombre, estado);
+			}
+		}
+		return semaforo;
+	}
+
+	/**
+	 * Verifica si una materia específica fue cancelada en el semestre actual.
+	 * @param acronimoMateria Acrónimo de la materia a verificar
+	 * @return true si la materia fue cancelada en el semestre actual, false en caso contrario
+	 */
+	public boolean tieneMateriaCandeladaEnSemestreActual(String acronimoMateria) {
+		if (semestres.isEmpty()) {
+			return false;
+		}
+		
+		// Obtener el semestre actual (último semestre)
+		Semestre semestreActual = semestres.get(semestres.size() - 1);
+		
+		for (RegistroMaterias registro : semestreActual.getRegistros()) {
+			if (registro.getGrupo().getMateria().getAcronimo().equals(acronimoMateria) 
+				&& registro.getEstado() == Semaforo.CANCELADO) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	public Semestre getSemestreActual() {
+		if (semestres.isEmpty()) {
+			return null; 
+		}
+		return semestres.get(semestres.size() - 1);
+	}
+
+	public void addGrupo(Grupo grupo) {
+		Semestre semestreActual = semestres.get(semestres.size() - 1);
+		RegistroMaterias nuevoRegistro = new RegistroMaterias(grupo);
+		semestreActual.addRegistro(nuevoRegistro);
+	}
+
+	public void removeGrupo(Grupo grupo) {
+		Semestre semestreActual = semestres.get(semestres.size() - 1);
+		RegistroMaterias registroARemover = null;
+		for (RegistroMaterias registro : semestreActual.getRegistros()) {
+			if (registro.getGrupo().equals(grupo)) {
+				registroARemover = registro;
+				break;
+			}
+		}
+		if (registroARemover != null) {
+			semestreActual.removeRegistro(registroARemover);
+		}
+	}
+
+	/**
+	 * Obtiene todos los grupos en los que está inscrito el estudiante en el semestre actual.
+	 * @return Lista de grupos del semestre actual
+	 */
+	public List<Grupo> getGrupos() {
+		List<Grupo> grupos = new ArrayList<>();
+		if (!semestres.isEmpty()) {
+			Semestre semestreActual = semestres.get(semestres.size() - 1);
+			for (RegistroMaterias registro : semestreActual.getRegistros()) {
+				grupos.add(registro.getGrupo());
+			}
+		}
+		return grupos;
+	}
+
+	/**
+	 * Obtiene todos los grupos en los que está inscrito el estudiante en el semestre actual,
+	 * excluyendo un grupo específico para validaciones de cambio de grupo.
+	 * @param grupoAExcluir Grupo que no debe incluirse en la lista
+	 * @return Lista de grupos del semestre actual excluyendo el grupo especificado
+	 */
+	public List<Grupo> getGruposExcluyendo(Grupo grupoAExcluir) {
+		List<Grupo> grupos = new ArrayList<>();
+		if (!semestres.isEmpty()) {
+			Semestre semestreActual = semestres.get(semestres.size() - 1);
+			for (RegistroMaterias registro : semestreActual.getRegistros()) {
+				Grupo grupo = registro.getGrupo();
+				if (grupoAExcluir == null || !grupo.getId().equals(grupoAExcluir.getId())) {
+					grupos.add(grupo);
+				}
+			}
+		}
+		return grupos;
 	}
 
 }
