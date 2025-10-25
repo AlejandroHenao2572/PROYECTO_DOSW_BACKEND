@@ -1,7 +1,6 @@
 package com.sirha.proyecto_sirha_dosw.controller;
 
 import com.sirha.proyecto_sirha_dosw.dto.UsuarioDTO;
-import com.sirha.proyecto_sirha_dosw.dto.UsuarioLoginDTO;
 import com.sirha.proyecto_sirha_dosw.exception.Log;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Rol;
@@ -15,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,15 +23,30 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controlador REST para gestionar operaciones relacionadas con los usuarios.
- * Expone endpoints para registrar, autenticar y consultar usuarios por
- * distintos criterios (ID, correo, rol, nombre y apellido).
- * Los endpoints están disponibles bajo la ruta base {@code /api/usuarios}.
+ * Controlador REST para gestionar operaciones administrativas de usuarios.
+ * 
+ * <p>Este controlador maneja la administración de usuarios (CRUD) y consultas.
+ * Para registro y autenticación, usar {@link AuthController}.</p>
+ * 
+ * <p>Endpoints disponibles bajo la ruta base {@code /api/usuarios}:</p>
+ * <ul>
+ *   <li>GET / - Listar todos los usuarios</li>
+ *   <li>GET /{id} - Buscar usuario por ID</li>
+ *   <li>GET /email/{email} - Buscar usuario por email</li>
+ *   <li>GET /rol/{rol} - Buscar usuarios por rol</li>
+ *   <li>GET /nombre/{nombre} - Buscar usuarios por nombre</li>
+ *   <li>GET /apellido/{apellido} - Buscar usuarios por apellido</li>
+ *   <li>GET /nombre/{nombre}/{apellido} - Buscar por nombre y apellido</li>
+ *   <li>PUT /{usuarioId} - Actualizar usuario</li>
+ *   <li>DELETE /{usuarioId} - Eliminar usuario</li>
+ * </ul>
+ * 
+ * <p><b>Nota:</b> Para registro y login, usar {@code /api/auth/register} y {@code /api/auth/login}</p>
  */
 @RestController
 @RequestMapping("/api/usuarios")
-@Tag(name = "Usuarios", description = "API para la gestión de usuarios del sistema SIRHA. " +
-        "Incluye registro, autenticación, actualización y consulta de usuarios por diversos criterios.")
+@Tag(name = "Gestión de Usuarios", description = "API para la administración de usuarios del sistema SIRHA. " +
+        "Incluye operaciones CRUD y consultas. Para autenticación y registro, usar el controlador de Autenticación (/api/auth).")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -41,141 +54,6 @@ public class UsuarioController {
     @Autowired
     public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-    }
-
-    /**
-     * Registra un nuevo usuario en el sistema.
-     * @param dto Estructura con los datos del usuario a registrar.
-     * @return 201 Created si se registró con éxito,
-     *         409 Conflict si el email ya está en uso.
-     */
-    @Operation(
-        summary = "Registrar nuevo usuario",
-        description = "Registra un nuevo usuario en el sistema SIRHA. El usuario puede tener roles de ESTUDIANTE, " +
-                     "PROFESOR, DECANO o ADMINISTRADOR. El email debe ser único en el sistema.",
-        tags = {"Autenticación y Registro"}
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "201",
-            description = "Usuario registrado exitosamente",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                examples = @ExampleObject(
-                    name = "Registro exitoso",
-                    description = "Usuario creado correctamente en el sistema",
-                    value = "Usuario registrado exitosamente"
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Datos de entrada inválidos o incompletos",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                examples = @ExampleObject(
-                    name = "Error de validación",
-                    value = "\"Los datos proporcionados no cumplen con las validaciones requeridas\""
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "409",
-            description = "Conflicto - Email ya registrado en el sistema",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                examples = @ExampleObject(
-                    name = "Email duplicado",
-                    value = "\"El email ya está registrado en el sistema\""
-                )
-            )
-        )
-    })
-    @PostMapping("/register")
-    public ResponseEntity<String> register(
-        @Parameter(
-            description = "Datos del usuario a registrar. Debe incluir nombre, apellido, email, password y rol.",
-            required = true,
-            schema = @Schema(implementation = UsuarioDTO.class)
-        )
-        @Valid @RequestBody UsuarioDTO dto
-    ) {
-        try {
-            usuarioService.registrar(dto);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e) {
-            Log.logException(e);
-            return ResponseEntity.status(409).body(e.getMessage());
-        }
-    }
-
-    /**
-     * Endpoint para autenticar un usuario (login).
-     *
-     * @param data objeto con los campos: email y password.
-     * @return 200 OK si las credenciales son correctas,
-     *         401 Unauthorized si no coinciden.
-     */
-    @Operation(
-        summary = "Autenticar usuario (Login)",
-        description = "Autentica a un usuario en el sistema verificando sus credenciales (email y contraseña). " +
-                     "Retorna confirmación de login exitoso o error de credenciales inválidas.",
-        tags = {"Autenticación y Registro"}
-    )
-    @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Autenticación exitosa",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                examples = @ExampleObject(
-                    name = "Login exitoso",
-                    value = "\"Login exitoso\""
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Datos de entrada inválidos",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                examples = @ExampleObject(
-                    name = "Error de validación",
-                    value = "\"Email y contraseña son requeridos\""
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "401",
-            description = "Credenciales inválidas",
-            content = @Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                examples = @ExampleObject(
-                    name = "Credenciales incorrectas",
-                    value = "\"Email o contraseña incorrectos\""
-                )
-            )
-        )
-    })
-    @PostMapping("/login")
-    public ResponseEntity<String> login(
-        @Parameter(
-            description = "Credenciales de acceso del usuario (email y contraseña)",
-            required = true,
-            schema = @Schema(implementation = UsuarioLoginDTO.class)
-        )
-        @Valid @RequestBody UsuarioLoginDTO data
-    ) {
-        String email = data.getEmail();
-        String password = data.getPassword();
-
-        boolean valido = usuarioService.autenticar(email, password);
-
-        if (valido) {
-            return ResponseEntity.ok("Login exitoso");
-        } else {
-            return ResponseEntity.status(401).body(SirhaException.CREDENCIALES_INVALIDAS);
-        }
     }
 
     /**

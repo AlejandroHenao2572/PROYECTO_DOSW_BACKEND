@@ -172,9 +172,7 @@ public class SecurityConfig {
     private String[] getPublicEndpoints() {
         return new String[]{
             "/api/auth/login",
-            "/api/auth/register",
-            "/api/usuarios/register",
-            "/api/usuarios/login"
+            "/api/auth/register"
         };
     }
 
