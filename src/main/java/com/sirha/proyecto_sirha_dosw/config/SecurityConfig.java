@@ -215,7 +215,7 @@ public class SecurityConfig {
     private String[] getDecanoEndpoints() {
         return new String[]{
             "/api/decano/**",
-            "/api/usuarios/email/self"
+            "/api/usuarios/email/**"
         };
     }
 
@@ -227,7 +227,7 @@ public class SecurityConfig {
     private String[] getEstudianteEndpoints() {
         return new String[]{
             "/api/estudiante/**",
-            "/api/usuarios/email/self"
+            "/api/usuarios/email/**"
         };
     }
 }
