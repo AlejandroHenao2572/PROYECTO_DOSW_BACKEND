@@ -19,32 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-/**
- * Configuración de seguridad de Spring Security con JWT.
- * 
- * <p>Esta clase configura:</p>
- * <ul>
- *   <li>Autenticación basada en JWT (sin sesiones)</li>
- *   <li>Autorización por roles (ADMINISTRADOR, DECANO, ESTUDIANTE)</li>
- *   <li>Protección de endpoints según roles</li>
- *   <li>Codificación de contraseñas con BCrypt</li>
- * </ul>
- * 
- * <h3>Endpoints públicos (sin autenticación):</h3>
- * <ul>
- *   <li>POST /api/auth/login - Login de usuarios</li>
- *   <li>POST /api/auth/register - Registro de usuarios</li>
- *   <li>POST /api/usuarios/register - Registro de usuarios (alternativo)</li>
- *   <li>POST /api/usuarios/login - Login de usuarios (alternativo)</li>
- * </ul>
- * 
- * <h3>Endpoints protegidos por rol:</h3>
- * <ul>
- *   <li>ADMINISTRADOR: /api/reportes/**, /api/grupos/**, /api/carreras/**, /api/materias/**, /api/usuarios/** - Solo administradores</li>
- *   <li>DECANO: /api/decano/** - Decanos y administradores</li>
- *   <li>ESTUDIANTE: /api/estudiante/** - Solo estudiantes</li>
- * </ul>
- */
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -111,7 +86,7 @@ public class SecurityConfig {
             // Habilitar CORS con la configuración personalizada
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
             
-            // Deshabilitar CSRF (no es necesario para APIs REST stateless)
+            // Deshabilitar CSRF 
             .csrf(AbstractHttpConfigurer::disable)
             
             // Headers de seguridad para HTTPS
@@ -143,7 +118,7 @@ public class SecurityConfig {
                 // Endpoints solo para ADMINISTRADOR
                 .requestMatchers(getAdminEndpoints()).hasRole("ADMINISTRADOR")
                 
-                // Endpoints solo para DECANO (permite DECANO y ADMINISTRADOR)
+                // Endpoints solo para DECANO (DECANO y ADMINISTRADOR)
                 .requestMatchers(getDecanoEndpoints()).hasAnyRole("DECANO", "ADMINISTRADOR")
                 
                 // Endpoints solo para ESTUDIANTE
