@@ -89,22 +89,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             // Si el email existe y el usuario no está autenticado aún
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                
                 // Cargar los detalles del usuario desde la base de datos
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
                 // Si el token es válido, establecer la autenticación
                 if (jwtService.isTokenValid(jwt, userDetails)) {
+                    // Extraer el rol del token JWT
+                    String role = jwtService.extractRole(jwt);
+                    java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+                    if (role != null && !role.isEmpty()) {
+                        authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                    }
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities()
+                            authorities
                     );
-                    
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
-                    
                     // Establecer la autenticación en el contexto de seguridad
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
