@@ -9,26 +9,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-/**
- * Configuración de CORS (Cross-Origin Resource Sharing) para la aplicación.
- * 
- * <p>Permite que el frontend en Vercel se comunique con el backend en Azure
- * de forma segura usando HTTPS.</p>
- * 
- * <p>Configure las URLs permitidas en application.properties:</p>
- * <pre>
- * # Producción
- * cors.allowed-origins=https://tu-proyecto.vercel.app,https://tudominio.com
- * 
- * # Desarrollo
- * cors.allowed-origins=http://localhost:3000,http://localhost:5173
- * </pre>
- */
 @Configuration
 public class CorsConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:3000}")
-    private String[] allowedOrigins;
+    @Value("${cors.allowed-origins:https://frontend-sirha.vercel.app,http://localhost:3000,http://localhost:5173}")
+    private String allowedOrigins;
 
     /**
      * Configura las políticas de CORS para la aplicación.
@@ -40,7 +25,7 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Orígenes permitidos (frontends)
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         
         // Métodos HTTP permitidos
         configuration.setAllowedMethods(Arrays.asList(
