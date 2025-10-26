@@ -137,6 +137,9 @@ public class SecurityConfig {
                 // Documentación Swagger (sin autenticación)
                 .requestMatchers(getSwaggerEndpoints()).permitAll()
                 
+                // Endpoint para obtener información del usuario autenticado (cualquier rol autenticado)
+                .requestMatchers("/api/usuarios/email/self").authenticated()
+                
                 // Endpoints solo para ADMINISTRADOR
                 .requestMatchers(getAdminEndpoints()).hasRole("ADMINISTRADOR")
                 
@@ -215,7 +218,7 @@ public class SecurityConfig {
     private String[] getDecanoEndpoints() {
         return new String[]{
             "/api/decano/**",
-            "/api/usuarios/email/**"
+            "/api/usuarios/email/self"
         };
     }
 
@@ -227,7 +230,7 @@ public class SecurityConfig {
     private String[] getEstudianteEndpoints() {
         return new String[]{
             "/api/estudiante/**",
-            "/api/usuarios/email/**"
+            "/api/usuarios/email/self"
         };
     }
 }

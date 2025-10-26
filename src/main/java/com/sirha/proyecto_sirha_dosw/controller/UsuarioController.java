@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -360,6 +362,72 @@ public class UsuarioController {
         )
         @PathVariable String email
     ) {
+        return usuarioService.obtenerPorEmail(email)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Obtiene el usuario autenticado actualmente (self).
+     * Este endpoint permite a cualquier usuario autenticado (ESTUDIANTE, DECANO, ADMINISTRADOR)
+     * obtener su propia información sin necesidad de conocer su email.
+     * 
+     * @return {@link Usuario} del usuario autenticado
+     */
+    @Operation(
+        summary = "Obtener información del usuario autenticado",
+        description = "Obtiene la información del usuario que está actualmente autenticado. " +
+                     "No requiere parámetros ya que usa el token JWT para identificar al usuario.",
+        tags = {"Consulta de Usuarios"}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Información del usuario autenticado obtenida exitosamente",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = @Schema(implementation = Usuario.class),
+                examples = @ExampleObject(
+                    name = "Usuario autenticado",
+                    value = """
+                    {
+                        "id": "20221005001",
+                        "nombre": "Juan",
+                        "apellido": "Pérez",
+                        "email": "juan.perez@estudiantes.edu.co",
+                        "rol": "ESTUDIANTE"
+                    }
+                    """
+                )
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "No autenticado - Token JWT inválido o faltante",
+            content = @Content(
+                schema = @Schema(hidden = true)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Usuario autenticado no encontrado en la base de datos",
+            content = @Content(
+                schema = @Schema(hidden = true)
+            )
+        )
+    })
+    @GetMapping("/email/self")
+    public ResponseEntity<Usuario> obtenerUsuarioAutenticado() {
+        // Obtener la autenticación del contexto de seguridad
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        // El email está almacenado en el principal (username)
+        String email = authentication.getName();
+        
         return usuarioService.obtenerPorEmail(email)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
