@@ -88,7 +88,7 @@ public class JwtService {
         Claims claims = extractAllClaims(token);
         Object roleObj = claims.get("role");
         return roleObj != null ? roleObj.toString() : null;
-como e    }
+  }
 
     /**
      * Genera un token JWT con claims adicionales.
