@@ -112,8 +112,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos (sin autenticación) - Login y Registro
                 .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/register").permitAll()
-                .requestMatchers("/api/usuarios/register").permitAll()
                 .requestMatchers("/api/usuarios/login").permitAll()
                 
                 // Documentación Swagger (sin autenticación)
@@ -132,7 +130,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/materias/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
-                
+                .requestMatchers("/api/auth/register").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/estudiante/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/decano/**").hasRole("ADMINISTRADOR")
+
                 // Endpoints solo para DECANO
                 .requestMatchers("/api/decano/**").hasRole("DECANO")
                 .requestMatchers("/api/reportes/**").hasRole("DECANO")
@@ -142,16 +143,6 @@ public class SecurityConfig {
 
                 // Endpoints solo para ESTUDIANTE
                 .requestMatchers("/api/estudiante/**").hasRole("ESTUDIANTE")
-                
-                // Endpoints que requieren autenticación (cualquier rol autenticado)
-                .requestMatchers("/api/usuarios/**").authenticated()
-                .requestMatchers("/api/carreras/**").authenticated()
-                .requestMatchers("/api/materias/**").authenticated()
-                .requestMatchers("/api/grupos/**").authenticated()
-                .requestMatchers("/api/reportes/**").authenticated()
-                
-                // Cualquier otra petición requiere autenticación
-                .anyRequest().authenticated()
             )
             
             // Configurar sesiones como STATELESS (sin sesiones, solo JWT)

@@ -107,7 +107,7 @@ public class DataSeed implements CommandLineRunner {
         Estudiante estudiante1 = crearEstudiante("David", "Patacon", "david.patacon@mail.escuelaing.edu.co", "student123");
         estudiante1.setId("1000100406");
         Estudiante estudiante2 = crearEstudiante("Jared", "Farfan", "jared.farfan@mail.escuelaing.edu.co", "student123");
-        estudiante2.setId("1000100405");
+        estudiante2.setId("1000100631");
 
         // 5. Crear semestres y registros de materias para los estudiantes
         crearSemestreParaEstudiante(estudiante1, Arrays.asList(grupoDOSW1, grupoODSC1));
