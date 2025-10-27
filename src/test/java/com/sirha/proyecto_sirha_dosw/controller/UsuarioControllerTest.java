@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.sirha.proyecto_sirha_dosw.dto.UsuarioDTO;
-import com.sirha.proyecto_sirha_dosw.dto.UsuarioLoginDTO;
 import com.sirha.proyecto_sirha_dosw.exception.SirhaException;
 import com.sirha.proyecto_sirha_dosw.model.Rol;
 import com.sirha.proyecto_sirha_dosw.model.Usuario;
@@ -35,33 +34,6 @@ class UsuarioControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-    }
-
-
-    @Test
-    void testLoginExitoso() {
-        UsuarioLoginDTO loginDTO = new UsuarioLoginDTO();
-        loginDTO.setEmail("test@test.com");
-        loginDTO.setPassword("123");
-        when(usuarioService.autenticar("test@test.com", "123")).thenReturn(true);
-
-        ResponseEntity<String> response = usuarioController.login(loginDTO);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Login exitoso", response.getBody());
-    }
-
-    @Test
-    void testLoginCredencialesInvalidas() {
-        UsuarioLoginDTO loginDTO = new UsuarioLoginDTO();
-        loginDTO.setEmail("test@test.com");
-        loginDTO.setPassword("wrong");
-        when(usuarioService.autenticar("test@test.com", "wrong")).thenReturn(false);
-
-        ResponseEntity<String> response = usuarioController.login(loginDTO);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals(SirhaException.CREDENCIALES_INVALIDAS, response.getBody());
     }
 
 

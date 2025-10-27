@@ -275,4 +275,299 @@ class UsuarioServiceTest {
 		List<Solicitud> result = usuarioService.consultarTodasLasSolicitudes();
 		assertEquals(2, result.size());
 	}
+
+	// ========== NUEVOS TESTS PARA COMPLETAR COVERTURA ==========
+
+	// Tests de registro con diferentes roles
+	@Test
+	void testRegistrarAdministradorExitoso() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("ADMINISTRADOR");
+		dto.setFacultad(null); // ADMINISTRADOR no debe tener facultad
+		
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals(Rol.ADMINISTRADOR, registrado.getRol());
+		assertTrue(registrado instanceof Administrador);
+	}
+
+	@Test
+	void testRegistrarProfesorExitoso() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("PROFESOR");
+		dto.setFacultad(null); // PROFESOR no requiere facultad obligatoria
+		
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals(Rol.PROFESOR, registrado.getRol());
+	}
+
+	@Test
+	void testRegistrarDecanoExitoso() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("DECANO");
+		dto.setFacultad(Facultad.INGENIERIA_CIVIL.name());
+		
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(carreraRepository.findByNombre(Facultad.INGENIERIA_CIVIL)).thenReturn(Optional.of(new Carrera()));
+		when(usuarioRepository.findByRol(Rol.DECANO)).thenReturn(Collections.emptyList());
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals(Rol.DECANO, registrado.getRol());
+		assertEquals(Facultad.INGENIERIA_CIVIL, ((Decano) registrado).getFacultad());
+	}
+
+	@Test
+	void testRegistrarEstudianteSinFacultad() {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("ESTUDIANTE");
+		dto.setFacultad(null); // ESTUDIANTE requiere facultad
+		
+		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
+		assertTrue(ex.getMessage().contains("La facultad es obligatoria para el rol ESTUDIANTE"));
+	}
+
+	@Test
+	void testRegistrarAdministradorConFacultad() {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("ADMINISTRADOR");
+		dto.setFacultad(Facultad.INGENIERIA_SISTEMAS.name()); // ADMINISTRADOR NO debe tener facultad
+		
+		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
+		assertTrue(ex.getMessage().contains("El rol ADMINISTRADOR no debe tener facultad asignada"));
+	}
+
+	@Test
+	void testRegistrarFacultadVacia() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("PROFESOR");
+		dto.setFacultad(""); // Facultad vacía
+		
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals(Rol.PROFESOR, registrado.getRol());
+	}
+
+	// Tests de actualización con validaciones
+	@Test
+	void testActualizarUsuarioEmailDuplicado() {
+		UsuarioDTO dto = crearUsuarioDTOBase();
+		dto.setEmail("otro@example.com");
+		
+		Estudiante usuario = crearEstudianteBase();
+		Usuario otroUsuario = new Estudiante("Otro", "Usuario", "otro@example.com", "pass", Rol.ESTUDIANTE, Facultad.INGENIERIA_SISTEMAS);
+		otroUsuario.setId("2");
+		
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.findByEmail("otro@example.com")).thenReturn(Optional.of(otroUsuario));
+		
+		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.actualizarUsuario("1", dto));
+		assertTrue(ex.getMessage().contains(SirhaException.EMAIL_YA_REGISTRADO));
+	}
+
+	@Test
+	void testActualizarUsuarioConCamposNulos() throws SirhaException {
+		UsuarioDTO dto = new UsuarioDTO();
+		dto.setNombre(null);
+		dto.setApellido(null);
+		dto.setEmail(null);
+		dto.setPassword(null);
+		dto.setRol(null);
+		
+		Estudiante usuario = crearEstudianteBase();
+		String nombreOriginal = usuario.getNombre();
+		String apellidoOriginal = usuario.getApellido();
+		
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario actualizado = usuarioService.actualizarUsuario("1", dto);
+		// Los campos nulos no deben modificar el usuario
+		assertEquals(nombreOriginal, actualizado.getNombre());
+		assertEquals(apellidoOriginal, actualizado.getApellido());
+	}
+
+	@Test
+	void testActualizarUsuarioConCamposVacios() throws SirhaException {
+		UsuarioDTO dto = new UsuarioDTO();
+		dto.setNombre("   ");
+		dto.setApellido("   ");
+		dto.setEmail("   ");
+		dto.setPassword("   ");
+		dto.setRol("   ");
+		
+		Estudiante usuario = crearEstudianteBase();
+		String nombreOriginal = usuario.getNombre();
+		Rol rolOriginal = usuario.getRol();
+		
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario actualizado = usuarioService.actualizarUsuario("1", dto);
+		// Los campos vacíos (solo espacios) no deben modificar el usuario
+		assertEquals(nombreOriginal, actualizado.getNombre());
+		assertEquals(rolOriginal, actualizado.getRol());
+	}
+
+	@Test
+	void testActualizarUsuarioRolInvalido() {
+		UsuarioDTO dto = crearUsuarioDTOBase();
+		dto.setRol("ROL_INEXISTENTE");
+		
+		Estudiante usuario = crearEstudianteBase();
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		
+		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.actualizarUsuario("1", dto));
+		assertTrue(ex.getMessage().contains(SirhaException.ROL_INVALIDO));
+	}
+
+	@Test
+	void testActualizarUsuarioMismoEmail() throws SirhaException {
+		UsuarioDTO dto = crearUsuarioDTOBase();
+		dto.setEmail("juan@example.com");
+		
+		Estudiante usuario = crearEstudianteBase();
+		
+		when(usuarioRepository.findById("1")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.findByEmail("juan@example.com")).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		// No debe lanzar excepción porque es el mismo usuario
+		Usuario actualizado = usuarioService.actualizarUsuario("1", dto);
+		assertEquals("juan@example.com", actualizado.getEmail());
+	}
+
+	// Tests de autenticación
+	@Test
+	void testAutenticarContraseñaIncorrecta() {
+		Usuario usuario = new Estudiante("Juan", "Perez", "juan@example.com", "hash", Rol.ESTUDIANTE, Facultad.INGENIERIA_SISTEMAS);
+		when(usuarioRepository.findByEmail("juan@example.com")).thenReturn(Optional.of(usuario));
+		when(passwordEncoder.matches("incorrecta", "hash")).thenReturn(false);
+		
+		boolean result = usuarioService.autenticar("juan@example.com", "incorrecta");
+		assertFalse(result);
+	}
+
+	// Tests de generación de email con caracteres especiales
+	@Test
+	void testRegistrarConNombreConAcentos() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setNombre("María José");
+		dto.setApellido("Pérez García");
+		dto.setRol("ESTUDIANTE");
+		
+		// Email esperado: mariajose.perezgarcia-p@mail.escuelaing.edu.co
+		String emailEsperado = "mariajose.perezgarcia-p@mail.escuelaing.edu.co";
+		
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals(emailEsperado, registrado.getEmail());
+	}
+
+	@Test
+	void testRegistrarConNombreConEspaciosMultiples() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setNombre("  Carlos   Alberto  ");
+		dto.setApellido("  López   Martínez  ");
+		dto.setRol("ESTUDIANTE");
+		
+		// Email esperado: carlosalberto.lopezmartinez-l@mail.escuelaing.edu.co
+		String emailEsperado = "carlosalberto.lopezmartinez-l@mail.escuelaing.edu.co";
+		
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertEquals(emailEsperado, registrado.getEmail());
+	}
+
+	// Tests de generación de ID único
+	@Test
+	void testGenerarIdUnicoConColisiones() throws SirhaException {
+		UsuarioDTO dto = getUsuarioDTO();
+		String emailEsperado = "juan.perez-p@mail.escuelaing.edu.co";
+		
+		when(usuarioRepository.findByEmail(emailEsperado)).thenReturn(Optional.empty());
+		when(carreraRepository.findByNombre(Facultad.valueOf(dto.getFacultad()))).thenReturn(Optional.of(new Carrera()));
+		when(passwordEncoder.encode("1234")).thenReturn("hashed");
+		
+		// Simular que los primeros IDs ya existen
+		when(usuarioRepository.existsById(anyString()))
+			.thenReturn(true)  // Primera llamada: ID existe
+			.thenReturn(true)  // Segunda llamada: ID existe
+			.thenReturn(false); // Tercera llamada: ID disponible
+		
+		when(usuarioRepository.insert(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+		
+		Usuario registrado = usuarioService.registrar(dto);
+		assertNotNull(registrado.getId());
+		assertEquals(10, registrado.getId().length());
+	}
+
+	// Tests para casos edge de consultas
+	@Test
+	void testObtenerPorIdNoEncontrado() {
+		when(usuarioRepository.findById("999")).thenReturn(Optional.empty());
+		Optional<Usuario> result = usuarioService.obtenerPorId("999");
+		assertFalse(result.isPresent());
+	}
+
+	@Test
+	void testObtenerPorEmailNoEncontrado() {
+		when(usuarioRepository.findByEmail("noexiste@example.com")).thenReturn(Optional.empty());
+		Optional<Usuario> result = usuarioService.obtenerPorEmail("noexiste@example.com");
+		assertFalse(result.isPresent());
+	}
+
+	@Test
+	void testObtenerPorRolListaVacia() {
+		when(usuarioRepository.findByRol(Rol.PROFESOR)).thenReturn(Collections.emptyList());
+		List<Usuario> result = usuarioService.obtenerPorRol(Rol.PROFESOR);
+		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	void testObtenerPorNombreListaVacia() {
+		when(usuarioRepository.findByNombre("NoExiste")).thenReturn(Collections.emptyList());
+		List<Usuario> result = usuarioService.obtenerPorNombre("NoExiste");
+		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	void testListarUsuariosVacio() {
+		when(usuarioRepository.findAll()).thenReturn(Collections.emptyList());
+		List<Usuario> result = usuarioService.listarUsuarios();
+		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	void testRegistrarDecanoSinFacultad() {
+		UsuarioDTO dto = getUsuarioDTO();
+		dto.setRol("DECANO");
+		dto.setFacultad(null);
+		
+		SirhaException ex = assertThrows(SirhaException.class, () -> usuarioService.registrar(dto));
+		assertTrue(ex.getMessage().contains("La facultad es obligatoria para el rol DECANO"));
+	}
 }

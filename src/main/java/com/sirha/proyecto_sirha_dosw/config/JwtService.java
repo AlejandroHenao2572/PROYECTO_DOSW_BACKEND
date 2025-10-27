@@ -68,8 +68,27 @@ public class JwtService {
      * @return el token JWT generado
      */
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        // Agregar el rol como claim personalizado
+        if (userDetails.getAuthorities() != null && !userDetails.getAuthorities().isEmpty()) {
+            // Obtiene el primer rol (Spring lo guarda como "ROLE_ADMINISTRADOR", etc.)
+            String authority = userDetails.getAuthorities().iterator().next().getAuthority();
+            // Elimina el prefijo "ROLE_" si existe
+            String role = authority.startsWith("ROLE_") ? authority.substring(5) : authority;
+            claims.put("role", role);
+        }
+        return generateToken(claims, userDetails);
     }
+    /**
+     * Extrae el rol del usuario desde el token JWT.
+     * @param token el token JWT
+     * @return el rol del usuario (ADMINISTRADOR, DECANO, ESTUDIANTE, etc.) o null si no existe
+     */
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        Object roleObj = claims.get("role");
+        return roleObj != null ? roleObj.toString() : null;
+  }
 
     /**
      * Genera un token JWT con claims adicionales.

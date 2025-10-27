@@ -70,10 +70,8 @@ public class DataSeed implements CommandLineRunner {
     }
 
     private void crearDatosDePrueba() {
-        // 1. Crear carreras para todas las facultades disponibles
-        Carrera ingenieriaSistemas = crearCarreraConParametros(Facultad.INGENIERIA_SISTEMAS, "ISIS", 8, 145);
-        Carrera ingenieriaCivil = crearCarreraConParametros(Facultad.INGENIERIA_CIVIL, "ICIV", 10, 150);
-        Carrera administracion = crearCarreraConParametros(Facultad.ADMINISTRACION, "ADMI", 8, 120);
+        // 1. Crear carrera
+        Carrera ingenieriaSistemas = crearCarrera();
         
         // 2. Crear materias
         Materia desarrolloSoftware = crearMateria("Desarrollo de Software", "DOSW", 4);
@@ -164,14 +162,14 @@ public class DataSeed implements CommandLineRunner {
 
     }
 
-    private Carrera crearCarreraConParametros(Facultad facultad, String acronimo, int duracionSemestres, int creditos) {
-        Carrera carrera = new Carrera(
-            facultad, 
-            acronimo, 
-            duracionSemestres, 
-            creditos
+    private Carrera crearCarrera() {
+        Carrera ingenieriaSistemas = new Carrera(
+            Facultad.INGENIERIA_SISTEMAS, 
+            "ISIS", 
+            8, 
+            145
         );
-        return carreraRepository.save(carrera);
+        return carreraRepository.save(ingenieriaSistemas);
     }
 
     private Materia crearMateria(String nombre, String acronimo, int creditos) {

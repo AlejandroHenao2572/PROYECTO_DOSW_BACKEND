@@ -12,7 +12,7 @@
     <artifactId>PROYECTO_DOSW_BACKEND</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>PROYECTO_DOSW_BACKEND</name>
-    <description>API REST para SIRHA - Sistema Integral de Recursos Humanos y Administración</description>
+    <description>API REST para SIRHA</description>
     <url/>
     <licenses>
         <license/>

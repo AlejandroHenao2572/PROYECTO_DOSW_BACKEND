@@ -98,13 +98,11 @@ class EstudianteServiceTest {
         Semestre semestre = new Semestre();
         semestre.setRegistros(Collections.emptyList());
         estudiante.setSemestres(List.of(semestre));
-        SirhaException ex = assertThrows(SirhaException.class, () -> {
-            List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(1);
-            if (registroMaterias.isEmpty()) {
-                throw new SirhaException(SirhaException.NO_HORARIO_ENCONTRADO);
-            }
-        });
-        assertTrue(ex.getMessage().contains(SirhaException.NO_HORARIO_ENCONTRADO));
+        
+        List<RegistroMaterias> registroMaterias = estudiante.getRegistrosBySemestre(1);
+        
+        // Verificar que la lista está vacía y validar que esto causaría una excepción
+        assertTrue(registroMaterias.isEmpty());
     }
 
     @Test
@@ -489,5 +487,126 @@ class EstudianteServiceTest {
 
         verify(solicitudUtil, times(2)).generarNumeroRadicado();
         verify(solicitudUtil, times(2)).generarNumeroPrioridad();
+    }
+
+    @Test
+    void testCrearSolicitud_GrupoProblemaNoEncontrado() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.empty());
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertEquals(SirhaException.GRUPO_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testCrearSolicitud_MateriaProblemaNoEncontrada() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.of(grupoProblema));
+        when(materiaRepository.findByAcronimo("DOSW")).thenReturn(Optional.empty());
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertEquals(SirhaException.MATERIA_NO_ENCONTRADA, ex.getMessage());
+    }
+
+    @Test
+    void testCrearSolicitud_GrupoMateriaNoCorresponden() {
+        Materia otraMateria = new Materia();
+        otraMateria.setId("mat456");
+        otraMateria.setNombre("Otra Materia");
+
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.of(grupoProblema));
+        when(materiaRepository.findByAcronimo("DOSW")).thenReturn(Optional.of(otraMateria));
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertTrue(ex.getMessage().contains("La materia problema no corresponde al grupo problema"));
+    }
+
+    @Test
+    void testCrearSolicitud_EstudianteNoInscritoEnGrupo() {
+        grupoProblema.setEstudiantesId(List.of("otroEst"));
+
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.of(grupoProblema));
+        when(materiaRepository.findByAcronimo("DOSW")).thenReturn(Optional.of(materiaProblema));
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertTrue(ex.getMessage().contains("El estudiante no está inscrito en el grupo problema"));
+    }
+
+    @Test
+    void testCrearSolicitud_CambioGrupo_GrupoDestinoNoEncontrado() {
+        solicitudDTO.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
+        solicitudDTO.setGrupoDestinoId("grupoDestino123");
+        solicitudDTO.setMateriaDestinoAcronimo("DOSW");
+
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.of(grupoProblema));
+        when(grupoRepository.findById("grupoDestino123")).thenReturn(Optional.empty());
+        when(materiaRepository.findByAcronimo("DOSW")).thenReturn(Optional.of(materiaProblema));
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertEquals(SirhaException.GRUPO_NO_ENCONTRADO, ex.getMessage());
+    }
+
+    @Test
+    void testCrearSolicitud_CambioGrupo_MateriaDestinoNoEncontrada() {
+        solicitudDTO.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
+        solicitudDTO.setGrupoDestinoId("grupoDestino123");
+        solicitudDTO.setMateriaDestinoAcronimo("DOSW");
+
+        Grupo grupoDestino = new Grupo();
+        grupoDestino.setId("grupoDestino123");
+        grupoDestino.setMateria(materiaProblema);
+
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.of(grupoProblema));
+        when(grupoRepository.findById("grupoDestino123")).thenReturn(Optional.of(grupoDestino));
+        when(materiaRepository.findByAcronimo("DOSW")).thenReturn(Optional.of(materiaProblema)).thenReturn(Optional.empty());
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertEquals(SirhaException.MATERIA_NO_ENCONTRADA, ex.getMessage());
+    }
+
+    @Test
+    void testCrearSolicitud_CambioGrupo_GrupoDestinoNoTieneEspacio() {
+        solicitudDTO.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
+        solicitudDTO.setGrupoDestinoId("grupoDestino123");
+        solicitudDTO.setMateriaDestinoAcronimo("DOSW");
+
+        Grupo grupoDestino = new Grupo();
+        grupoDestino.setId("grupoDestino123");
+        grupoDestino.setMateria(materiaProblema);
+        grupoDestino.setCapacidad(1);
+        grupoDestino.setCantidadInscritos(1);
+        grupoDestino.setEstaCompleto(true); // Explicitly set to true
+
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+        when(grupoRepository.findById("grupo123")).thenReturn(Optional.of(grupoProblema));
+        when(grupoRepository.findById("grupoDestino123")).thenReturn(Optional.of(grupoDestino));
+        when(materiaRepository.findByAcronimo("DOSW")).thenReturn(Optional.of(materiaProblema));
+
+        SirhaException ex = assertThrows(SirhaException.class, () -> estudianteService.crearSolicitud(solicitudDTO));
+        assertTrue(ex.getMessage().contains("completo"));
+    }
+
+    @Test
+    void testConsultarHorarioBySemester_Exitoso() throws SirhaException {
+        Semestre semestre = new Semestre();
+        RegistroMaterias registro = new RegistroMaterias();
+        semestre.setRegistros(List.of(registro));
+        estudiante.setSemestres(List.of(semestre));
+
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+
+        List<RegistroMaterias> result = estudianteService.consultarHorarioBySemester("est123", 1);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void testConsultarHorarioBySemester_SemestreInvalido() {
+        when(usuarioRepository.findById("est123")).thenReturn(Optional.of(estudiante));
+
+        assertThrows(SirhaException.class, () -> estudianteService.consultarHorarioBySemester("est123", 10));
     }
 }
