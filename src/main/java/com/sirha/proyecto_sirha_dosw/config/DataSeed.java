@@ -2,6 +2,7 @@
 package com.sirha.proyecto_sirha_dosw.config;
 
 import com.sirha.proyecto_sirha_dosw.model.*;
+// removed unused imports: UsuarioDTO, AuthService (we'll create admin directly)
 import com.sirha.proyecto_sirha_dosw.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -29,6 +30,7 @@ public class DataSeed implements CommandLineRunner {
     private final GrupoRepository grupoRepository;
     private final CarreraRepository carreraRepository;
     private final SolicitudRepository solicitudRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private static final String HORA_DIEZ = "10:00";
     private static final String HORA_CATORCE = "14:00";
     private static final String HORA_DIECISIES = "16:00";
@@ -37,12 +39,14 @@ public class DataSeed implements CommandLineRunner {
                     UsuarioRepository usuarioRepository,
                     GrupoRepository grupoRepository,
                     CarreraRepository carreraRepository,
-                    SolicitudRepository solicitudRepository) {
+                    SolicitudRepository solicitudRepository,
+                    org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.materiaRepository = materiaRepository;
         this.usuarioRepository = usuarioRepository;
         this.grupoRepository = grupoRepository;
         this.carreraRepository = carreraRepository;
         this.solicitudRepository = solicitudRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -123,9 +127,31 @@ public class DataSeed implements CommandLineRunner {
         Decano decano = crearDecano("Claudia", "Cely", "roberto.fernandez@universidad.edu", "decano123");
         decano.setId("DEC001");
 
+        // 7.b Crear administrador con correo fijo y contraseña conocida (dev only)
+        Administrador admin = crearAdministrador("Admin", "Root", "admin@escuelaing.edu.co", "Admin123!");
+        admin.setId("ADMIN001");
+
         // 8. Guardar todos los cambios
         materiaRepository.saveAll(Arrays.asList(desarrolloSoftware, sistemasOperativos));
-        usuarioRepository.saveAll(Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano));
+
+        // Encriptar contraseñas antes de guardar usuarios (para que autenticar funcione)
+        List<Usuario> usuariosARegistrar = Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano);
+        for (Usuario u : usuariosARegistrar) {
+            if (u.getPassword() != null) {
+                u.setPassword(passwordEncoder.encode(u.getPassword()));
+            }
+        }
+        usuarioRepository.saveAll(usuariosARegistrar);
+        
+        // Añadir admin a la lista de usuarios a registrar y encriptar su password
+        List<Usuario> usuariosFinales = new ArrayList<>(usuariosARegistrar);
+        usuariosFinales.add(admin);
+        for (Usuario u : usuariosFinales) {
+            if (u.getPassword() != null) {
+                u.setPassword(passwordEncoder.encode(u.getPassword()));
+            }
+        }
+        usuarioRepository.saveAll(usuariosFinales);
         grupoRepository.saveAll(Arrays.asList(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2));
 
         // 9. Crear solicitudes de prueba
@@ -162,6 +188,10 @@ public class DataSeed implements CommandLineRunner {
 
     private Decano crearDecano(String nombre, String apellido, String email, String password) {
         return new Decano(nombre, apellido, email, password, Rol.DECANO, Facultad.INGENIERIA_SISTEMAS);
+    }
+
+    private Administrador crearAdministrador(String nombre, String apellido, String email, String password) {
+        return new Administrador(nombre, apellido, email, password, Rol.ADMINISTRADOR);
     }
 
     private List<Horario> crearHorarios(Dia dia1, String inicio1, String fin1, Dia dia2, String inicio2, String fin2) {

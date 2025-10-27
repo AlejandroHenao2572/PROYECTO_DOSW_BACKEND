@@ -113,7 +113,9 @@ public class SecurityConfig {
                 // Endpoints públicos (sin autenticación) - Login y Registro
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/usuarios/login").permitAll()
-                
+                //.requestMatchers("/api/auth/register").permitAll()
+                //.requestMatchers("/api/usuarios/register").permitAll()
+
                 // Documentación Swagger (sin autenticación)
                 .requestMatchers(
                     "/swagger-ui/**",
@@ -130,9 +132,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/materias/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/auth/register").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/estudiante/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/decano/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/usuarios/register").hasRole("ADMINISTRADOR")
 
                 // Endpoints solo para DECANO
                 .requestMatchers("/api/decano/**").hasRole("DECANO")
@@ -143,6 +145,10 @@ public class SecurityConfig {
 
                 // Endpoints solo para ESTUDIANTE
                 .requestMatchers("/api/estudiante/**").hasRole("ESTUDIANTE")
+                
+                
+                // Cualquier otra petición requiere autenticación
+                .anyRequest().authenticated()
             )
             
             // Configurar sesiones como STATELESS (sin sesiones, solo JWT)
