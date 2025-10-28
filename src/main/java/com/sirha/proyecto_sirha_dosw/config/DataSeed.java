@@ -2,6 +2,7 @@
 package com.sirha.proyecto_sirha_dosw.config;
 
 import com.sirha.proyecto_sirha_dosw.model.*;
+// removed unused imports: UsuarioDTO, AuthService (we'll create admin directly)
 import com.sirha.proyecto_sirha_dosw.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -29,6 +30,7 @@ public class DataSeed implements CommandLineRunner {
     private final GrupoRepository grupoRepository;
     private final CarreraRepository carreraRepository;
     private final SolicitudRepository solicitudRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private static final String HORA_DIEZ = "10:00";
     private static final String HORA_CATORCE = "14:00";
     private static final String HORA_DIECISIES = "16:00";
@@ -37,12 +39,14 @@ public class DataSeed implements CommandLineRunner {
                     UsuarioRepository usuarioRepository,
                     GrupoRepository grupoRepository,
                     CarreraRepository carreraRepository,
-                    SolicitudRepository solicitudRepository) {
+                    SolicitudRepository solicitudRepository,
+                    org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.materiaRepository = materiaRepository;
         this.usuarioRepository = usuarioRepository;
         this.grupoRepository = grupoRepository;
         this.carreraRepository = carreraRepository;
         this.solicitudRepository = solicitudRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -66,8 +70,10 @@ public class DataSeed implements CommandLineRunner {
     }
 
     private void crearDatosDePrueba() {
-        // 1. Crear carrera
-        Carrera ingenieriaSistemas = crearCarrera();
+        // 1. Crear carreras para todas las facultades disponibles
+        Carrera ingenieriaSistemas = crearCarreraConParametros(Facultad.INGENIERIA_SISTEMAS, "ISIS", 8, 145);
+        Carrera ingenieriaCivil = crearCarreraConParametros(Facultad.INGENIERIA_CIVIL, "ICIV", 10, 150);
+        Carrera administracion = crearCarreraConParametros(Facultad.ADMINISTRACION, "ADMI", 8, 120);
         
         // 2. Crear materias
         Materia desarrolloSoftware = crearMateria("Desarrollo de Software", "DOSW", 4);
@@ -105,7 +111,7 @@ public class DataSeed implements CommandLineRunner {
         Estudiante estudiante1 = crearEstudiante("David", "Patacon", "david.patacon@mail.escuelaing.edu.co", "student123");
         estudiante1.setId("1000100406");
         Estudiante estudiante2 = crearEstudiante("Jared", "Farfan", "jared.farfan@mail.escuelaing.edu.co", "student123");
-        estudiante2.setId("1000100405");
+        estudiante2.setId("1000100631");
 
         // 5. Crear semestres y registros de materias para los estudiantes
         crearSemestreParaEstudiante(estudiante1, Arrays.asList(grupoDOSW1, grupoODSC1));
@@ -121,29 +127,35 @@ public class DataSeed implements CommandLineRunner {
         Decano decano = crearDecano("Claudia", "Cely", "roberto.fernandez@universidad.edu", "decano123");
         decano.setId("DEC001");
 
+        // 7.b Crear administrador con correo fijo y contraseña conocida (dev only)
+        Administrador admin = crearAdministrador("Admin", "Root", "admin@escuelaing.edu.co", "Admin123!");
+        admin.setId("ADMIN001");
+
         // 8. Guardar todos los cambios
         materiaRepository.saveAll(Arrays.asList(desarrolloSoftware, sistemasOperativos));
-        usuarioRepository.saveAll(Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano));
+
+        // Encriptar contraseñas antes de guardar usuarios (para que autenticar funcione)
+        List<Usuario> usuariosARegistrar = Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano, admin);
+        for (Usuario u : usuariosARegistrar) {
+            if (u.getPassword() != null) {
+                u.setPassword(passwordEncoder.encode(u.getPassword()));
+            }
+        }
+        usuarioRepository.saveAll(usuariosARegistrar);
+        
         grupoRepository.saveAll(Arrays.asList(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2));
 
-        // 9. Crear solicitudes de prueba
-        SolicitudesPruebaContext ctx = new SolicitudesPruebaContext(
-            List.of(estudiante1, estudiante2),
-            List.of(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2),
-            List.of(desarrolloSoftware, sistemasOperativos)
-        );
-        crearSolicitudesDePrueba(ctx);
 
     }
 
-    private Carrera crearCarrera() {
-        Carrera ingenieriaSistemas = new Carrera(
-            Facultad.INGENIERIA_SISTEMAS, 
-            "ISIS", 
-            8, 
-            145
+    private Carrera crearCarreraConParametros(Facultad facultad, String acronimo, int duracionSemestres, int creditos) {
+        Carrera carrera = new Carrera(
+            facultad, 
+            acronimo, 
+            duracionSemestres, 
+            creditos
         );
-        return carreraRepository.save(ingenieriaSistemas);
+        return carreraRepository.save(carrera);
     }
 
     private Materia crearMateria(String nombre, String acronimo, int creditos) {
@@ -160,6 +172,10 @@ public class DataSeed implements CommandLineRunner {
 
     private Decano crearDecano(String nombre, String apellido, String email, String password) {
         return new Decano(nombre, apellido, email, password, Rol.DECANO, Facultad.INGENIERIA_SISTEMAS);
+    }
+
+    private Administrador crearAdministrador(String nombre, String apellido, String email, String password) {
+        return new Administrador(nombre, apellido, email, password, Rol.ADMINISTRADOR);
     }
 
     private List<Horario> crearHorarios(Dia dia1, String inicio1, String fin1, Dia dia2, String inicio2, String fin2) {
@@ -204,68 +220,5 @@ public class DataSeed implements CommandLineRunner {
         grupo.addEstudiante(estudianteId);
     }
 
-    /**
-     * Crea solicitudes de prueba para validar las funcionalidades del decano.
-     */
-    private void crearSolicitudesDePrueba(SolicitudesPruebaContext ctx) {
-        
-    // Solicitud 1: Estudiante1 quiere cambiar de grupoDOSW1 a grupoDOSW2 (Desarrollo de Software)
-    Estudiante estudiante1 = ctx.estudiantes.get(0);
-    Estudiante estudiante2 = ctx.estudiantes.get(1);
-    Grupo grupoDOSW1 = ctx.grupos.get(0);
-    Grupo grupoDOSW2 = ctx.grupos.get(1);
-    Grupo grupoODSC1 = ctx.grupos.get(2);
-    Grupo grupoODSC2 = ctx.grupos.get(3);
-    Materia desarrolloSoftware = ctx.materias.get(0);
-    Materia sistemasOperativos = ctx.materias.get(1);
-
-    Solicitud solicitud1 = new Solicitud();
-    solicitud1.setId("SOL001");
-    solicitud1.setEstudianteId(estudiante1.getId());
-    solicitud1.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
-    solicitud1.setGrupoProblema(grupoDOSW1);
-    solicitud1.setMateriaProblema(desarrolloSoftware);
-    solicitud1.setGrupoDestino(grupoDOSW2);
-    solicitud1.setMateriaDestino(desarrolloSoftware);
-    solicitud1.setObservaciones("Solicito cambio de grupo debido a conflicto de horarios con trabajo de medio tiempo");
-    solicitud1.setEstado(SolicitudEstado.PENDIENTE);
-        solicitud1.setFacultad(Facultad.INGENIERIA_SISTEMAS);
-        solicitud1.setNumeroRadicado("RAD-2025-001");
-        solicitud1.setPrioridad(1);
-        solicitud1.setFechaCreacion(LocalDateTime.now());
-        
-        // Solicitud 2: Estudiante2 quiere cambiar de grupoODSC2 a grupoODSC1 (Sistemas Operativos)
-        Solicitud solicitud2 = new Solicitud();
-        solicitud2.setId("SOL002");
-        solicitud2.setEstudianteId(estudiante2.getId());
-        solicitud2.setTipoSolicitud(TipoSolicitud.CAMBIO_GRUPO);
-        solicitud2.setGrupoProblema(grupoODSC2);
-        solicitud2.setMateriaProblema(sistemasOperativos);
-        solicitud2.setGrupoDestino(grupoODSC1);
-        solicitud2.setMateriaDestino(sistemasOperativos);
-        solicitud2.setObservaciones("Solicito cambio de grupo para mejorar mi rendimiento académico en horario matutino");
-        solicitud2.setEstado(SolicitudEstado.PENDIENTE);
-        solicitud2.setFacultad(Facultad.INGENIERIA_SISTEMAS);
-        solicitud2.setNumeroRadicado("RAD-2025-002");
-        solicitud2.setPrioridad(2);
-        solicitud2.setFechaCreacion(LocalDateTime.now());
-        
-        // Guardar las solicitudes
-        solicitudRepository.saveAll(Arrays.asList(solicitud1, solicitud2));
-    }
 }
 
-/**
- * Contexto para agrupar los datos necesarios para crear solicitudes de prueba.
- */
-class SolicitudesPruebaContext {
-    final List<Estudiante> estudiantes;
-    final List<Grupo> grupos;
-    final List<Materia> materias;
-
-    SolicitudesPruebaContext(List<Estudiante> estudiantes, List<Grupo> grupos, List<Materia> materias) {
-        this.estudiantes = estudiantes;
-        this.grupos = grupos;
-        this.materias = materias;
-    }
-}
