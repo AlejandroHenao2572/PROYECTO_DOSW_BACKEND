@@ -94,16 +94,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 // Si el token es válido, establecer la autenticación
                 if (jwtService.isTokenValid(jwt, userDetails)) {
-                    // Extraer el rol del token JWT
-                    String role = jwtService.extractRole(jwt);
-                    java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
-                    if (role != null && !role.isEmpty()) {
-                        authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
-                    }
+                    // Usar las autoridades que ya vienen en userDetails (cargadas desde la BD)
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            authorities
+                            userDetails.getAuthorities() // Usar las autoridades del UserDetails
                     );
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)

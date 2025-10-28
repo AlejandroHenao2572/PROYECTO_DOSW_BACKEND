@@ -17,9 +17,31 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfigurationSource;
 
-
+/**
+ * Configuración de seguridad de Spring Security con JWT.
+ * 
+ * <p>Esta clase configura:</p>
+ * <ul>
+ *   <li>Autenticación basada en JWT (sin sesiones)</li>
+ *   <li>Autorización por roles (ADMIN, DECANO, ESTUDIANTE)</li>
+ *   <li>Protección de endpoints según roles</li>
+ *   <li>Codificación de contraseñas con BCrypt</li>
+ * </ul>
+ * 
+ * <h3>Endpoints públicos (sin autenticación):</h3>
+ * <ul>
+ *   <li>POST /api/auth/login - Login de usuarios</li>
+ *   <li>POST /api/usuarios/crear - Registro de usuarios</li>
+ * </ul>
+ * 
+ * <h3>Endpoints protegidos por rol:</h3>
+ * <ul>
+ *   <li>ADMIN: /api/admin/** - Solo administradores</li>
+ *   <li>DECANO: /api/decano/** - Solo decanos</li>
+ *   <li>ESTUDIANTE: /api/estudiante/** - Solo estudiantes</li>
+ * </ul>
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -28,7 +50,6 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
-    private final CorsConfigurationSource corsConfigurationSource;
 
     /**
      * Bean que proporciona el codificador de contraseñas BCrypt.
@@ -46,6 +67,7 @@ public class SecurityConfig {
      * @return el proveedor de autenticación configurado
      */
     @Bean
+    @SuppressWarnings("deprecation")
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
@@ -83,46 +105,47 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Habilitar CORS con la configuración personalizada
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
-            
-            // Deshabilitar CSRF 
+            // Deshabilitar CSRF (no es necesario para APIs REST stateless)
             .csrf(AbstractHttpConfigurer::disable)
-            
-            // Headers de seguridad para HTTPS
-            .headers(headers -> headers
-                // Forzar HTTPS (HSTS) - HTTP Strict Transport Security
-                .httpStrictTransportSecurity(hsts -> hsts
-                    .includeSubDomains(true)
-                    .maxAgeInSeconds(31536000) // 1 año
-                )
-                // Prevenir ataques XSS
-                .xssProtection(xss -> xss.disable())
-                // Prevenir clickjacking
-                .frameOptions(frame -> frame.deny())
-                // Control de tipo de contenido
-                .contentTypeOptions(content -> content.disable())
-            )
             
             // Configurar autorización de requests
             .authorizeHttpRequests(auth -> auth
-                // Endpoints públicos (sin autenticación)
-                .requestMatchers(getPublicEndpoints()).permitAll()
-                
+                // Endpoints públicos (sin autenticación) - Login y Registro
+                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/usuarios/login").permitAll()
+                //.requestMatchers("/api/auth/register").permitAll()
+                //.requestMatchers("/api/usuarios/register").permitAll()
+
                 // Documentación Swagger (sin autenticación)
-                .requestMatchers(getSwaggerEndpoints()).permitAll()
-                
-                // Endpoint para obtener información del usuario autenticado (cualquier rol autenticado)
-                .requestMatchers("/api/usuarios/email/self").authenticated()
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/v3/api-docs",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
                 
                 // Endpoints solo para ADMINISTRADOR
-                .requestMatchers(getAdminEndpoints()).hasRole("ADMINISTRADOR")
-                
-                // Endpoints solo para DECANO (DECANO y ADMINISTRADOR)
-                .requestMatchers(getDecanoEndpoints()).hasAnyRole("DECANO", "ADMINISTRADOR")
-                
+                .requestMatchers("/api/reportes/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/grupos/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/materias/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/auth/register").hasRole("ADMINISTRADOR")
+                .requestMatchers("/api/usuarios/register").hasRole("ADMINISTRADOR")
+
+                // Endpoints solo para DECANO
+                .requestMatchers("/api/decano/**").hasRole("DECANO")
+                .requestMatchers("/api/reportes/**").hasRole("DECANO")
+                .requestMatchers("/api/grupos/**").hasRole("DECANO")
+                .requestMatchers("/api/materias/**").hasRole("DECANO")
+                .requestMatchers("/api/usuarios/**").hasRole("DECANO")
+
                 // Endpoints solo para ESTUDIANTE
-                .requestMatchers(getEstudianteEndpoints()).hasRole("ESTUDIANTE")
+                .requestMatchers("/api/estudiante/**").hasRole("ESTUDIANTE")
+                
                 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
@@ -140,72 +163,5 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
-    }
-
-    /**
-     * Define los endpoints públicos que no requieren autenticación.
-     * 
-     * @return array de patrones de endpoints públicos
-     */
-    private String[] getPublicEndpoints() {
-        return new String[]{
-            "/api/auth/login",
-            "/api/auth/register"
-        };
-    }
-
-    /**
-     * Define los endpoints de documentación Swagger.
-     * 
-     * @return array de patrones de endpoints de Swagger
-     */
-    private String[] getSwaggerEndpoints() {
-        return new String[]{
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/v3/api-docs/**",
-            "/v3/api-docs",
-            "/swagger-resources/**",
-            "/webjars/**"
-        };
-    }
-
-    /**
-     * Define los endpoints exclusivos para el rol ADMINISTRADOR.
-     * 
-     * @return array de patrones de endpoints administrativos
-     */
-    private String[] getAdminEndpoints() {
-        return new String[]{
-            "/api/reportes/**",
-            "/api/grupos/**",
-            "/api/carreras/**",
-            "/api/materias/**",
-            "/api/usuarios/**"
-        };
-    }
-
-    /**
-     * Define los endpoints para el rol DECANO.
-     * 
-     * @return array de patrones de endpoints para decanos
-     */
-    private String[] getDecanoEndpoints() {
-        return new String[]{
-            "/api/decano/**",
-            "/api/usuarios/email/self"
-        };
-    }
-
-    /**
-     * Define los endpoints para el rol ESTUDIANTE.
-     * 
-     * @return array de patrones de endpoints para estudiantes
-     */
-    private String[] getEstudianteEndpoints() {
-        return new String[]{
-            "/api/estudiante/**",
-            "/api/usuarios/email/self"
-        };
     }
 }
