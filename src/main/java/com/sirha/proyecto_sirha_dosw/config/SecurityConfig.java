@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
  * Configuración de seguridad de Spring Security con JWT.
@@ -50,6 +51,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     /**
      * Bean que proporciona el codificador de contraseñas BCrypt.
@@ -107,6 +109,9 @@ public class SecurityConfig {
         http
             // Deshabilitar CSRF (no es necesario para APIs REST stateless)
             .csrf(AbstractHttpConfigurer::disable)
+            
+            // Habilitar CORS con la configuración personalizada
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             
             // Configurar autorización de requests
             .authorizeHttpRequests(auth -> auth
