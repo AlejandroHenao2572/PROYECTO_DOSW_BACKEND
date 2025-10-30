@@ -126,26 +126,33 @@ public class SecurityConfig {
                     "/webjars/**"
                 ).permitAll()
                 
-                // Endpoints solo para ADMINISTRADOR
-                .requestMatchers("/api/reportes/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/grupos/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/materias/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/auth/register").hasRole("ADMINISTRADOR")
-                .requestMatchers("/api/usuarios/register").hasRole("ADMINISTRADOR")
+                // ⚠️ IMPORTANTE: Las reglas más específicas deben ir PRIMERO
+                // Endpoints de grupos para ESTUDIANTE (específicos primero)
+                .requestMatchers("/api/grupos/materia/{materiaId}").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/grupos/materia/{materiaId}/disponibles").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/grupos/disponibles").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/estudiante/solicitudes").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/estudiante/solicitudes/{idEstudiante}").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/estudiante/semaforo/{idEstudiante}").hasRole("ESTUDIANTE")
+                .requestMatchers("/api/estudiante/horario/{idEstudiante}/{semestre}").hasRole("ESTUDIANTE")
 
-                // Endpoints solo para DECANO
-                .requestMatchers("/api/decano/**").hasRole("DECANO")
-                .requestMatchers("/api/reportes/**").hasRole("DECANO")
-                .requestMatchers("/api/grupos/**").hasRole("DECANO")
-                .requestMatchers("/api/materias/**").hasRole("DECANO")
-                .requestMatchers("/api/usuarios/**").hasRole("DECANO")
-
+                
                 // Endpoints solo para ESTUDIANTE
                 .requestMatchers("/api/estudiante/**").hasRole("ESTUDIANTE")
                 
+                // Endpoints solo para DECANO
+                .requestMatchers("/api/decano/**").hasRole("DECANO")
+                
+                // Endpoints de administración para ADMINISTRADOR y DECANO
+                .requestMatchers("/api/auth/register").hasAnyRole("ADMINISTRADOR", "DECANO")
+                .requestMatchers("/api/usuarios/register").hasAnyRole("ADMINISTRADOR", "DECANO")
+                .requestMatchers("/api/reportes/**").hasAnyRole("ADMINISTRADOR", "DECANO")
+                .requestMatchers("/api/grupos/**").hasAnyRole("ADMINISTRADOR", "DECANO")
+                .requestMatchers("/api/materias/**").hasAnyRole("ADMINISTRADOR", "DECANO")
+                .requestMatchers("/api/usuarios/**").hasAnyRole("ADMINISTRADOR", "DECANO")
+                
+                // Endpoints solo para ADMINISTRADOR
+                .requestMatchers("/api/carreras/**").hasRole("ADMINISTRADOR")
                 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated()
