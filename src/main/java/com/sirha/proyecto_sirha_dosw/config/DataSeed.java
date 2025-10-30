@@ -78,6 +78,8 @@ public class DataSeed implements CommandLineRunner {
         // 2. Crear materias
         Materia desarrolloSoftware = crearMateria("Desarrollo de Software", "DOSW", 4);
         Materia sistemasOperativos = crearMateria("Sistemas Operativos", "ODSC", 3);
+        desarrolloSoftware.setId("DOSW001");
+        sistemasOperativos.setId("ODSC001");
 
         // 3. Agregar materias a la carrera
         ingenieriaSistemas.getMaterias().add(desarrolloSoftware);
@@ -124,7 +126,7 @@ public class DataSeed implements CommandLineRunner {
         inscribirEstudianteEnGrupo(grupoODSC2, estudiante2.getId());
 
         // 7. Crear decano
-        Decano decano = crearDecano("Claudia", "Cely", "roberto.fernandez@universidad.edu", "decano123");
+        Decano decano = crearDecano("Claudia", "Cely", "claudia.cely@mail.escuelaing.edu.co", "decano123");
         decano.setId("DEC001");
 
         // 7.b Crear administrador con correo fijo y contraseña conocida (dev only)
@@ -135,17 +137,15 @@ public class DataSeed implements CommandLineRunner {
         materiaRepository.saveAll(Arrays.asList(desarrolloSoftware, sistemasOperativos));
 
         // Encriptar contraseñas antes de guardar usuarios (para que autenticar funcione)
-        List<Usuario> usuariosARegistrar = Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano, admin);
-        for (Usuario u : usuariosARegistrar) {
+        List<Usuario> usuariosFinales = new ArrayList<>(Arrays.asList(profesorPablo, profesorGerardo, estudiante1, estudiante2, decano, admin));
+        for (Usuario u : usuariosFinales) {
             if (u.getPassword() != null) {
                 u.setPassword(passwordEncoder.encode(u.getPassword()));
             }
         }
-        usuarioRepository.saveAll(usuariosARegistrar);
+        usuarioRepository.saveAll(usuariosFinales);
         
         grupoRepository.saveAll(Arrays.asList(grupoDOSW1, grupoDOSW2, grupoODSC1, grupoODSC2));
-
-
     }
 
     private Carrera crearCarreraConParametros(Facultad facultad, String acronimo, int duracionSemestres, int creditos) {
@@ -221,4 +221,3 @@ public class DataSeed implements CommandLineRunner {
     }
 
 }
-
