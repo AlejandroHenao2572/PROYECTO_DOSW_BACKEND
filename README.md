@@ -1167,3 +1167,20 @@ Lógica de negocio de la aplicación. Separa la lógica de los controladores.
 #### `util/`
 Clases de utilidad y helpers para operaciones comunes.
 
+---
+
+## Agradecimientos especiales
+
+Un enorme agradecimiento a todos los integrantes de este proyecto, cuyo compromiso, esfuerzo y trabajo en equipo fueron fundamentales para sacarlo adelante, incluso frente a los retos y dificultades que se presentaron durante el proceso:
+
+- **Anderson Fabian Garcia Nieto**
+- **David Alejandro Patacón Henao**
+- **Felipe Eduardo Calviche Gallego**
+- **Jared Sebastián Farfán Guevara**
+- **Kevin Arturo Cuitiva Pardo**
+- **María Paula Rodríguez Muñoz**
+
+Asimismo, un reconocimiento especial a **Pablo Andrés Melo García (Profesor)**, por su acompañamiento, orientación y apoyo constante a lo largo del desarrollo del proyecto, aportando una guía clave para que este trabajo llegara a buen término.
+
+Este proyecto es el resultado del esfuerzo colectivo, la resiliencia y la colaboración de todos los involucrados.
+
